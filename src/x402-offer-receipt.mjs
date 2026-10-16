@@ -50,7 +50,7 @@ export function opentCommitment({ receipt, salt, asset, kandidaatIdentifiers }) 
   const payload = receipt?.payload ?? receipt
   const method = payload?.authorizationMethod
   const commitment = payload?.authorizationCommitment
-  if (!method || !commitment) return { linked: false, reden: 'bonnetje heeft geen commitment' }
+  if (!method || !commitment) return { linked: false, reden: 'receipt carries no commitment' }
 
   const treffers = []
   for (const identifier of kandidaatIdentifiers ?? []) {
@@ -62,8 +62,8 @@ export function opentCommitment({ receipt, salt, asset, kandidaatIdentifiers }) 
   // §5.6.4 stap 3: precies een MOET matchen, anders linkt het bonnetje niet.
   // Bewust fail-closed: nul en twee zijn allebei "niet gelinkt", niet "waarschijnlijk".
   if (treffers.length === 1) return { linked: true, identifier: treffers[0] }
-  if (treffers.length === 0) return { linked: false, reden: 'geen enkele kandidaat opent dit commitment' }
-  return { linked: false, reden: `${treffers.length} kandidaten openen hetzelfde commitment, dus dubbelzinnig` }
+  if (treffers.length === 0) return { linked: false, reden: 'no candidate opens this commitment' }
+  return { linked: false, reden: `${treffers.length} candidates open the same commitment, so it is ambiguous` }
 }
 
 // Het voorbeeld dat in hun eigen spec staat, met de verwachte uitkomst erbij.
