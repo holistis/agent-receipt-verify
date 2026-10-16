@@ -1,0 +1,22 @@
+agent-receipt-verify
+Copyright 2026 Abdellah Ouadoudi (github.com/holistis)
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+This repository redistributes test material published by the protocols it verifies,
+so that anyone can reproduce the results without trusting this repository:
+
+- vectors/inam/vectors.json and vectors/inam/BRON-README.md
+  from inamprotocol/inam-protocol, interop/countersigned, at commit
+  d5e5f4555e7fd2ca8dedfa28bbfcddb0e6eb991d. Apache-2.0. Unmodified.
+  Those files contain test keys and made-up addresses only, as their own README states.
+
+- The worked example in src/x402-offer-receipt.mjs (asset, authorizer, nonce, salt and
+  the expected commitment) is quoted from x402-foundation/x402,
+  specs/extensions/extension-offer-and-receipt.md section 5.6.2, on the branch
+  receipt-authorization-commitment at commit 0e492d6. Apache-2.0.
+
+Neither project has reviewed or endorsed this repository. The verifiers here were
+written against the published specifications, not against those projects' source code,
+which is the point: two implementations that have not seen each other agreeing on the
+same vectors is evidence, and one implementation agreeing with itself is not.

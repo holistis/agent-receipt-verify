@@ -43,3 +43,9 @@ whether the hashes match the bytes a counterparty observed. They do not tell you
 whether an operator is honest, whether a registry holds the receipt as finalized,
 or whether the money actually moved. Those need live state and are out of scope
 here on purpose.
+
+## Provenance and license
+
+Apache-2.0, the same licence both verified projects use. Their published test material is
+redistributed unmodified with attribution; see NOTICE for the exact commits. Neither
+project has reviewed or endorsed this repository.
