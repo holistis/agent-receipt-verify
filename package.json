@@ -1,0 +1,15 @@
+{
+  "name": "agent-receipt-verify",
+  "version": "0.2.0",
+  "description": "Independent verification of payment- and outcome-proof receipts used by AI agents.",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node test/interop.mjs && node test/link-onchain.mjs",
+    "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json"
+  }
+}

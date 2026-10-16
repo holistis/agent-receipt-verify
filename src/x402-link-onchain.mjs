@@ -1,0 +1,222 @@
+// De tweede helft van 5.6.4: het commitment openen tegen de KETEN zelf.
+//
+// WAT HIER HET VERSCHIL MAAKT. Het commitment narekenen kan iedereen die het
+// zout en de nonce al heeft. Maar wie alleen een bonnetje en een zout krijgt
+// toegestuurd, HEEFT die nonce niet. 5.6.4 zegt daarom: vraag de keten welke
+// nonces deze betaler ooit heeft verbruikt, en reken het commitment na voor elke
+// kandidaat. Precies een MOET matchen. Dat is het moment waarop een bewering van
+// de ondertekenaar verandert in bewijs, en volgens 5.6.5 is dat ook het enige
+// moment waarop een teller een afrekening mag meetellen.
+//
+// GEEN SLEUTEL, GEEN ACCOUNT, GEEN PAKKETTEN. Alleen een publieke RPC en de
+// ingebouwde fetch. Dat is bewust: een controle die een API-sleutel vereist, is
+// voor een vreemde geen controle maar een drempel.
+//
+// HET ZOEKVENSTER, en waarom het niet "de hele keten" is. De publieke Base
+// Sepolia-RPC staat per aanroep maar 200 blokken toe, GEMETEN en niet uit
+// documentatie. Terugscannen over een dag zou dus ruim 200 aanroepen kosten. Een
+// bonnetje draagt echter zijn eigen tijdstip (issuedAt), en de afrekening ligt
+// daar per definitie vlak voor. We leiden het venster dus af uit het bonnetje
+// zelf en melden ALTIJD welk venster is afgezocht, zodat een lege uitslag leest
+// als "niet in dit venster" en nooit als "bestaat niet".
+
+import { readFileSync } from 'node:fs'
+import { opentCommitment } from './x402-offer-receipt.mjs'
+
+// keccak256("AuthorizationUsed(address,bytes32)"). Hardgecodeerd omdat dit
+// pakket geen afhankelijkheden heeft en een keccak-implementatie meeslepen meer
+// risico is dan deze ene constante. Zelf na te rekenen met een regel ethers:
+//   ethers.id('AuthorizationUsed(address,bytes32)')
+export const AUTHORIZATION_USED_TOPIC =
+  '0x98de503528ee59b575ef0c0a2576a82497bfc029a5685b209e9ec333479b10a5'
+
+const hex = n => '0x' + Number(n).toString(16)
+const getal = h => parseInt(h, 16)
+
+/** Een adres als 32-byte topic. Een onjuiste lengte zou stil op niets matchen. */
+export function adresAlsTopic(adres) {
+  const kaal = String(adres).replace(/^0x/i, '').toLowerCase()
+  if (!/^[0-9a-f]{40}$/.test(kaal)) throw new Error(`geen adres: ${adres}`)
+  return '0x' + kaal.padStart(64, '0')
+}
+
+export function maakRpc(url, fetchImpl = fetch) {
+  let id = 0
+  return async function rpc(method, params) {
+    const r = await fetchImpl(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: ++id, method, params }),
+      signal: AbortSignal.timeout(25000),
+    })
+    const j = await r.json()
+    if (j.error) throw new Error(`${method}: ${j.error.message}`)
+    return j.result
+  }
+}
+
+/**
+ * Zoek het blok dat bij een tijdstip hoort, door te meten in plaats van te rekenen.
+ *
+ * Een vaste bloktijd aannemen is precies het soort gok dat later stil misgaat:
+ * ketens veranderen hun tempo. Daarom eerst twee echte blokken meten voor een
+ * eerste schatting, en die daarna corrigeren tot het verschil klein genoeg is.
+ */
+export async function blokBijTijd(rpc, doelTijd, maxRondes = 6) {
+  const laatsteNr = getal(await rpc('eth_blockNumber', []))
+  const laatste = await rpc('eth_getBlockByNumber', [hex(laatsteNr), false])
+  const eerder = await rpc('eth_getBlockByNumber', [hex(laatsteNr - 1000), false])
+  const blokTijd = (getal(laatste.timestamp) - getal(eerder.timestamp)) / 1000
+  if (!(blokTijd > 0)) throw new Error('kon de bloktijd niet meten')
+
+  let kandidaat = laatsteNr - Math.round((getal(laatste.timestamp) - doelTijd) / blokTijd)
+  kandidaat = Math.max(1, Math.min(kandidaat, laatsteNr))
+  for (let i = 0; i < maxRondes; i++) {
+    const b = await rpc('eth_getBlockByNumber', [hex(kandidaat), false])
+    const verschil = getal(b.timestamp) - doelTijd
+    if (Math.abs(verschil) <= blokTijd * 2) break
+    const stap = Math.round(verschil / blokTijd)
+    const volgende = Math.max(1, Math.min(kandidaat - stap, laatsteNr))
+    if (volgende === kandidaat) break
+    kandidaat = volgende
+  }
+  return { blok: kandidaat, blokTijd, laatsteBlok: laatsteNr }
+}
+
+/**
+ * Alle nonces die deze autorisator in dit venster heeft verbruikt.
+ *
+ * In stukken van `stap` blokken, want de publieke RPC weigert een groter bereik.
+ * Een geweigerde aanroep wordt NOOIT als "geen treffers" doorgegeven: dan stopt
+ * dit met een fout, zodat een onmeetbaar venster niet als leeg venster leest.
+ */
+export async function haalKandidaten(rpc, { asset, authorizer, vanBlok, totBlok, stap = 200, maxAanroepen = 200 }) {
+  // Een bovengrens op het aantal aanroepen, want een te ruim venster is hier
+  // geen trage controle maar een onbedoelde aanval op een publieke dienst: bij
+  // 200 blokken per aanroep kost een venster van een miljoen blokken vijfduizend
+  // verzoeken. Liever vooraf stoppen met een duidelijke reden dan iemands IP
+  // laten blokkeren door ons gereedschap.
+  const nodig = Math.ceil((totBlok - vanBlok + 1) / stap)
+  if (nodig > maxAanroepen) {
+    throw new Error(
+      `that window needs ${nodig} RPC calls (limit ${maxAanroepen}); narrow it, or raise maxAanroepen deliberately`,
+    )
+  }
+  const topics = [AUTHORIZATION_USED_TOPIC, adresAlsTopic(authorizer)]
+  const nonces = []
+  let aanroepen = 0
+  for (let van = vanBlok; van <= totBlok; van += stap) {
+    const tot = Math.min(van + stap - 1, totBlok)
+    const logs = await rpc('eth_getLogs', [{ address: asset, topics, fromBlock: hex(van), toBlock: hex(tot) }])
+    aanroepen++
+    for (const l of logs) {
+      // Drie topics: de gebeurtenis zelf plus twee geindexeerde velden. Een log
+      // met een andere vorm hoort niet bij deze gebeurtenis en wordt genegeerd
+      // in plaats van half geinterpreteerd.
+      if (!Array.isArray(l.topics) || l.topics.length !== 3) continue
+      nonces.push({ nonce: l.topics[2], blok: getal(l.blockNumber), tx: l.transactionHash })
+    }
+  }
+  return { nonces, aanroepen }
+}
+
+/** Het volledige 5.6.4-pad: van bonnetje plus zout naar precies een afrekening. */
+export async function linkBonnetje(rpc, { payload, salt, asset, venster = 400 }) {
+  if (!payload?.payer) throw new Error('het bonnetje heeft geen payer, dus er is geen autorisator')
+  const issuedAt = Number(payload.issuedAt)
+  if (!Number.isFinite(issuedAt) || issuedAt <= 0) throw new Error('het bonnetje heeft geen bruikbare issuedAt')
+
+  const { blok, blokTijd, laatsteBlok } = await blokBijTijd(rpc, issuedAt)
+  const vanBlok = Math.max(1, blok - venster)
+  const totBlok = Math.min(laatsteBlok, blok + venster)
+
+  const { nonces, aanroepen } = await haalKandidaten(rpc, {
+    asset,
+    // 5.6.4 stap 1: de autorisator komt uit het ONDERTEKENDE payer-veld. Nooit
+    // uit een waarde die naast het zout is aangeleverd, want dan kan iemand het
+    // commitment laten openen op de afrekening van een ander.
+    authorizer: payload.payer,
+    vanBlok,
+    totBlok,
+  })
+
+  const uitslag = opentCommitment({
+    receipt: { payload },
+    salt,
+    asset,
+    kandidaatIdentifiers: nonces.map(n => n.nonce),
+  })
+  const treffer = uitslag.linked ? nonces.find(n => n.nonce.toLowerCase() === uitslag.identifier.toLowerCase()) : null
+
+  return {
+    ...uitslag,
+    venster: { vanBlok, totBlok, blokTijd, aanroepen, kandidaten: nonces.length },
+    afrekening: treffer ?? null,
+  }
+}
+
+// ── commandoregel ────────────────────────────────────────────────────────────
+//
+// De vlaggen en de uitslag zijn ENGELS, het commentaar hierboven Nederlands. Dat
+// is geen slordigheid: dit gereedschap is bedoeld om door een vreemde in een
+// protocoldraad gedraaid te worden, en een uitslag die hij niet kan lezen is
+// geen controle. De Nederlandse namen blijven wel werken.
+
+function vlag(namen, standaard) {
+  for (const naam of [].concat(namen)) {
+    const v = process.argv.find(a => a.startsWith(`--${naam}=`))
+    if (v) return v.slice(naam.length + 3)
+  }
+  return standaard
+}
+
+if (process.argv[1]?.endsWith('x402-link-onchain.mjs')) {
+  const pad = vlag(['receipt', 'bonnetje'])
+  if (!pad) {
+    console.log(`usage: node src/x402-link-onchain.mjs --receipt=<file.json> [--salt=0x..] [--asset=0x..] [--rpc=<url>] [--window=400]
+
+The file may be the bare artifact ({format,payload,signature}), or any JSON that
+already stores the salt and the asset next to the receipt. Section 5.6.4 needs all
+three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
+    process.exit(2)
+  }
+
+  const bestand = JSON.parse(readFileSync(pad, 'utf8'))
+  const artefact = bestand.receipt ?? bestand.bonnetje ?? bestand
+  const payload = artefact?.payload ?? artefact
+  const salt = vlag(['salt', 'zout'], bestand.authorizationSalt ?? bestand.salt)
+  const asset = vlag('asset', bestand.asset)
+  const rpcUrl = vlag('rpc', 'https://sepolia.base.org')
+  const venster = Number(vlag(['window', 'venster'], '400'))
+
+  const ontbreekt = [
+    !payload?.payer && 'payer inside the receipt',
+    !salt && 'salt (--salt=)',
+    !asset && 'asset (--asset=)',
+  ].filter(Boolean)
+  if (ontbreekt.length) {
+    console.error('missing: ' + ontbreekt.join(', '))
+    process.exit(2)
+  }
+
+  console.log(`receipt     : version ${payload.version}, payer ${payload.payer}`)
+  console.log(`commitment  : ${payload.authorizationCommitment ?? 'none (version 1)'}`)
+  console.log(`asset       : ${asset}`)
+  console.log(`rpc         : ${rpcUrl}`)
+
+  const rpc = maakRpc(rpcUrl)
+  const r = await linkBonnetje(rpc, { payload, salt, asset, venster })
+
+  console.log(`searched    : blocks ${r.venster.vanBlok} to ${r.venster.totBlok} (${r.venster.aanroepen} calls, measured block time ${r.venster.blokTijd.toFixed(2)}s)`)
+  console.log(`candidates  : ${r.venster.kandidaten} nonce(s) consumed by this payer in that window`)
+  if (r.linked) {
+    console.log('LINKED      : yes, to exactly one settlement')
+    console.log(`  nonce     : ${r.identifier}`)
+    console.log(`  tx        : ${r.afrekening.tx}`)
+    console.log(`  block     : ${r.afrekening.blok}`)
+    process.exit(0)
+  }
+  console.log(`LINKED      : no (${r.reden})`)
+  console.log('  note: that is a statement about the window searched, not about the whole chain.')
+  process.exit(1)
+}
