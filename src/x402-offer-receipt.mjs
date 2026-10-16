@@ -67,10 +67,12 @@ export function opentCommitment({ receipt, salt, asset, kandidaatIdentifiers }) 
 }
 
 // Het voorbeeld dat in hun eigen spec staat, met de verwachte uitkomst erbij.
+// Het commit staat erbij omdat die PR nog open is: een tak beweegt, een commit niet.
+// Zonder dat nummer zou deze vector stil kunnen verouderen zonder dat de test valt.
 // Dit is de hele interop-toets voor deze kant: rekenen wij uit hun tekst hetzelfde
 // getal uit als zij publiceren?
 export const SPEC_VOORBEELD = {
-  bron: 'x402-foundation/x402, specs/extensions/extension-offer-and-receipt.md §5.6.2, tak receipt-authorization-commitment',
+  bron: 'x402-foundation/x402, specs/extensions/extension-offer-and-receipt.md §5.6.2, tak receipt-authorization-commitment op commit 0e492d6730bef14b9c722428386c114f3475a914',
   invoer: {
     method: 'eip3009',
     asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
