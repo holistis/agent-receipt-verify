@@ -25,11 +25,12 @@ vectors, that is interop. One implementation agreeing with itself proves nothing
 | Format | Vectors by | Cases | Our verdicts match |
 |---|---|---|---|
 | INAM countersigned | inamprotocol/inam-protocol @ d5e5f45 | 4 | 4 / 4, identical failed-check sets |
-| x402 offer-receipt | x402-foundation/x402 | pending | pending |
+| x402 offer-receipt (commitment §5.6) | x402-foundation/x402 @ 0e492d6 | 1 published example plus 6 own edge cases | yes, byte-identical |
 
 Run it:
 
 ```sh
+node test/interop.mjs        # both formats, one verdict
 node src/inam-countersigned.mjs vectors/inam/vectors.json
 ```
 
