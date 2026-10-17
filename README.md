@@ -102,7 +102,12 @@ Point it at your own receipt with `--receipt=<file>`, and add `--salt=` and
 `--asset=` if they are not stored alongside it. All three are required: a receipt
 and a salt without the asset cannot link, which is section 5.6.4's own warning.
 
-Those payments went to a live x402 seller that issues version 2 receipts.
+Those payments went to a live x402 seller that issues version 2 receipts, and it
+publishes these cases itself, with the settlement each one should resolve to, at
+`https://api.tokenizen.nl/api/x402/conformance`. Point your own implementation at
+that and compare, or call its paid route and link a receipt you obtained yourself.
+A fixture cannot tell you whether the salt arrives at the location §5.6.3 names,
+inside a real settlement envelope; only a paid call can.
 Buyer and seller are both us, so this shows the chain closes end to end. It does
 not show that anyone else is using it.
 
