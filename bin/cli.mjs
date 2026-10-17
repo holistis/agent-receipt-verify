@@ -37,6 +37,11 @@ function gebruik() {
   console.log('  npx github:holistis/agent-receipt-verify link --receipt=<bestand>')
   console.log('        zoekt bij een bonnetje van versie 2 de bijbehorende afrekening op de keten.')
   console.log('')
+  console.log('  npx github:holistis/agent-receipt-verify mcp')
+  console.log('        draait als MCP-server over stdio, zodat een agent deze controle AANROEPT')
+  console.log('        in plaats van hem aanbevolen te krijgen. Twee gereedschappen: controleer een')
+  console.log('        eindpunt voor je betaalt, en link een bonnetje aan een echte afrekening.')
+  console.log('')
   console.log('  npx github:holistis/agent-receipt-verify inam <vectors.json>')
   console.log('        controleert countersigned bonnetjes tegen gepubliceerde vectoren.')
   console.log('')
@@ -49,6 +54,7 @@ function gebruik() {
 // importeren; dit bestand voegt alleen een ingang toe, geen tweede implementatie,
 // want twee plekken die hetzelfde doen lopen altijd uit elkaar.
 const onderdelen = {
+  mcp: '../src/mcp-server.mjs',
   census: '../src/x402-discovery-census.mjs',
   link: '../src/x402-link-onchain.mjs',
   inam: '../src/inam-countersigned.mjs',
