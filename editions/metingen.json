@@ -1,0 +1,372 @@
+{
+  "gegenereerd": "2026-10-17",
+  "aantal": 52,
+  "metingen": [
+    {
+      "url": "https://sol.blockrun.ai/api/v1/chat/completions",
+      "host": "sol.blockrun.ai",
+      "trede": 0,
+      "uitBestand": "liveness-payai-na-invoerfix.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.apibooth.com/v1/ip/:ip",
+      "host": "api.apibooth.com",
+      "trede": 0,
+      "uitBestand": "liveness-payai-na-invoerfix.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://agents.daedalusdevelopmentgroup.com/v1/email-send",
+      "host": "agents.daedalusdevelopmentgroup.com",
+      "trede": 2,
+      "uitBestand": "liveness-payai-na-ladderwijziging.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.syraa.fun/assets",
+      "host": "api.syraa.fun",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.aurelianflo.com/api/ofac-wallet-screen/0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+      "host": "api.aurelianflo.com",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://astro.dutchdata.io/api/locations/count",
+      "host": "astro.dutchdata.io",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://x402.freeq.one/tools/search_intent",
+      "host": "x402.freeq.one",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://btc-tx-toolkit.stackstats.workers.dev/psbt/analyze",
+      "host": "btc-tx-toolkit.stackstats.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://softbot-reader-mainnet.softbot.workers.dev/v1/read",
+      "host": "softbot-reader-mainnet.softbot.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.finnputerdex.com/scan/quick",
+      "host": "api.finnputerdex.com",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://agent.becoder.xyz/v1/agents/tx-decoder/decode",
+      "host": "agent.becoder.xyz",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://canonicalhash-production.up.railway.app/v1/canonicalize",
+      "host": "canonicalhash-production.up.railway.app",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.mdataaccess.com/read",
+      "host": "api.mdataaccess.com",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://hustleos-x402-feed.coolbladez05.workers.dev/v1/taskmarket/candidates",
+      "host": "hustleos-x402-feed.coolbladez05.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://argonaut-schedule-fit.vercel.app/api/v1/overlap",
+      "host": "argonaut-schedule-fit.vercel.app",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.market2000.xyz/trading/portfolio",
+      "host": "api.market2000.xyz",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://x-data-gateway.annushka1190.workers.dev/tweets/quotes",
+      "host": "x-data-gateway.annushka1190.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://domains.scrapemole.workers.dev/v1/subdomains",
+      "host": "domains.scrapemole.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "http://requirementsextract-mainnet-production.up.railway.app/requirements",
+      "host": "requirementsextract-mainnet-production.up.railway.app",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://engedi.digi-life17.workers.dev/api/news/briefing",
+      "host": "engedi.digi-life17.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.salt19.com/v1/usgs-earthquakes",
+      "host": "api.salt19.com",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://demo.aiapi.ch/v2/analyze",
+      "host": "demo.aiapi.ch",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://ask.singitai.app/v1/chat/completions",
+      "host": "ask.singitai.app",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.duoleads.com/v1/id/iban-build",
+      "host": "api.duoleads.com",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://wodan-posture.app.goedvps.com/mcp",
+      "host": "wodan-posture.app.goedvps.com",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://read.lonestaroracle.xyz/read",
+      "host": "read.lonestaroracle.xyz",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://news.lonestaroracle.xyz/news",
+      "host": "news.lonestaroracle.xyz",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://geo.lonestaroracle.xyz/risk",
+      "host": "geo.lonestaroracle.xyz",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://gibai.app/rank",
+      "host": "gibai.app",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://throne.mrsupplychain.ai/challenge",
+      "host": "throne.mrsupplychain.ai",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://penniless-json-repair.sjaman.workers.dev/repair/json",
+      "host": "penniless-json-repair.sjaman.workers.dev",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://markdown-x402.nordman-tehau.workers.dev/convert",
+      "host": "markdown-x402.nordman-tehau.workers.dev",
+      "trede": 1,
+      "uitBestand": "liveness-payai-na-ladderwijziging.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://01a046b2-7104-74c2-8a02-04715d7235e1-mj99ttjfh-xai-org.vercel.app/api/v1/chat",
+      "host": "01a046b2-7104-74c2-8a02-04715d7235e1-mj99ttjfh-xai-org.vercel.app",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://qaegxjxaavxdqihfgzhr.supabase.co/functions/v1/proof-quickscan-x402/QUICKSCAN_CONFIG_SCAN",
+      "host": "qaegxjxaavxdqihfgzhr.supabase.co",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://ratchetx.xyz/api/agent-entry",
+      "host": "ratchetx.xyz",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "http://x402-crypto-market-data.up.railway.app/historical-klines/recent",
+      "host": "x402-crypto-market-data.up.railway.app",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://app.ravn.exchange/api/v1/x402/quote",
+      "host": "app.ravn.exchange",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.demandex.dev/v1/opportunities/trending",
+      "host": "api.demandex.dev",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://diffdeck-api.vercel.app/api/providers",
+      "host": "diffdeck-api.vercel.app",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://orchard-data.letom1176.workers.dev/api/fear-greed",
+      "host": "orchard-data.letom1176.workers.dev",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://x402-seller.558686.xyz/v1/tools/x402-market-benchmark",
+      "host": "x402-seller.558686.xyz",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://three.ws/api/x402/model-check",
+      "host": "three.ws",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://402pssy.xyz/mint-1",
+      "host": "402pssy.xyz",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://arxiv-mcp.mtree.workers.dev/v1/papers/search",
+      "host": "arxiv-mcp.mtree.workers.dev",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://x402.atomicstream.net/v1/schema/stream/trending-leaderboard",
+      "host": "x402.atomicstream.net",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://www.agentgram.site/api/generate/video",
+      "host": "www.agentgram.site",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "http://lokyai.com/api/v1/crypto-market",
+      "host": "lokyai.com",
+      "trede": 0,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "http://ai42.onrender.com/chat",
+      "host": "ai42.onrender.com",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://x402.actor/xila",
+      "host": "x402.actor",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "http://try402.fun/v5",
+      "host": "try402.fun",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://api.tokenizen.nl/api/paid/verify-ownership",
+      "host": "api.tokenizen.nl",
+      "trede": 2,
+      "uitBestand": "liveness-payai.json",
+      "rol": "controle",
+      "editie": "2026-10-17"
+    },
+    {
+      "url": "https://example.com/",
+      "host": "example.com",
+      "trede": -1,
+      "uitBestand": "liveness-payai.json",
+      "rol": "controle",
+      "editie": "2026-10-17"
+    }
+  ]
+}
