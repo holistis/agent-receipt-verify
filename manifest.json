@@ -2,24 +2,45 @@
   "manifest_version": "0.3",
   "name": "agent-receipt-verify",
   "display_name": "Agent Receipt Verify",
-  "version": "0.2.0",
-  "description": "Check an x402 endpoint before an agent pays it, then link the receipt to one on-chain settlement.",
-  "author": { "name": "Abdellah Ouadoudi", "url": "https://github.com/holistis" },
+  "version": "0.2.1",
+  "description": "Checks x402 endpoint conformance before an agent pays, and links the receipt to its settlement.",
+  "author": {
+    "name": "Abdellah Ouadoudi",
+    "url": "https://github.com/holistis"
+  },
   "homepage": "https://github.com/holistis/agent-receipt-verify",
   "documentation": "https://github.com/holistis/agent-receipt-verify/blob/main/CONFORMANCE.md",
   "license": "Apache-2.0",
-  "keywords": ["x402", "receipts", "conformance", "verification", "agent-payments"],
+  "keywords": [
+    "x402",
+    "receipts",
+    "conformance",
+    "verification",
+    "agent-payments"
+  ],
   "server": {
     "type": "node",
     "entry_point": "src/mcp-server.mjs",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/src/mcp-server.mjs"]
+      "args": [
+        "${__dirname}/src/mcp-server.mjs"
+      ]
     }
   },
   "tools": [
-    { "name": "check_x402_endpoint", "description": "Before paying: which levels of a published conformance ladder a paid endpoint reaches, measured with one request and without paying." },
-    { "name": "link_receipt_to_settlement", "description": "After paying: whether the receipt opens to exactly one real on-chain settlement, answering linked, not linked, or could not check." }
+    {
+      "name": "check_x402_endpoint",
+      "description": "Before paying: which levels of a published conformance ladder a paid endpoint reaches, measured with one request and without paying."
+    },
+    {
+      "name": "link_receipt_to_settlement",
+      "description": "After paying: whether the receipt opens to exactly one real on-chain settlement, answering linked, not linked, or could not check."
+    }
   ],
-  "compatibility": { "runtimes": { "node": ">=20" } }
+  "compatibility": {
+    "runtimes": {
+      "node": ">=20"
+    }
+  }
 }
