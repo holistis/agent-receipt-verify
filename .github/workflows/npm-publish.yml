@@ -1,0 +1,94 @@
+# Publishes this package to npm, from CI and never from a laptop.
+#
+# WHY NOT FROM A LAPTOP. This account's second factor is a security key, which the npm
+# CLI cannot use, so a local publish ends up asking for a recovery code, and npm's own
+# documentation says using one triggers a 72 hour hold during which nothing can be
+# published. That has happened three times. A token used inside CI never asks for a
+# code, so this path cannot trigger that hold. A repository guard also blocks
+# `npm publish` on a developer machine for the same reason.
+#
+# WHY MANUAL ONLY. Publishing is close to irreversible: npm restricts unpublishing
+# after 72 hours and once anything depends on the package. A human decides when, and
+# the version that goes out is whatever package.json says at that moment.
+#
+# THE ORDER IS THE POINT. Nothing is published before the suite passes, before the
+# version is confirmed absent from the registry, and before the tarball is confirmed to
+# carry NOTICE and LICENSE. That last one is not politeness: this repository
+# redistributes test vectors from three other projects under Apache-2.0, and that
+# licence requires the NOTICE to travel with them.
+name: npm-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      bevestig:
+        description: 'Type publish to confirm'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse unless the dispatch said publish
+        run: |
+          if [ "${{ inputs.bevestig }}" != "publish" ]; then
+            echo "the confirmation box did not say publish, stopping before anything happens"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: The suite must pass before anything is published
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+
+      - name: Read the version, and refuse if it is already on the registry
+        id: versie
+        run: |
+          V=$(node -p "require('./package.json').version")
+          N=$(node -p "require('./package.json').name")
+          echo "name=$N" >> "$GITHUB_OUTPUT"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://registry.npmjs.org/$N/$V")
+          echo "registry answered $CODE for $N@$V"
+          if [ "$CODE" = "200" ]; then
+            echo "that version already exists, nothing to do"
+            exit 1
+          fi
+
+      - name: The tarball must carry NOTICE and LICENSE
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const files = JSON.parse(execSync("npm pack --dry-run --json", { encoding: "utf8" }))[0]
+              .files.map((f) => f.path);
+            const missing = ["NOTICE", "LICENSE", "bin/cli.mjs", "profiles/x402-deployed-ladder-v1.json"]
+              .filter((f) => !files.includes(f));
+            if (missing.length) {
+              console.error("the tarball is missing: " + missing.join(", "));
+              process.exit(1);
+            }
+            console.log("tarball carries " + files.length + " files, including NOTICE and LICENSE");
+          '
+
+      - name: Publish
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Check from outside what the registry now serves
+        run: |
+          sleep 15
+          npm view "${{ steps.versie.outputs.name }}@${{ steps.versie.outputs.version }}" version dist.tarball
+          cd "$(mktemp -d)"
+          npx -y "${{ steps.versie.outputs.name }}@${{ steps.versie.outputs.version }}" kanon
