@@ -48,6 +48,10 @@ function gebruik() {
   console.log('Wat dit NIET doet: het oordeelt over de VORM van een bonnetje, niet over de')
   console.log('eerlijkheid van de partij die het afgaf. Zie CONFORMANCE.md voor wat met opzet')
   console.log('niet gemeten wordt.')
+  console.log('')
+  console.log('  npx github:holistis/agent-receipt-verify kanon')
+  console.log('        cross-check our independent EIP-3009 verifier against the ten published')
+  console.log('        vectors of iamonuwa/kanon, offline, no account and no key.')
 }
 
 // Het argument bepaalt welke module draait. De modules zijn ook los te draaien en te
@@ -59,6 +63,7 @@ const onderdelen = {
   link: '../src/x402-link-onchain.mjs',
   inam: '../src/inam-countersigned.mjs',
   liveness: '../src/x402-index-liveness.mjs',
+  kanon: '../src/eip3009-autorisatie.mjs',
 }
 
 if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {

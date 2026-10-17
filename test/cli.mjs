@@ -25,6 +25,8 @@ const draai = (...args) => spawnSync(process.execPath, [CLI, ...args], { encodin
   t('help werkt en eindigt op 0', r.status === 0, 'status ' + r.status)
   t('help noemt het npx-commando', r.stdout.includes('npx github:holistis/agent-receipt-verify'))
   t('help noemt ook wat het NIET doet', /niet gemeten|NIET doet/.test(r.stdout))
+  t('help noemt de kruiscontrole, want een ingang die niemand kent bestaat niet',
+    r.stdout.includes('kanon'))
 }
 {
   const r = draai()
@@ -51,5 +53,15 @@ const draai = (...args) => spawnSync(process.execPath, [CLI, ...args], { encodin
 }
 
 console.log('')
+console.log('')
+console.log('de kruiscontrole als los onderdeel')
+{
+  const r = draai('kanon')
+  t('kanon draait en eindigt op 0, want wij zijn het met alle tien eens', r.status === 0, 'status ' + r.status)
+  t('en meldt de uitslag in woorden die een vreemde kan lezen', /agree on 10 of 10/.test(r.stdout))
+  t('en noemt de gepinde commit van de bron', /0d5a7461e996/.test(r.stdout))
+  t('en zegt expliciet dat wij niet tegen hun broncode schreven', /never against/.test(r.stdout))
+}
+
 console.log('cli: ' + goed + ' pass, ' + fout + ' fail')
 if (fout > 0) process.exitCode = 1

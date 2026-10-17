@@ -29,3 +29,11 @@ Neither project has reviewed or endorsed this repository. The verifiers here wer
 written against the published specifications, not against those projects' source code,
 which is the point: two implementations that have not seen each other agreeing on the
 same vectors is evidence, and one implementation agreeing with itself is not.
+
+- vectors/kanon/*.json
+  from iamonuwa/kanon, vectors/x402/exact/evm/eip3009/, at commit 0d5a7461e996,
+  Apache-2.0, redistributed unmodified. Ten EIP-3009 payment-authorization vectors,
+  each carrying its own expected verdict and reason code. src/eip3009-autorisatie.mjs
+  is an independent implementation written against those vectors and against EIP-3009
+  and EIP-712, never against that project's source. That project has not reviewed or
+  endorsed this repository.
