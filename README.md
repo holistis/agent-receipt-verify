@@ -160,3 +160,35 @@ The settlement link does read live chain state, and these are its real edges:
 Apache-2.0, the same licence both verified projects use. Their published test material is
 redistributed unmodified with attribution; see NOTICE for the exact commits. Neither
 project has reviewed or endorsed this repository.
+
+## Check your own endpoint, in one command
+
+No install, no account, nothing published to npm:
+
+```sh
+npx github:holistis/agent-receipt-verify https://your-endpoint.example/paid
+```
+
+It measures levels 0 to 2 of the ladder in [CONFORMANCE.md](CONFORMANCE.md) without
+paying. Levels 3 to 5 need a real settlement and come back as not measured, never as
+failed. What it deliberately does not measure is listed in that same file.
+
+## A badge for an endpoint that was measured
+
+If an edition covered your endpoint, there is a badge for it:
+
+```md
+[![x402 receipt](https://api.tokenizen.nl/api/x402/badge?url=https%3A%2F%2Fyour-endpoint.example%2Fpaid)](https://github.com/holistis/agent-receipt-verify/blob/main/CONFORMANCE.md)
+```
+
+The same data as JSON is at `/api/x402/badge.json?url=...`.
+
+Two things about that badge, because both are deliberate. It never measures live: it
+answers from a dated measurement, so nobody can use that endpoint to probe arbitrary
+hosts, and the number does not change on every hiccup. And the measurement date is
+rendered inside the badge, so a badge that has gone stale is visibly old rather than
+quietly wrong.
+
+An endpoint no edition has covered comes back as `measured: false`, not as level 0.
+Those are different claims: one says we looked and found nothing, the other says we
+never looked.
