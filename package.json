@@ -9,7 +9,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/conformance.mjs && node test/jws-offer.mjs && node test/census.mjs",
+    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/conformance.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/cli.mjs",
     "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json",
     "conformance": "node src/x402-conformance-check.mjs",
     "bench": "node bench/robustness.mjs",
@@ -18,5 +18,16 @@
   },
   "optionalDependencies": {
     "ethers": "^6.17.0"
-  }
+  },
+  "bin": {
+    "agent-receipt-verify": "bin/cli.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "vectors/",
+    "examples/",
+    "CONFORMANCE.md",
+    "README.md"
+  ]
 }
