@@ -1,1 +1,6 @@
 node_modules/
+
+# Gestageerde bundel, wordt bij elke release opnieuw gebouwd
+build/
+*.mcpb
+server.publish.json

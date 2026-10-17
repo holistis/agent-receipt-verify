@@ -1,0 +1,135 @@
+# Publishes this server to the official MCP registry, which is what MCP clients read.
+#
+# Why OIDC and no secret. `mcp-publisher login github-oidc` authenticates as this
+# repository's own identity, which the registry trusts for the io.github.holistis/*
+# namespace. There is nothing stored here to rotate and nothing to leak.
+#
+# Why the package entry is built here and not committed. The registry needs the
+# sha256 of the file it will serve. A hash committed in server.json would be a claim
+# about a file that does not exist yet, and it would go stale the moment the asset is
+# rebuilt. So server.json in the repository carries only what is true as written, and
+# the package entry is composed from the asset that was actually attached to this
+# release, hashed after downloading it back from the URL a stranger would use.
+#
+# Order matters. Nothing is published before the suite passes, before the bundle has
+# answered a real initialize over stdio, and before the hash of the served file
+# matches the hash we are about to publish. A listed server that cannot start is
+# worse than an unlisted one, because the failure then lands on a stranger.
+name: registry
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (defaults to the latest release)'
+        required: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: The suite must pass before anything is claimed
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+
+      - name: Work out which tag we are publishing
+        id: tag
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          if [ -z "$TAG" ]; then TAG="${{ inputs.tag }}"; fi
+          if [ -z "$TAG" ]; then TAG=$(gh release view --json tagName --jq .tagName); fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "publishing tag $TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Stage the bundle and make it prove it speaks MCP
+        run: node tools/bundel-bouw.mjs build/bundle
+
+      - name: Pack the bundle
+        id: pack
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME="agent-receipt-verify-$VERSION.mcpb"
+          npx --yes @anthropic-ai/mcpb@2 pack build/bundle "$NAME"
+          ls -l "$NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Attach it to the release
+        run: gh release upload "${{ steps.tag.outputs.tag }}" "${{ steps.pack.outputs.name }}" --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Hash the file as a stranger receives it, not as we built it
+        id: hash
+        run: |
+          URL="https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/${{ steps.pack.outputs.name }}"
+          curl -sSfL -o served.mcpb "$URL"
+          LOCAL=$(sha256sum "${{ steps.pack.outputs.name }}" | cut -d' ' -f1)
+          SERVED=$(sha256sum served.mcpb | cut -d' ' -f1)
+          echo "built  $LOCAL"
+          echo "served $SERVED"
+          if [ "$LOCAL" != "$SERVED" ]; then echo "the attached file is not the file we built, refusing to publish"; exit 1; fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "sha=$SERVED" >> "$GITHUB_OUTPUT"
+
+      - name: Compose the document to publish, and check it against the registry's limits
+        run: |
+          node -e '
+            const fs = require("fs");
+            const doc = JSON.parse(fs.readFileSync("server.json", "utf8"));
+            doc.packages = [{
+              registryType: "mcpb",
+              identifier: process.env.URL,
+              fileSha256: process.env.SHA,
+              version: process.env.VERSION,
+              transport: { type: "stdio" },
+            }];
+            const fout = [];
+            if (!/^io\.github\.holistis\//.test(doc.name)) fout.push("name outside our own OIDC namespace: " + doc.name);
+            if (doc.description.length > 100) fout.push("description " + doc.description.length + " > 100");
+            if (doc.version !== process.env.VERSION) fout.push("server.json says " + doc.version + ", the package is " + process.env.VERSION);
+            if (!/^[0-9a-f]{64}$/.test(doc.packages[0].fileSha256)) fout.push("sha256 is not 64 hex characters");
+            if (!/^https:\/\/github\.com\//.test(doc.packages[0].identifier)) fout.push("the identifier is not a github release url");
+            if (fout.length) { console.error("this document would be rejected:\n  " + fout.join("\n  ")); process.exit(1); }
+            fs.writeFileSync("server.publish.json", JSON.stringify(doc, null, 2) + "\n");
+            console.log(JSON.stringify(doc, null, 2));
+          '
+        env:
+          URL: ${{ steps.hash.outputs.url }}
+          SHA: ${{ steps.hash.outputs.sha }}
+          VERSION: ${{ steps.pack.outputs.version }}
+
+      - name: Fetch the publisher, pinned
+        run: |
+          VER=v1.8.1
+          curl -sSfL -o publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/$VER/mcp-publisher_linux_amd64.tar.gz"
+          tar -xzf publisher.tar.gz mcp-publisher
+          chmod +x mcp-publisher
+          ./mcp-publisher --version || true
+
+      - name: Publish
+        run: |
+          cp server.publish.json server.json
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
+
+      - name: Show what the registry now serves
+        run: |
+          sleep 10
+          curl -sSfL "https://registry.modelcontextprotocol.io/v0/servers?search=agent-receipt-verify" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);const l=(j.servers||j.data||[]);console.log("hits: "+l.length);for(const x of l)console.log("  "+(x.name||x.server?.name));});'
