@@ -31,7 +31,8 @@
 // "niet in dit venster" en nooit als "bestaat niet". Verbreden gaat via
 // --window, en dat is ook wat de spec-notitie nu aanraadt bij geen match.
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { opentCommitment } from './x402-offer-receipt.mjs'
 
 // keccak256("AuthorizationUsed(address,bytes32)"). Hardgecodeerd omdat dit
@@ -181,6 +182,30 @@ function vlag(namen, standaard) {
   return standaard
 }
 
+/**
+ * Waar ligt dit bonnetje: in de werkmap van de aanroeper, of meegeleverd met het pakket.
+ *
+ * WAAROM DIT BESTAAT. De drie live voorbeelden worden met het pakket meegeleverd, en
+ * elke publieke uitleg zegt `--receipt=examples/...`. Wie dat via npx draait staat in
+ * zijn EIGEN map, heeft daar geen examples/, en kreeg tot vandaag een kale
+ * ENOENT-stacktrace. Voor een gereedschap dat om narekenbaarheid vraagt is dat de
+ * ergste uitkomst die er is: het commando dat wij publiceren moet draaien bij de
+ * vreemde die het probeert, niet alleen bij ons.
+ *
+ * Een pad dat de aanroeper zelf meegeeft gaat ALTIJD voor. Pas als dat niet bestaat
+ * komt het meegeleverde bestand in beeld, en dan meldt de aanroeper dat ook, want stil
+ * een ander bestand lezen dan gevraagd is erger dan een foutmelding.
+ *
+ * Pure functie met een injecteerbare bestaat-check, zodat een test beide takken kan
+ * aantonen zonder bestanden aan te maken of het proces af te breken.
+ */
+export function kiesBonnetjePad(pad, { bestaat = existsSync } = {}) {
+  if (bestaat(pad)) return { pad, uitPakket: false }
+  const inPakket = fileURLToPath(new URL('../' + String(pad).replace(/^\.?\//, ''), import.meta.url))
+  if (bestaat(inPakket)) return { pad: inPakket, uitPakket: true }
+  return null
+}
+
 if (process.argv[1]?.endsWith('x402-link-onchain.mjs')) {
   const pad = vlag(['receipt', 'bonnetje'])
   if (!pad) {
@@ -192,7 +217,14 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
     process.exit(2)
   }
 
-  const bestand = JSON.parse(readFileSync(pad, 'utf8'))
+  const gekozen = kiesBonnetjePad(pad)
+  if (!gekozen) {
+    console.log(`cannot find ${pad}, neither here nor inside the package.`)
+    console.log('The three live examples ship with it: examples/receipt-live-base-sepolia.json, -2.json and -3.json.')
+    process.exit(2)
+  }
+  if (gekozen.uitPakket) console.log(`(not found in the working directory, using the copy shipped with the package: ${pad})`)
+  const bestand = JSON.parse(readFileSync(gekozen.pad, 'utf8'))
   const artefact = bestand.receipt ?? bestand.bonnetje ?? bestand
   const payload = artefact?.payload ?? artefact
   const salt = vlag(['salt', 'zout'], bestand.authorizationSalt ?? bestand.salt)
