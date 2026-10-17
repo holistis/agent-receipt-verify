@@ -26,6 +26,16 @@ console.log('registratiegegevens')
   t('de beschrijving blijft onder de 100 tekens die het register toestaat',
     srv.description.length > 0 && srv.description.length <= 100)
   t('de drie verplichte velden staan erin', !!(srv.name && srv.description && srv.version))
+
+  // GEMETEN LES, 2026-10-17. De eerste publicatie stond in het register en was
+  // tegelijk onvindbaar op de enige zoekterm die ons iets oplevert: de categorie
+  // conformance telde vier regels onder twee namen, en ons woord stond niet in onze
+  // eigen beschrijving. Het register zoekt op naam en beschrijving, dus een
+  // positionering die alleen in onze README staat, bestaat voor een zoeker niet.
+  for (const woord of ['x402', 'conformance', 'receipt', 'settlement']) {
+    t('de beschrijving bevat "' + woord + '", anders zijn wij op die zoekterm onvindbaar',
+      srv.description.toLowerCase().includes(woord))
+  }
   t('de repository wijst naar ons, anders levert een vermelding ons niets op',
     srv.repository?.url === 'https://github.com/holistis/agent-receipt-verify')
   t('er staat GEEN packages-blok in het bestand zelf, want de hash is pas bij een release bekend',
