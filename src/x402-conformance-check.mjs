@@ -121,10 +121,19 @@ export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST' } 
     return r
   }
   const controle = await verifyOfferSignature(aanbiedingen[0])
-  r.treden.t2 = controle.ok ? 'HAALT' : 'HAALT_NIET'
+  // ONGEMETEN, niet HAALT_NIET, als de controle niet KON draaien: een onbekend
+  // algoritme of een sleutel die niet op te halen is, zegt niets over de partij.
+  // Dit bestand beweert dat beginsel in zijn eigen kop al en volgde het hier niet.
+  r.treden.t2 = controle.ok ? 'HAALT' : controle.ongemeten ? 'ONGEMETEN' : 'HAALT_NIET'
   r.bewijs.t2 = controle.ok
-    ? 'offer signed by ' + controle.signer
-    : 'the signature on the offer does not verify: ' + controle.reden
+    ? 'offer signed by ' + controle.signer + (controle.codering ? ', key as ' + controle.codering : '')
+    : controle.ongemeten
+      ? 'the signature was not checked: ' + controle.reden
+      : 'the signature on the offer does not verify: ' + controle.reden
+  // Een afwijkende sleutelcodering is een eigen uitslag: de handtekening klopt, maar
+  // een verifieerder die zich aan de specificatie houdt weigert de sleutel. Dat mag
+  // niet verdwijnen achter een groene trede.
+  if (controle.afwijking) r.bewijs.t2afwijking = controle.afwijking
 
   // TREDE 3 tot 5 vereisen een echte betaling. Ongemeten is niet afgekeurd, en
   // dat onderscheid hoort in de uitslag te staan in plaats van te verdwijnen.

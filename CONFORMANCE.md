@@ -41,7 +41,7 @@ rather than as absent.
 |---|---|---|---|
 | 0 | asks for payment the way x402 says | HTTP 402 carrying `accepts[]` with `scheme`, `network`, `payTo` and an amount, in the body or in the `Payment-Required` header | yes |
 | 1 | declares the offer-receipt extension | the 402 carries an `offer-receipt` entry in `extensions` | yes |
-| 2 | signs its offer, and the signature verifies | `extensions["offer-receipt"].info.offers[0]` is an `eip712` artifact whose signature recovers to an address | yes |
+| 2 | signs its offer, and the signature verifies | `extensions["offer-receipt"].info.offers[0]` is a signed artifact whose signature verifies: an `eip712` artifact recovering to an address, or a `jws` with an EdDSA signature over the offer payload whose key resolves from its `kid` | yes |
 | 3 | emits a receipt that verifies | after payment, the settlement response carries a receipt whose signature recovers to the same signer | no |
 | 4 | receipt is version 2, and the salt arrives where §5.6.3 says | `payload.version` is 2 with both commitment fields, and the salt is at `extensions["offer-receipt"].info.authorizationSalt` | no |
 | 5 | the commitment opens against the chain to exactly one settlement | §5.6.4 run against live chain state resolves to exactly one `AuthorizationUsed` nonce | no |
@@ -52,6 +52,11 @@ would make the level meaningless.
 
 Level 2 requires the signature to verify, not merely to be present. A declaration
 with an unverifiable signature is a claim about a claim.
+
+Level 2 accepts either signature form. A signature that cannot be checked because
+this checker does not implement its algorithm is recorded as not measured, never as
+not reached: not supported and not valid are different answers, and only one of them
+is about the operator.
 
 ## How to reproduce it
 
@@ -85,3 +90,15 @@ The levels live as data in `src/x402-conformance-treden.mjs`. If a level is adde
 removed or reworded, that is a new edition with a new date, and the old one stays
 readable. A measurement whose unit silently moved is worse than no measurement,
 because it looks comparable and is not.
+
+### 2026-10-17, level 2 widened
+
+Level 2 required an `eip712` artifact. Measuring live endpoints found an operator
+that does sign its offer, in `jws` with an EdDSA signature and a `did:web` key, and
+this ladder scored that as a failure. That was a defect in the unit, not in the
+operator: a ladder that does not know a valid form measures that party wrongly and
+would have made a published number false. Level 2 now asks for a signed offer whose
+signature verifies, in either form, and names the forms it cannot check.
+
+The results that led to this are in `editions/2026-10-17/`, including the live
+measurement that produced the wrong score before the fix.

@@ -1,0 +1,68 @@
+--- controls first, because a sweep where everything fails proves nothing ---
+  ok   https://api.tokenizen.nl/api/paid/verify-ownership  expected L2, measured L2
+  ok   https://example.com/  expected L-1, measured L-1
+
+--- sample: 50 of 1127 hosts ---
+--  400  verzoek_geweigerd       sol.blockrun.ai
+--  400  verzoek_geweigerd       api.apibooth.com
+L1  402  x402_ok                 agents.daedalusdevelopmentgroup.com
+L0  402  x402_ok                 api.syraa.fun
+L0  402  x402_ok                 api.aurelianflo.com
+L0  402  x402_ok                 astro.dutchdata.io
+L0  402  x402_ok                 x402.freeq.one
+L0  402  x402_ok                 btc-tx-toolkit.stackstats.workers.dev
+L0  402  x402_ok                 softbot-reader-mainnet.softbot.workers.dev
+L0  402  x402_ok                 api.finnputerdex.com
+L0  402  x402_ok                 agent.becoder.xyz
+L0  402  x402_ok                 canonicalhash-production.up.railway.app
+L0  402  x402_ok                 api.mdataaccess.com
+L0  402  x402_ok                 hustleos-x402-feed.coolbladez05.workers.dev
+L0  402  x402_ok                 argonaut-schedule-fit.vercel.app
+--  ---  onbereikbaar            api.market2000.xyz
+L0  402  x402_ok                 x-data-gateway.annushka1190.workers.dev
+L0  402  x402_ok                 domains.scrapemole.workers.dev
+--  404  pad_weg                 requirementsextract-mainnet-production.up.railway.app
+L0  402  x402_ok                 engedi.digi-life17.workers.dev
+--  ---  onbereikbaar            api.salt19.com
+--  429  tempo_geweigerd         demo.aiapi.ch
+L0  402  x402_ok                 ask.singitai.app
+L0  402  x402_ok                 api.duoleads.com
+--  404  pad_weg                 wodan-posture.app.goedvps.com
+L0  402  x402_ok                 read.lonestaroracle.xyz
+L0  402  x402_ok                 news.lonestaroracle.xyz
+L0  402  x402_ok                 geo.lonestaroracle.xyz
+L0  402  x402_ok                 gibai.app
+--  ---  onbereikbaar            throne.mrsupplychain.ai
+L0  402  x402_ok                 penniless-json-repair.sjaman.workers.dev
+L1  402  x402_ok                 markdown-x402.nordman-tehau.workers.dev
+--  401  afgeschermd             01a046b2-7104-74c2-8a02-04715d7235e1-mj99ttjfh-xai-org.vercel.app
+L0  402  x402_ok                 qaegxjxaavxdqihfgzhr.supabase.co
+--  405  methode_geweigerd       ratchetx.xyz
+--  404  pad_weg                 x402-crypto-market-data.up.railway.app
+L0  402  x402_ok                 app.ravn.exchange
+--  404  pad_weg                 api.demandex.dev
+--  405  methode_geweigerd       diffdeck-api.vercel.app
+--  404  pad_weg                 orchard-data.letom1176.workers.dev
+L0  402  x402_ok                 x402-seller.558686.xyz
+--  405  methode_geweigerd       three.ws
+L0  402  x402_ok                 402pssy.xyz
+--  ---  onbereikbaar            arxiv-mcp.mtree.workers.dev
+L0  402  x402_ok                 x402.atomicstream.net
+L0  402  x402_ok                 www.agentgram.site
+L0  402  x402_ok                 lokyai.com
+--  ---  onbereikbaar            ai42.onrender.com
+--  404  pad_weg                 x402.actor
+--  404  pad_weg                 try402.fun
+
+    31  x402_ok  (62.0%)
+     7  pad_weg  (14.0%)
+     5  onbereikbaar  (10.0%)
+     3  methode_geweigerd  (6.0%)
+     2  verzoek_geweigerd  (4.0%)
+     1  tempo_geweigerd  (2.0%)
+     1  afgeschermd  (2.0%)
+
+  31 of 50 sampled hosts answer the way x402 says (level 0)
+  levels 1 to 5 are not reported here: the census found 0 of 1127 hosts declaring the offer-receipt extension, so there is no population to measure
+
+written: editions/2026-10-17/liveness-payai.json
