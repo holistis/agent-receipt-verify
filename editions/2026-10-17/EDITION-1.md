@@ -68,10 +68,18 @@ finding:
 One party holds 51.8% of the index across eleven subdomains, each carrying between
 65 and 1,583 registrations. The three largest domains hold 61.2% together.
 
-This is why the unit in CONFORMANCE.md is the operator and not the resource. Anyone
-quoting the size of this index as a count of resources is quoting one party for more
-than half of it. Count per operator and the same index reads as about a thousand
-parties, most of them with a single endpoint.
+That concentration is not padding, and it was checked before it was written down.
+Of that party's 10,632 registrations, 10,631 carry a distinct description and 10,632
+a distinct path: genuinely separate endpoints ("does this site use OneTrust", "free
+films of the 1960s", one per path), on six price points. So this is a real catalogue
+of thousands of small paid endpoints, not a list stuffed with copies, and nothing
+here should be read as an accusation.
+
+Which is exactly why the unit in CONFORMANCE.md is the operator and not the
+resource. Resources measure catalogue size; operators measure how many parties are
+in the market. Anyone quoting this index's resource count as the size of x402 is
+quoting one party's catalogue for more than half of it. Count per operator and the
+same index reads as about a thousand parties, most of them with a single endpoint.
 
 Two limits on that domain grouping, in both directions, because it cuts both ways:
 
