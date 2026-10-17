@@ -1,0 +1,38 @@
+# Runs the same suite the README points at, so the claim that it passes is checkable
+# by anyone instead of being a sentence we wrote about our own machine.
+#
+# Two versions on purpose. package.json says node >=20, and a claim about a version
+# range is only worth what it is tested on: 20 is the floor, 22 is what we develop on.
+#
+# The suite itself touches no network and needs no keys, which is why there are no
+# secrets here and why a fork's pull request can run it unchanged. The three live
+# on-chain checks are a separate script (npm run link-example) and are deliberately
+# NOT in CI: a public RPC that is briefly down would turn a red build into a lie
+# about our code.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # Not `npm ci`: there is a lockfile, but ethers is an optional dependency and the
+      # point of this job is that the suite passes the way a stranger installs it.
+      - run: npm install --no-audit --no-fund
+      - run: npm test
