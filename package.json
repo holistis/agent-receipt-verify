@@ -9,12 +9,13 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/conformance.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/cli.mjs",
+    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/conformance.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/poortwachters.mjs && node test/cli.mjs",
     "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json",
     "conformance": "node src/x402-conformance-check.mjs",
     "bench": "node bench/robustness.mjs",
     "census": "node src/x402-discovery-census.mjs",
-    "liveness": "node src/x402-index-liveness.mjs"
+    "liveness": "node src/x402-index-liveness.mjs",
+    "poortwachters": "node src/x402-poortwachters.mjs"
   },
   "optionalDependencies": {
     "ethers": "^6.17.0"

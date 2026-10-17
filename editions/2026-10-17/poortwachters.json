@@ -1,0 +1,372 @@
+{
+  "bron": "docs/dev-tools/facilitators.md in x402-foundation/x402, plus x402.org/facilitator",
+  "controles": {
+    "positief": {
+      "g2": true
+    },
+    "negatief": {
+      "trede": -1
+    },
+    "geldig": true
+  },
+  "poortwachters": [
+    {
+      "naam": "payai",
+      "basis": "https://facilitator.payai.network",
+      "bewijs": {
+        "g0": "32 netwerk(en), scheme(s): exact, batch-settlement",
+        "g1": "noemt: bazaar, eip2612GasSponsoring, erc20ApprovalGasSponsoring",
+        "g2": "100 op de eerste pagina",
+        "g3": "meldt totaal 20649",
+        "g4": "grootste host intel.rallylive.ca is 21.0% van 100 op de EERSTE PAGINA, over 16 hosts. Dit is een ondergrens: een volledige census van dezelfde index gaf een duidelijk hoger aandeel."
+      },
+      "g0": true,
+      "netwerken": [
+        "base-sepolia",
+        "base",
+        "avalanche-fuji",
+        "avalanche",
+        "sei",
+        "sei-testnet",
+        "polygon",
+        "polygon-amoy",
+        "xlayer",
+        "xlayer-testnet",
+        "skale-base",
+        "skale-base-sepolia",
+        "arbitrum",
+        "arbitrum-sepolia",
+        "eip155:8453",
+        "eip155:84532",
+        "eip155:43114",
+        "eip155:43113",
+        "eip155:1329",
+        "eip155:713715",
+        "eip155:137",
+        "eip155:80002",
+        "eip155:196",
+        "eip155:1952",
+        "eip155:1187947933",
+        "eip155:324705682",
+        "eip155:42161",
+        "eip155:421614",
+        "solana",
+        "solana-devnet",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1"
+      ],
+      "schemes": [
+        "exact",
+        "batch-settlement"
+      ],
+      "g1": true,
+      "extensies": [
+        "bazaar",
+        "eip2612GasSponsoring",
+        "erc20ApprovalGasSponsoring"
+      ],
+      "g2": true,
+      "g3": true,
+      "gemeldTotaal": 20649,
+      "concentratie": {
+        "hosts": 16,
+        "grootste": "intel.rallylive.ca",
+        "aandeel": 0.21,
+        "gemeten": 100
+      },
+      "g4": true,
+      "trede": 4
+    },
+    {
+      "naam": "x402.org",
+      "basis": "https://x402.org/facilitator",
+      "bewijs": {
+        "g0": "9 netwerk(en), scheme(s): exact, upto, batch-settlement",
+        "g1": "noemt: builder-code, eip2612GasSponsoring, erc20ApprovalGasSponsoring",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": true,
+      "netwerken": [
+        "eip155:84532",
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+        "algorand:SGO1GKSzyE7IEPItTxCByw9x8FmnrCDe",
+        "aptos:2",
+        "stellar:testnet",
+        "hedera:testnet",
+        "xrpl:1",
+        "base-sepolia",
+        "solana-devnet"
+      ],
+      "schemes": [
+        "exact",
+        "upto",
+        "batch-settlement"
+      ],
+      "g1": true,
+      "extensies": [
+        "builder-code",
+        "eip2612GasSponsoring",
+        "erc20ApprovalGasSponsoring"
+      ],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": 1
+    },
+    {
+      "naam": "celo",
+      "basis": "https://api.x402.celo.org",
+      "bewijs": {
+        "g0": "2 netwerk(en), scheme(s): exact",
+        "g1": "noemt: eip2612GasSponsoring",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": true,
+      "netwerken": [
+        "eip155:42220",
+        "celo"
+      ],
+      "schemes": [
+        "exact"
+      ],
+      "g1": true,
+      "extensies": [
+        "eip2612GasSponsoring"
+      ],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": 1
+    },
+    {
+      "naam": "celo-sepolia",
+      "basis": "https://api.x402.sepolia.celo.org",
+      "bewijs": {
+        "g0": "2 netwerk(en), scheme(s): exact",
+        "g1": "noemt: eip2612GasSponsoring, payment-identifier",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": true,
+      "netwerken": [
+        "eip155:11142220",
+        "celo-sepolia"
+      ],
+      "schemes": [
+        "exact"
+      ],
+      "g1": true,
+      "extensies": [
+        "eip2612GasSponsoring",
+        "payment-identifier"
+      ],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": 1
+    },
+    {
+      "naam": "corbits",
+      "basis": "https://corbits.dev",
+      "bewijs": {
+        "g0": "geen bruikbaar /supported (status 404)",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": false,
+      "netwerken": [],
+      "schemes": [],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": -1
+    },
+    {
+      "naam": "dexter",
+      "basis": "https://dexter.cash/facilitator",
+      "bewijs": {
+        "g0": "geen bruikbaar /supported (status 404)",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": false,
+      "netwerken": [],
+      "schemes": [],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": -1
+    },
+    {
+      "naam": "mogami",
+      "basis": "https://facilitator.mogami.tech",
+      "bewijs": {
+        "g0": "2 netwerk(en), scheme(s): exact",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": true,
+      "netwerken": [
+        "base-sepolia",
+        "base"
+      ],
+      "schemes": [
+        "exact"
+      ],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": 0
+    },
+    {
+      "naam": "mrdn",
+      "basis": "https://mrdn.finance",
+      "bewijs": {
+        "g0": "geen bruikbaar /supported (status 404)",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": false,
+      "netwerken": [],
+      "schemes": [],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": -1
+    },
+    {
+      "naam": "solvador",
+      "basis": "https://solvador.com",
+      "bewijs": {
+        "g0": "geen bruikbaar /supported (status 404)",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": false,
+      "netwerken": [],
+      "schemes": [],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": -1
+    },
+    {
+      "naam": "mikedotexe",
+      "basis": "https://x402.mikedotexe.com",
+      "bewijs": {
+        "g0": "1 netwerk(en), scheme(s): exact",
+        "g1": "noemt: payment-identifier",
+        "g2": "0 op de eerste pagina",
+        "g3": "meldt totaal 0",
+        "g4": "index zonder bruikbare adressen"
+      },
+      "g0": true,
+      "netwerken": [
+        "near:mainnet"
+      ],
+      "schemes": [
+        "exact"
+      ],
+      "g1": true,
+      "extensies": [
+        "payment-identifier"
+      ],
+      "g2": true,
+      "g3": true,
+      "gemeldTotaal": 0,
+      "concentratie": {
+        "hosts": 0,
+        "grootste": null,
+        "aandeel": null,
+        "gemeten": 0
+      },
+      "g4": false,
+      "trede": 3
+    },
+    {
+      "naam": "t54-xrpl",
+      "basis": "https://xrpl-x402.t54.ai",
+      "bewijs": {
+        "g0": "geen bruikbaar /supported (status 404)",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": false,
+      "netwerken": [],
+      "schemes": [],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": -1
+    },
+    {
+      "naam": "ftptech",
+      "basis": "https://www.ftptech.xyz/x402",
+      "bewijs": {
+        "g0": "geen bruikbaar /supported (status 404)",
+        "g1": "noemt geen enkele extensie",
+        "g2": "geen index (status 404)",
+        "g3": "meldt geen totaal, dus zijn omvang is niet na te rekenen",
+        "g4": "geen index om te wegen"
+      },
+      "g0": false,
+      "netwerken": [],
+      "schemes": [],
+      "g1": false,
+      "extensies": [],
+      "g2": false,
+      "g3": false,
+      "gemeldTotaal": null,
+      "concentratie": null,
+      "g4": false,
+      "trede": -1
+    }
+  ]
+}
