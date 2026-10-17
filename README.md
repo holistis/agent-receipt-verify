@@ -26,7 +26,7 @@ vectors, that is interop. One implementation agreeing with itself proves nothing
 |---|---|---|---|
 | INAM countersigned | inamprotocol/inam-protocol @ d5e5f45 | 4 | 4 / 4, identical failed-check sets |
 | x402 offer-receipt (commitment §5.6) | x402-foundation/x402 @ 0e492d6 | 1 published example plus 6 own edge cases | yes, byte-identical |
-| x402 settlement link (§5.6.4, on chain) | own tests plus two live settlements | 20 offline, 2 live | yes, each resolves to its own settlement |
+| x402 settlement link (§5.6.4, on chain) | own tests plus three live settlements | 22 offline, 3 live | yes, each resolves to its own settlement |
 
 ```sh
 npm test      # all of the above, no network, no keys
@@ -49,8 +49,8 @@ receipts with different salts for one settlement, or a commitment that opens to
 nothing at all. So a consumer that counts settlements, for a deduplicated or
 Sybil-resistant count, may count only the commitments that someone has opened.
 
-Here are two payments with identical terms: same payer, same payee, same amount,
-same resource, minutes apart on Base Sepolia. Without a commitment these two
+Here are three payments with identical terms: same payer, same payee, same
+amount, same resource, minutes apart on Base Sepolia. Without a commitment those
 receipts could not be told apart. Each one still resolves to its own settlement:
 
 ```sh
@@ -58,43 +58,44 @@ npm run link-example
 ```
 
 ```
-receipt     : version 2, payer 0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1
 commitment  : 0x5c35a61a09a566a9c284fad18a70ac2ddfff34d01d2a3ce776ce94e8d5b38ff8
-searched    : blocks 48208971 to 48209643 (4 calls, measured block time 2.00s)
 candidates  : 2 nonce(s) consumed by this payer in that window
 LINKED      : yes, to exactly one settlement
-  nonce     : 0x1120412c78ea1b2e8bf9eacfc3264c71a23ecd9b1fa579eb16030693344d5dfe
   tx        : 0xed87b09bfb20a8c8b69908e163fcea6432d193d389640c0465afcb5561dfeb30
 
-receipt     : version 2, payer 0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1
 commitment  : 0xfecee93e1aec7d6858a218bf324f23e2a4eed07925d8d4542b9662c5026e3d22
-searched    : blocks 48209215 to 48209643 (3 calls, measured block time 2.00s)
+candidates  : 3 nonce(s) consumed by this payer in that window
+LINKED      : yes, to exactly one settlement
+  tx        : 0x2898d0ceb97ddf60af98e19c94fc0adddbdf1e64f9032e62454085e37acfe36b
+
+commitment  : 0xea8dd34b8beac90f021a4e8d893a689c25249f86947770c8e6647c1cde206008
 candidates  : 2 nonce(s) consumed by this payer in that window
 LINKED      : yes, to exactly one settlement
-  nonce     : 0x515895dfac6f148a4cfdf5c4f8266b7859dbd6534cdf77104b1be9f484eb5005
-  tx        : 0x2898d0ceb97ddf60af98e19c94fc0adddbdf1e64f9032e62454085e37acfe36b
+  tx        : 0x2a9e95d63a5af8210767baa69143b364dad51caffc29a152c77e03bc508d7199
 ```
 
-Both runs see the same two candidate nonces on chain. Each receipt's commitment
-picks out one of them, and a different one. That is the ambiguity section 5.6.1
+Each window is centred on its own receipt's `issuedAt`, which is why the
+candidate counts differ: the middle receipt's window covers all three payments
+and it still picks out exactly one. That is the ambiguity section 5.6.1
 describes, resolved against live state.
 
-The upper block number will not match the output above exactly when you run it:
-the window is capped at the current chain head until the head passes it. The
-verdict and the transaction hashes do not move.
+Two things in that output move and the verdict does not. The candidate count
+rises as that payer consumes more nonces, and the upper block number is capped
+at the current chain head until the head passes it. The transaction each receipt
+resolves to is fixed.
 
-The two files in `examples/` hold exactly what section 5.6.4 says a later verifier
+The three files in `examples/` hold exactly what section 5.6.4 says a later verifier
 has: the receipt, its salt, and the asset that was paid. The nonces and the
 transaction hashes are deliberately kept out of them. Those come out of
 `AuthorizationUsed(address,bytes32)` logs on the token contract, and the tool
 accepts an answer only when exactly one candidate opens the commitment. Zero
-matches and two matches are both reported as not linked, never as a best guess.
+matches and more than one match are both reported as not linked, never as a best guess.
 
 Point it at your own receipt with `--receipt=<file>`, and add `--salt=` and
 `--asset=` if they are not stored alongside it. All three are required: a receipt
 and a salt without the asset cannot link, which is section 5.6.4's own warning.
 
-Those two payments went to a live x402 seller that issues version 2 receipts.
+Those payments went to a live x402 seller that issues version 2 receipts.
 Buyer and seller are both us, so this shows the chain closes end to end. It does
 not show that anyone else is using it.
 

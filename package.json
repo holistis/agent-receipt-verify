@@ -10,6 +10,6 @@
   },
   "scripts": {
     "test": "node test/interop.mjs && node test/link-onchain.mjs",
-    "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json"
+    "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json"
   }
 }
