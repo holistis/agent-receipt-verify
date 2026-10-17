@@ -1,0 +1,178 @@
+{
+  "$schema": "./profile.schema.json",
+  "profile": "x402-deployed-ladder",
+  "version": "1.0.0",
+  "published": "2026-10-17",
+  "intent": "Passive audit of a deployed third-party x402 endpoint from the response it already returns, without cooperation from its operator and without paying.",
+  "notMeasured": "Whether the party behind the endpoint is honest, whether the service does what it advertises, whether a price is fair, and anything that needs a settlement. See CONFORMANCE.md for the full list.",
+  "outcomes": {
+    "pass": "The check ran and the response satisfies it.",
+    "fail": "The check ran and the response does not satisfy it.",
+    "skip": "The check was deliberately not attempted, because this profile is passive and the check needs something a passive run will not do, such as paying.",
+    "inconclusive": "The check was attempted and could not decide, for example because a signature algorithm or a key location is outside what the runner supports. Never report this as fail: a runner's own gap is not a defect of the endpoint."
+  },
+  "wireStates": {
+    "note": "The reference runner in this repository emits three states for backward compatibility. This table maps them onto the four outcomes above, so a consumer of this profile can translate without reading our code.",
+    "HAALT": "pass",
+    "HAALT_NIET": "fail",
+    "ONGEMETEN": "skip when the check declares whenNotObservable skip, inconclusive otherwise"
+  },
+  "specs": {
+    "x402-http-v2": {
+      "repo": "x402-foundation/x402",
+      "path": "specs/transports-v2/http.md",
+      "commit": "faa1c694c66a",
+      "state": "merged on main",
+      "retrieved": "2026-10-17"
+    },
+    "offer-receipt": {
+      "repo": "x402-foundation/x402",
+      "path": "specs/extensions/extension-offer-and-receipt.md",
+      "commit": "faa1c694c66a",
+      "state": "merged on main",
+      "retrieved": "2026-10-17"
+    },
+    "offer-receipt-commitment": {
+      "repo": "x402-foundation/x402",
+      "path": "specs/extensions/extension-offer-and-receipt.md",
+      "commit": "0e492d6",
+      "state": "proposed, not merged",
+      "pullRequest": 3827,
+      "retrieved": "2026-10-17",
+      "warning": "Sections 5.6 through 5.6.5 do not exist in the version on main. They exist only on this pull request, which is open. The pinned commit is four commits ahead of main and is fetchable, but the section numbers can still move before it merges. Any check referencing this spec entry is measuring against a proposal, and a result carrying it should say so."
+    }
+  },
+  "relatedWork": {
+    "x402-core-vectors": {
+      "repo": "x402-foundation/x402",
+      "path": "conformance/vectors/x402-core/",
+      "pullRequest": 2776,
+      "state": "proposed, not merged",
+      "note": "That set names a requirement and the request that exercises it, for an implementer proving their own implementation. Its expected field is the same sentence on every vector, so it carries no machine-checkable expectation. This profile references its ids where the subject overlaps rather than restating the requirement, and adds the three things a passive run needs: which input the check requires, what is actually asserted, and what to report when the check cannot decide. Raised as a question in issue 3396."
+    }
+  },
+  "checks": [
+    {
+      "id": "ARV-L0",
+      "key": "t0",
+      "level": 0,
+      "name": "asks for payment the way x402 says",
+      "requirement": "HTTP 402 carrying accepts[] with scheme, network, payTo and an amount, in the body or in the Payment-Required header",
+      "clause": [
+        { "spec": "x402-http-v2", "section": "Payment Required Signaling" },
+        { "spec": "x402-http-v2", "section": "Header Summary" }
+      ],
+      "input": { "needs": ["response status", "response headers", "response body"], "requests": 1, "pays": false },
+      "assertion": {
+        "evaluator": "statusAndAccepts",
+        "describes": "status is 402, and an accepts entry is reachable either in the JSON body or base64 in the Payment-Required header, carrying all four fields"
+      },
+      "normative": "MUST",
+      "whenNotObservable": "inconclusive",
+      "relatedVectors": [
+        { "set": "x402-core-vectors", "id": "X4-001", "subject": "402 payment challenge headers present" }
+      ]
+    },
+    {
+      "id": "ARV-L1",
+      "key": "t1",
+      "level": 1,
+      "name": "declares the offer-receipt extension",
+      "requirement": "the 402 carries an offer-receipt entry in extensions",
+      "clause": [
+        { "spec": "offer-receipt", "section": "4.1 Placement", "quote": "extensions[\"offer-receipt\"].info.offers[]" }
+      ],
+      "input": { "needs": ["the same 402 as ARV-L0"], "requests": 0, "pays": false },
+      "assertion": {
+        "evaluator": "extensionDeclared",
+        "describes": "extensions carries an offer-receipt key, counted from either the object form or the array form"
+      },
+      "normative": "SHOULD",
+      "whenNotObservable": "inconclusive",
+      "relatedVectors": []
+    },
+    {
+      "id": "ARV-L2",
+      "key": "t2",
+      "level": 2,
+      "name": "signs its offer, and the signature verifies",
+      "requirement": "extensions[\"offer-receipt\"].info.offers[0] is a signed artifact whose signature verifies: either an eip712 artifact recovering to an address, or a jws with an EdDSA signature over the offer payload whose key resolves from its kid",
+      "clause": [
+        { "spec": "offer-receipt", "section": "3.1 Common Object Shape" },
+        { "spec": "offer-receipt", "section": "3.3 JWS Header Requirements" },
+        { "spec": "offer-receipt", "section": "4.3 EIP-712 Types for Offer (Normative Schema)" },
+        { "spec": "offer-receipt", "section": "4.5 Offer Verification" },
+        { "spec": "offer-receipt", "section": "4.5.1 Signer Authorization" }
+      ],
+      "input": { "needs": ["the same 402 as ARV-L0", "for a jws offer with a did:web kid: one https fetch of that did document"], "requests": 0, "pays": false },
+      "assertion": {
+        "evaluator": "offerSignatureVerifies",
+        "describes": "the artifact's format is recognised and its signature verifies over the offer payload"
+      },
+      "normative": "SHOULD",
+      "whenNotObservable": "inconclusive",
+      "inconclusiveWhen": [
+        "the signature algorithm is not one this runner implements",
+        "the key cannot be resolved, for example a did:web document that does not answer or whose publicKeyMultibase is not multibase over multicodec 0xed01",
+        "the optional ethers dependency is absent, which is what an eip712 recovery needs"
+      ],
+      "relatedVectors": []
+    },
+    {
+      "id": "ARV-L3",
+      "key": "t3",
+      "level": 3,
+      "name": "emits a receipt that verifies",
+      "requirement": "after payment, the settlement response carries a receipt whose signature recovers to the same signer",
+      "clause": [
+        { "spec": "offer-receipt", "section": "5.1 Placement", "quote": "extensions[\"offer-receipt\"].info.receipt" },
+        { "spec": "offer-receipt", "section": "5.5 Receipt Verification" }
+      ],
+      "input": { "needs": ["a settlement response from a paid request"], "requests": 1, "pays": true },
+      "assertion": {
+        "evaluator": "receiptSignatureVerifies",
+        "describes": "a receipt is present and its signature recovers to the signer that signed the offer"
+      },
+      "normative": "SHOULD",
+      "whenNotObservable": "skip",
+      "relatedVectors": []
+    },
+    {
+      "id": "ARV-L4",
+      "key": "t4",
+      "level": 4,
+      "name": "receipt is version 2 and the salt arrives where 5.6.3 says",
+      "requirement": "payload.version is 2 with both commitment fields, and the salt is at extensions[\"offer-receipt\"].info.authorizationSalt",
+      "clause": [
+        { "spec": "offer-receipt-commitment", "section": "5.6 Authorization Commitment (receipt version 2)" },
+        { "spec": "offer-receipt-commitment", "section": "5.6.3 Salt" }
+      ],
+      "input": { "needs": ["a settlement response from a paid request"], "requests": 0, "pays": true },
+      "assertion": {
+        "evaluator": "receiptVersionTwoAndSaltPlacement",
+        "describes": "payload.version is 2, both commitment fields are present, and the salt sits outside the signed payload at the declared location"
+      },
+      "normative": "MUST",
+      "whenNotObservable": "skip",
+      "relatedVectors": []
+    },
+    {
+      "id": "ARV-L5",
+      "key": "t5",
+      "level": 5,
+      "name": "the commitment opens against the chain to exactly one settlement",
+      "requirement": "section 5.6.4 run against live chain state resolves to exactly one AuthorizationUsed nonce",
+      "clause": [
+        { "spec": "offer-receipt-commitment", "section": "5.6.4 Linking a receipt to its settlement (eip3009)" }
+      ],
+      "input": { "needs": ["a receipt", "its authorization salt", "the asset that was paid", "a chain read"], "requests": 0, "pays": true },
+      "assertion": {
+        "evaluator": "commitmentOpensOnExactlyOneNonce",
+        "describes": "recomputing the commitment over candidate AuthorizationUsed nonces opens on exactly one; zero and more than one both fail closed"
+      },
+      "normative": "MUST",
+      "whenNotObservable": "skip",
+      "relatedVectors": []
+    }
+  ]
+}

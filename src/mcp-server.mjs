@@ -33,7 +33,7 @@
 // alsnog rommel verkopen. Zie CONFORMANCE.md voor wat met opzet niet gemeten wordt.
 
 import { meetEindpunt, hoogsteTrede } from './x402-conformance-check.mjs'
-import { TREDEN } from './x402-conformance-treden.mjs'
+import { TREDEN, PROFIEL } from './x402-conformance-treden.mjs'
 import { maakRpc, linkBonnetje } from './x402-link-onchain.mjs'
 
 const PROTOCOL = '2025-11-25'
@@ -116,8 +116,22 @@ async function doeCheckEndpoint(args) {
     if (m.bewijs[t.sleutel]) regels.push('      ' + m.bewijs[t.sleutel])
   }
   if (m.bewijs.t2afwijking) regels.push('', 'note on the key: ' + m.bewijs.t2afwijking)
+  // De uitslag draagt nu ook WAAR de ladder vandaan komt. Een cijfer zonder
+  // herkomst is een mening, en een trede die tegen een nog niet samengevoegd
+  // voorstel meet, hoort dat zelf te zeggen in plaats van het aan de lezer te laten.
+  const voorstelTreden = TREDEN.filter((t) => t.citeertVoorstel).map((t) => 'L' + t.nummer)
   regels.push(
     '',
+    'Ladder: profile ' + PROFIEL.profile + ' v' + PROFIEL.version + ' of ' + PROFIEL.published +
+      ', which names the clause behind every level: profiles/x402-deployed-ladder-v1.json',
+  )
+  if (voorstelTreden.length) {
+    regels.push(
+      voorstelTreden.join(' and ') + ' are measured against sections 5.6 and later of the offer-receipt ' +
+        'extension, which exist only in pull request 3827 and are not merged. Their numbering can still move.',
+    )
+  }
+  regels.push(
     'Levels 3 to 5 cannot be observed without paying, so they are reported as not measured rather than absent.',
     'The ladder and what it deliberately does not measure: https://github.com/holistis/agent-receipt-verify/blob/main/CONFORMANCE.md',
     'This judges the form of an endpoint, not the honesty of the party behind it.',
