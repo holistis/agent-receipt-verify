@@ -1,0 +1,73 @@
+{
+  "waarom": "Two hosts returned 400 in the published sample. Both were our own fault, not theirs: one got an empty body on a route whose declared bodyFields require parameters, the other got its template URL requested literally with the colon still in it, while the index supplied the value. Re-measured here with the input the index itself declares. Only these two could change from this fix; the other 48 did not receive a second request.",
+  "gemetenOp": "2026-10-17",
+  "metingen": [
+    {
+      "host": "sol.blockrun.ai",
+      "url": "https://sol.blockrun.ai/api/v1/chat/completions",
+      "methode": "POST",
+      "pathParams": null,
+      "lichaam": {
+        "model": "openai/gpt-5.4",
+        "stream": false,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hello"
+          }
+        ],
+        "max_tokens": 256,
+        "temperature": 1
+      },
+      "eerder": "400, leeg lichaam naar een route die velden declareert",
+      "gevraagdeUrl": "https://sol.blockrun.ai/api/v1/chat/completions",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp, 1005 to AQqnMFBwGZEoti85aTVRy8XYpKrho7GaMDx9ZB3CEeKA",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "AQqnMFBwGZEoti85aTVRy8XYpKrho7GaMDx9ZB3CEeKA"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "api.apibooth.com",
+      "url": "https://api.apibooth.com/v1/ip/:ip",
+      "methode": "GET",
+      "pathParams": {
+        "ip": "8.8.8.8"
+      },
+      "lichaam": null,
+      "eerder": "400, sjabloon-url letterlijk opgevraagd",
+      "gevraagdeUrl": "https://api.apibooth.com/v1/ip/8.8.8.8",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 5000 to 0x1250BffE0E1863AEdf6f7F66D94e39453A8A9990",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x1250BffE0E1863AEdf6f7F66D94e39453A8A9990"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    }
+  ]
+}

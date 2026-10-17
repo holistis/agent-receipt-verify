@@ -1,0 +1,1198 @@
+{
+  "LET_OP": "This run predates two fixes made the same day and is kept unchanged because it is what exposed them. Do not read its numbers as the edition's result. (1) The ladder's level 2 only knew eip712, so agents.daedalusdevelopmentgroup.com reads as level 1 here while its jws signature is valid; corrected in liveness-payai-na-ladderwijziging.json. (2) Two hosts read as 400 here because of our own request: an empty body on a route that declares required fields, and a template URL requested literally with the colon still in it; corrected in liveness-payai-na-invoerfix.json. The corrected result is in EDITION-1.md.",
+  "bron": "https://facilitator.payai.network/discovery/resources",
+  "steekproefregel": "per host the resource with the lowest index position; hosts sorted by that position ascending; every nth taken so the sample spans the whole registration order; the method each party declares in the index",
+  "hostsInCensus": 1127,
+  "steekproefGrootte": 50,
+  "controles": [
+    {
+      "url": "https://api.tokenizen.nl/api/paid/verify-ownership",
+      "methode": "POST",
+      "verwacht": 2,
+      "gemeten": 2,
+      "emmer": "x402_ok",
+      "status": 402,
+      "ok": true
+    },
+    {
+      "url": "https://example.com/",
+      "methode": "GET",
+      "verwacht": -1,
+      "gemeten": -1,
+      "emmer": "geen_betaalmuur",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "controlesGoed": true,
+  "emmers": {
+    "verzoek_geweigerd": 2,
+    "x402_ok": 31,
+    "onbereikbaar": 5,
+    "pad_weg": 7,
+    "tempo_geweigerd": 1,
+    "afgeschermd": 1,
+    "methode_geweigerd": 3
+  },
+  "metingen": [
+    {
+      "host": "sol.blockrun.ai",
+      "url": "https://sol.blockrun.ai/api/v1/chat/completions",
+      "indexPositie": 0,
+      "registratiesVanDezeHost": 46,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 400,
+      "hoogsteTrede": -1,
+      "emmer": "verzoek_geweigerd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 400,
+        "t0": "status 400 instead of 402"
+      }
+    },
+    {
+      "host": "api.apibooth.com",
+      "url": "https://api.apibooth.com/v1/ip/:ip",
+      "indexPositie": 169,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 400,
+      "hoogsteTrede": -1,
+      "emmer": "verzoek_geweigerd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 400,
+        "t0": "status 400 instead of 402"
+      }
+    },
+    {
+      "host": "agents.daedalusdevelopmentgroup.com",
+      "url": "https://agents.daedalusdevelopmentgroup.com/v1/email-send",
+      "indexPositie": 1045,
+      "registratiesVanDezeHost": 280,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 1,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT",
+        "t2": "HAALT_NIET",
+        "t3": "ONGEMETEN",
+        "t4": "ONGEMETEN",
+        "t5": "ONGEMETEN"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0x8AfBD522F8a16BEa184b41c593B8925a66830Bc6",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x8AfBD522F8a16BEa184b41c593B8925a66830Bc6"
+        },
+        "t1": "declares offer-receipt",
+        "t2": "the signature on the offer does not verify: geen eip712-artefact met payload en signature",
+        "t3": "needs a real settlement, not attempted",
+        "t4": "needs a real settlement, not attempted",
+        "t5": "needs a real settlement, not attempted"
+      }
+    },
+    {
+      "host": "api.syraa.fun",
+      "url": "https://api.syraa.fun/assets",
+      "indexPositie": 1090,
+      "registratiesVanDezeHost": 59,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp, 1000 to 53JhuF8bgxvUQ59nDG6kWs4awUQYCS3wswQmUsV5uC7t",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "53JhuF8bgxvUQ59nDG6kWs4awUQYCS3wswQmUsV5uC7t"
+        },
+        "t1": "no offer-receipt in extensions (bazaar, builder-code)"
+      }
+    },
+    {
+      "host": "api.aurelianflo.com",
+      "url": "https://api.aurelianflo.com/api/ofac-wallet-screen/0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+      "indexPositie": 1209,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0x348Df429BD49A7506128c74CE1124A81B4B7dC9d",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x348Df429BD49A7506128c74CE1124A81B4B7dC9d"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "astro.dutchdata.io",
+      "url": "https://astro.dutchdata.io/api/locations/count",
+      "indexPositie": 1281,
+      "registratiesVanDezeHost": 8,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0xa783B7548aF268666E4FbfaCbf5B18A19d87445d",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xa783B7548aF268666E4FbfaCbf5B18A19d87445d"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "x402.freeq.one",
+      "url": "https://x402.freeq.one/tools/search_intent",
+      "indexPositie": 1322,
+      "registratiesVanDezeHost": 43,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 20000 to 0x90b0dC893406d6eA63bb077ED59F5e8340f98d84",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x90b0dC893406d6eA63bb077ED59F5e8340f98d84"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "btc-tx-toolkit.stackstats.workers.dev",
+      "url": "https://btc-tx-toolkit.stackstats.workers.dev/psbt/analyze",
+      "indexPositie": 1358,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 5000 to 0xF112724ab539e7CDAA8b1F65347292621a83aFC9",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xF112724ab539e7CDAA8b1F65347292621a83aFC9"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "softbot-reader-mainnet.softbot.workers.dev",
+      "url": "https://softbot-reader-mainnet.softbot.workers.dev/v1/read",
+      "indexPositie": 1481,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp, 3000 to 9csHbkGGeQqNxvtZw8hPnC34NCcmZoZXVTEGC1MiDNRE",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "9csHbkGGeQqNxvtZw8hPnC34NCcmZoZXVTEGC1MiDNRE"
+        },
+        "t1": "no offer-receipt in extensions (sign-in-with-x, bazaar)"
+      }
+    },
+    {
+      "host": "api.finnputerdex.com",
+      "url": "https://api.finnputerdex.com/scan/quick",
+      "indexPositie": 1547,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp, 5000 to DBPBtnKHHJVD2r6zTcsngzk8PXooYDogwMudqjSVaB7",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "DBPBtnKHHJVD2r6zTcsngzk8PXooYDogwMudqjSVaB7"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "agent.becoder.xyz",
+      "url": "https://agent.becoder.xyz/v1/agents/tx-decoder/decode",
+      "indexPositie": 1604,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 5000 to 0xB8697d4381c944cc740b0Cd69B25C07C3964b232",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xB8697d4381c944cc740b0Cd69B25C07C3964b232"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "canonicalhash-production.up.railway.app",
+      "url": "https://canonicalhash-production.up.railway.app/v1/canonicalize",
+      "indexPositie": 1646,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 2000 to 0xfBF6eb2d6eF4D4a2F528aDEF116d641CA5E89681",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "payTo": "0xfBF6eb2d6eF4D4a2F528aDEF116d641CA5E89681"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "api.mdataaccess.com",
+      "url": "https://api.mdataaccess.com/read",
+      "indexPositie": 1683,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 2000 to 0x9aa51F7141dC677aB2dA923C62007dB3051Aa017",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x9aa51F7141dC677aB2dA923C62007dB3051Aa017"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "hustleos-x402-feed.coolbladez05.workers.dev",
+      "url": "https://hustleos-x402-feed.coolbladez05.workers.dev/v1/taskmarket/candidates",
+      "indexPositie": 1772,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 1000 to 0x17808B1E58F6da1639Ec1017086E30047434Df18",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x17808B1E58F6da1639Ec1017086E30047434Df18"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "argonaut-schedule-fit.vercel.app",
+      "url": "https://argonaut-schedule-fit.vercel.app/api/v1/overlap",
+      "indexPositie": 1824,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 1000 to 0x5e2023b1D1366d6366E768fe432AD627bfAa5d57",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x5e2023b1D1366d6366E768fe432AD627bfAa5d57"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "api.market2000.xyz",
+      "url": "https://api.market2000.xyz/trading/portfolio",
+      "indexPositie": 1860,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": null,
+      "hoogsteTrede": -1,
+      "emmer": "onbereikbaar",
+      "treden": {
+        "t0": "ONGEMETEN"
+      },
+      "bewijs": {
+        "t0": "not reachable: The operation was aborted due to timeout"
+      }
+    },
+    {
+      "host": "x-data-gateway.annushka1190.workers.dev",
+      "url": "https://x-data-gateway.annushka1190.workers.dev/tweets/quotes",
+      "indexPositie": 2869,
+      "registratiesVanDezeHost": 21,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 8000 to 0x4f4C15d9bD7c796A9f9B769b78323EA3E0054104",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x4f4C15d9bD7c796A9f9B769b78323EA3E0054104"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "domains.scrapemole.workers.dev",
+      "url": "https://domains.scrapemole.workers.dev/v1/subdomains",
+      "indexPositie": 3179,
+      "registratiesVanDezeHost": 6,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 3000 to 0xCb535d13C7fC5Fe6C2B88da3f3601B840CCaf8Bc",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xCb535d13C7fC5Fe6C2B88da3f3601B840CCaf8Bc"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "requirementsextract-mainnet-production.up.railway.app",
+      "url": "http://requirementsextract-mainnet-production.up.railway.app/requirements",
+      "indexPositie": 3545,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "engedi.digi-life17.workers.dev",
+      "url": "https://engedi.digi-life17.workers.dev/api/news/briefing",
+      "indexPositie": 5959,
+      "registratiesVanDezeHost": 45,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0x06b525eb86790851a5632a01b513bee51ca32189",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x06b525eb86790851a5632a01b513bee51ca32189"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "api.salt19.com",
+      "url": "https://api.salt19.com/v1/usgs-earthquakes",
+      "indexPositie": 6316,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": null,
+      "hoogsteTrede": -1,
+      "emmer": "onbereikbaar",
+      "treden": {
+        "t0": "ONGEMETEN"
+      },
+      "bewijs": {
+        "t0": "not reachable: The operation was aborted due to timeout"
+      }
+    },
+    {
+      "host": "demo.aiapi.ch",
+      "url": "https://demo.aiapi.ch/v2/analyze",
+      "indexPositie": 7762,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 429,
+      "hoogsteTrede": -1,
+      "emmer": "tempo_geweigerd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 429,
+        "t0": "status 429 instead of 402"
+      }
+    },
+    {
+      "host": "ask.singitai.app",
+      "url": "https://ask.singitai.app/v1/chat/completions",
+      "indexPositie": 10710,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "upto on solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp, 3000 to 4an2sqamWWhny9mjLsMtGXCDXakeNtg6vSLq4QvhdmQu",
+        "accepts0": {
+          "scheme": "upto",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "4an2sqamWWhny9mjLsMtGXCDXakeNtg6vSLq4QvhdmQu"
+        },
+        "t1": "no offer-receipt in extensions (eip2612GasSponsoring, bazaar)"
+      }
+    },
+    {
+      "host": "api.duoleads.com",
+      "url": "https://api.duoleads.com/v1/id/iban-build",
+      "indexPositie": 13449,
+      "registratiesVanDezeHost": 33,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 50000 to 0xCD673f7e1daD254347AEab6be0DEFe8b9C6b3A39",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xCD673f7e1daD254347AEab6be0DEFe8b9C6b3A39"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "wodan-posture.app.goedvps.com",
+      "url": "https://wodan-posture.app.goedvps.com/mcp",
+      "indexPositie": 15304,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "read.lonestaroracle.xyz",
+      "url": "https://read.lonestaroracle.xyz/read",
+      "indexPositie": 15349,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 5000 to 0x52Ab53912D37759B2ad364f22dD06B16714b6C06",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x52Ab53912D37759B2ad364f22dD06B16714b6C06"
+        },
+        "t1": "no offer-receipt in extensions (bazaar, merchant)"
+      }
+    },
+    {
+      "host": "news.lonestaroracle.xyz",
+      "url": "https://news.lonestaroracle.xyz/news",
+      "indexPositie": 15372,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 50000 to 0x52Ab53912D37759B2ad364f22dD06B16714b6C06",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x52Ab53912D37759B2ad364f22dD06B16714b6C06"
+        },
+        "t1": "no offer-receipt in extensions (bazaar, merchant)"
+      }
+    },
+    {
+      "host": "geo.lonestaroracle.xyz",
+      "url": "https://geo.lonestaroracle.xyz/risk",
+      "indexPositie": 15394,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 70000 to 0x52Ab53912D37759B2ad364f22dD06B16714b6C06",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x52Ab53912D37759B2ad364f22dD06B16714b6C06"
+        },
+        "t1": "no offer-receipt in extensions (bazaar, merchant)"
+      }
+    },
+    {
+      "host": "gibai.app",
+      "url": "https://gibai.app/rank",
+      "indexPositie": 15436,
+      "registratiesVanDezeHost": 5,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0xEa09587Ed59DC18EC3A307E35E96b315d3a9614f",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xEa09587Ed59DC18EC3A307E35E96b315d3a9614f"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "throne.mrsupplychain.ai",
+      "url": "https://throne.mrsupplychain.ai/challenge",
+      "indexPositie": 15562,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": null,
+      "hoogsteTrede": -1,
+      "emmer": "onbereikbaar",
+      "treden": {
+        "t0": "ONGEMETEN"
+      },
+      "bewijs": {
+        "t0": "not reachable: The operation was aborted due to timeout"
+      }
+    },
+    {
+      "host": "penniless-json-repair.sjaman.workers.dev",
+      "url": "https://penniless-json-repair.sjaman.workers.dev/repair/json",
+      "indexPositie": 15764,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 1000 to 0x3D98800c64C345950E1eAaa076D88C12d1BF5F37",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x3D98800c64C345950E1eAaa076D88C12d1BF5F37"
+        },
+        "t1": "no offer-receipt in extensions (no extensions)"
+      }
+    },
+    {
+      "host": "markdown-x402.nordman-tehau.workers.dev",
+      "url": "https://markdown-x402.nordman-tehau.workers.dev/convert",
+      "indexPositie": 15855,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 1,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT",
+        "t2": "HAALT_NIET",
+        "t3": "ONGEMETEN",
+        "t4": "ONGEMETEN",
+        "t5": "ONGEMETEN"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 5000 to 0x762cf9834691286218D873eA04B898E26F0963c5",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x762cf9834691286218D873eA04B898E26F0963c5"
+        },
+        "t1": "declares offer-receipt",
+        "t2": "the signature on the offer does not verify: geen eip712-artefact met payload en signature",
+        "t3": "needs a real settlement, not attempted",
+        "t4": "needs a real settlement, not attempted",
+        "t5": "needs a real settlement, not attempted"
+      }
+    },
+    {
+      "host": "01a046b2-7104-74c2-8a02-04715d7235e1-mj99ttjfh-xai-org.vercel.app",
+      "url": "https://01a046b2-7104-74c2-8a02-04715d7235e1-mj99ttjfh-xai-org.vercel.app/api/v1/chat",
+      "indexPositie": 15964,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 401,
+      "hoogsteTrede": -1,
+      "emmer": "afgeschermd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 401,
+        "t0": "status 401 instead of 402"
+      }
+    },
+    {
+      "host": "qaegxjxaavxdqihfgzhr.supabase.co",
+      "url": "https://qaegxjxaavxdqihfgzhr.supabase.co/functions/v1/proof-quickscan-x402/QUICKSCAN_CONFIG_SCAN",
+      "indexPositie": 16090,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 30000 to 0x7fB588901cef1400F114b62FC11e25A83B24f778",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x7fB588901cef1400F114b62FC11e25A83B24f778"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "ratchetx.xyz",
+      "url": "https://ratchetx.xyz/api/agent-entry",
+      "indexPositie": 16215,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 405,
+      "hoogsteTrede": -1,
+      "emmer": "methode_geweigerd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 405,
+        "t0": "status 405 instead of 402"
+      }
+    },
+    {
+      "host": "x402-crypto-market-data.up.railway.app",
+      "url": "http://x402-crypto-market-data.up.railway.app/historical-klines/recent",
+      "indexPositie": 17291,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "app.ravn.exchange",
+      "url": "https://app.ravn.exchange/api/v1/x402/quote",
+      "indexPositie": 17564,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 1000 to 0x12d2425fD88c693EDB4dE004E0c747879B7D6933",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x12d2425fD88c693EDB4dE004E0c747879B7D6933"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "api.demandex.dev",
+      "url": "https://api.demandex.dev/v1/opportunities/trending",
+      "indexPositie": 17783,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "diffdeck-api.vercel.app",
+      "url": "https://diffdeck-api.vercel.app/api/providers",
+      "indexPositie": 17898,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 405,
+      "hoogsteTrede": -1,
+      "emmer": "methode_geweigerd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 405,
+        "t0": "status 405 instead of 402"
+      }
+    },
+    {
+      "host": "orchard-data.letom1176.workers.dev",
+      "url": "https://orchard-data.letom1176.workers.dev/api/fear-greed",
+      "indexPositie": 18566,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-seller.558686.xyz",
+      "url": "https://x402-seller.558686.xyz/v1/tools/x402-market-benchmark",
+      "indexPositie": 18744,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 6000 to 0x1f0130669ca6fd02e025a984cc038f139df19a2f",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x1f0130669ca6fd02e025a984cc038f139df19a2f"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "three.ws",
+      "url": "https://three.ws/api/x402/model-check",
+      "indexPositie": 19119,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 405,
+      "hoogsteTrede": -1,
+      "emmer": "methode_geweigerd",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 405,
+        "t0": "status 405 instead of 402"
+      }
+    },
+    {
+      "host": "402pssy.xyz",
+      "url": "https://402pssy.xyz/mint-1",
+      "indexPositie": 19380,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on base, 1000000 to 0xBF48dBA84fa6773F5bf4055185c824b9f96A419c",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "base",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xBF48dBA84fa6773F5bf4055185c824b9f96A419c"
+        },
+        "t1": "no offer-receipt in extensions (no extensions)"
+      }
+    },
+    {
+      "host": "arxiv-mcp.mtree.workers.dev",
+      "url": "https://arxiv-mcp.mtree.workers.dev/v1/papers/search",
+      "indexPositie": 19472,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": null,
+      "hoogsteTrede": -1,
+      "emmer": "onbereikbaar",
+      "treden": {
+        "t0": "ONGEMETEN"
+      },
+      "bewijs": {
+        "t0": "not reachable: fetch failed"
+      }
+    },
+    {
+      "host": "x402.atomicstream.net",
+      "url": "https://x402.atomicstream.net/v1/schema/stream/trending-leaderboard",
+      "indexPositie": 19563,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on solana, 150000 to 2chGLRxzvoTgQXhqyoqpwn5yVChRx8qQMXPLDud7D2e4",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "solana",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "2chGLRxzvoTgQXhqyoqpwn5yVChRx8qQMXPLDud7D2e4"
+        },
+        "t1": "no offer-receipt in extensions (no extensions)"
+      }
+    },
+    {
+      "host": "www.agentgram.site",
+      "url": "https://www.agentgram.site/api/generate/video",
+      "indexPositie": 20191,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 500000 to 0x054aDE63D8046e189FbAd70fAE1E6203f92190EE",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x054aDE63D8046e189FbAd70fAE1E6203f92190EE"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "lokyai.com",
+      "url": "http://lokyai.com/api/v1/crypto-market",
+      "indexPositie": 20346,
+      "registratiesVanDezeHost": 6,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on polygon, 5000 to 0x045089293817faa2C84c8F21Fcb407F715F23b55",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "polygon",
+          "asset": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+          "payTo": "0x045089293817faa2C84c8F21Fcb407F715F23b55"
+        },
+        "t1": "no offer-receipt in extensions (no extensions)"
+      }
+    },
+    {
+      "host": "ai42.onrender.com",
+      "url": "http://ai42.onrender.com/chat",
+      "indexPositie": 20397,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": null,
+      "hoogsteTrede": -1,
+      "emmer": "onbereikbaar",
+      "treden": {
+        "t0": "ONGEMETEN"
+      },
+      "bewijs": {
+        "t0": "not reachable: The operation was aborted due to timeout"
+      }
+    },
+    {
+      "host": "x402.actor",
+      "url": "https://x402.actor/xila",
+      "indexPositie": 20434,
+      "registratiesVanDezeHost": 1,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "try402.fun",
+      "url": "http://try402.fun/v5",
+      "indexPositie": 20553,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "waarom": "The ladder change of 2026-10-17 widened level 2 only. Level 2 is only evaluated for hosts that reached level 1, and exactly these two did, so re-measuring them fully determines the corrected result. The other 48 hosts cannot change outcome from this change and were not asked a second time.",
+  "gemetenOp": "2026-10-17",
+  "metingen": [
+    {
+      "host": "agents.daedalusdevelopmentgroup.com",
+      "url": "https://agents.daedalusdevelopmentgroup.com/v1/email-send",
+      "methode": "POST",
+      "hoogsteTrede": 2,
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT",
+        "t2": "HAALT",
+        "t3": "ONGEMETEN",
+        "t4": "ONGEMETEN",
+        "t5": "ONGEMETEN"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0x8AfBD522F8a16BEa184b41c593B8925a66830Bc6",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x8AfBD522F8a16BEa184b41c593B8925a66830Bc6"
+        },
+        "t1": "declares offer-receipt",
+        "t2": "offer signed by did:web:agents.daedalusdevelopmentgroup.com#keys-1",
+        "t3": "needs a real settlement, not attempted",
+        "t4": "needs a real settlement, not attempted",
+        "t5": "needs a real settlement, not attempted"
+      }
+    },
+    {
+      "host": "markdown-x402.nordman-tehau.workers.dev",
+      "url": "https://markdown-x402.nordman-tehau.workers.dev/convert",
+      "methode": "POST",
+      "hoogsteTrede": 1,
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT",
+        "t2": "ONGEMETEN",
+        "t3": "ONGEMETEN",
+        "t4": "ONGEMETEN",
+        "t5": "ONGEMETEN"
+      },
+      "bewijs": {
+        "status": 402,
+        "t0": "exact on eip155:8453, 5000 to 0x762cf9834691286218D873eA04B898E26F0963c5",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x762cf9834691286218D873eA04B898E26F0963c5"
+        },
+        "t1": "declares offer-receipt",
+        "t2": "the signature was not checked: alg ES256 is not supported by this checker, so the signature was NOT checked",
+        "t3": "needs a real settlement, not attempted",
+        "t4": "needs a real settlement, not attempted",
+        "t5": "needs a real settlement, not attempted"
+      }
+    }
+  ]
+}
