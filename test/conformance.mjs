@@ -12,6 +12,15 @@
 
 import { meetEindpunt, hoogsteTrede } from '../src/x402-conformance-check.mjs'
 import { TREDEN, verifyOfferSignature } from '../src/x402-conformance-treden.mjs'
+import { laadEthers } from '../src/x402-conformance-treden.mjs'
+
+// Trede 2 vraagt om een handtekeningcontrole, en die kan alleen met ethers. Dat is
+// een OPTIONELE afhankelijkheid, dus een vreemde die alleen kloont en npm test doet
+// heeft hem misschien niet. Dan hoort trede 2 ONGEMETEN te zijn en niet rood: een
+// overgeslagen controle is iets anders dan een mislukte controle, en een test die
+// dat verschil niet maakt dwingt een afhankelijkheid af die de README niet belooft.
+const HEEFT_ETHERS = (await laadEthers()) !== null
+if (!HEEFT_ETHERS) console.log('  (ethers not installed: level 2 is asserted as not-measured)')
 
 let goed = 0
 let fout = 0
@@ -110,15 +119,15 @@ console.log('a real signed offer reaches level 2, also from the header')
 {
   const lichaam = { accepts: [ACCEPTS_OK], extensions: { 'offer-receipt': { info: { offers: [ECHT_AANBOD] } } } }
   const m = await meetEindpunt('https://x/y', { fetchImpl: nep({ lichaam }) })
-  toets('level 2 reached', m.treden.t2 === 'HAALT', m.bewijs.t2)
-  toets('and the signer is ours', m.bewijs.t2.includes(ONZE_ONDERTEKENAAR), m.bewijs.t2)
-  toets('highest level is 2', hoogsteTrede(m) === 2)
+  toets(HEEFT_ETHERS ? 'level 2 reached' : 'level 2 is not-measured without ethers', HEEFT_ETHERS ? m.treden.t2 === 'HAALT' : /NIET gecontroleerd/.test(m.bewijs.t2), m.bewijs.t2)
+  toets(HEEFT_ETHERS ? 'and the signer is ours' : 'and it says why it was not checked', HEEFT_ETHERS ? m.bewijs.t2.includes(ONZE_ONDERTEKENAAR) : /ethers/.test(m.bewijs.t2), m.bewijs.t2)
+  toets(HEEFT_ETHERS ? 'highest level is 2' : 'highest level is 1 without ethers', hoogsteTrede(m) === (HEEFT_ETHERS ? 2 : 1))
   toets('levels 3 to 5 are not-measured, not failed', ['t3', 't4', 't5'].every((t) => m.treden[t] === 'ONGEMETEN'))
 
   // Onze eigen route zet de voorwaarden in de header en laat het lichaam leeg.
   // Een meetlat die dat niet kan lezen, keurt ons eigen endpoint af.
   const viaKop = await meetEindpunt('https://x/y', { fetchImpl: nep({ lichaam, kop: true }) })
-  toets('the same offer read from the Payment-Required header scores the same', hoogsteTrede(viaKop) === 2)
+  toets('the same offer read from the Payment-Required header scores the same', hoogsteTrede(viaKop) === hoogsteTrede(m))
 }
 
 console.log('a tampered signature fails level 2')
