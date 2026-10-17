@@ -1,6 +1,14 @@
 // Draait beide formaten tegen de vectoren van hun eigen auteurs.
 // Eén uitslag, één exitcode. Rood = wij en zij zijn het ergens oneens.
 import { execFileSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+
+// WAAROM EEN HELPER EN GEEN .pathname: op Windows geeft URL.pathname '/C:/...' en dan
+// is de leidende slash eraf halen toevallig nog een geldig absoluut pad. Op Linux geeft
+// het '/home/...' en levert diezelfde truc een RELATIEF pad, dat vervolgens achter de
+// werkmap wordt geplakt. Deze suite paste daardoor alleen op onze eigen machine, en dat
+// bleef onzichtbaar tot de eerste CI-run het dubbele pad liet zien.
+const pad = (rel) => fileURLToPath(new URL(rel, import.meta.url))
 import { berekenCommitment, opentCommitment, SPEC_VOORBEELD } from '../src/x402-offer-receipt.mjs'
 
 let goed = 0, fout = 0
@@ -36,7 +44,7 @@ console.log('INAM countersigned, their four vectors')
 {
   let uit = ''
   try {
-    uit = execFileSync('node', [new URL('../src/inam-countersigned.mjs', import.meta.url).pathname.replace(/^\//, ''), new URL('../vectors/inam/vectors.json', import.meta.url).pathname.replace(/^\//, '')], { encoding: 'utf8' })
+    uit = execFileSync('node', [pad('../src/inam-countersigned.mjs'), pad('../vectors/inam/vectors.json')], { encoding: 'utf8' })
   } catch (e) { uit = (e.stdout ?? '') + (e.stderr ?? '') }
   toets('all four reach the same verdict as their own verifier', /4 van 4 volledig gelijk, 0 afwijkend/.test(uit), uit.trim().split('\n').pop())
 }
