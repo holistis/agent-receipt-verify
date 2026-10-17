@@ -6,13 +6,7 @@
 // fout teruggeeft. Dat laatste is de belangrijkste: een geweigerde zoekopdracht
 // mag NOOIT als "niets gevonden" doorsijpelen.
 
-import {
-  AUTHORIZATION_USED_TOPIC,
-  adresAlsTopic,
-  blokBijTijd,
-  haalKandidaten,
-  linkBonnetje,
-} from '../src/x402-link-onchain.mjs'
+import { AUTHORIZATION_USED_TOPIC, adresAlsTopic, blokBijTijd, haalKandidaten, linkBonnetje, kiesBonnetjePad } from '../src/x402-link-onchain.mjs'
 import { berekenCommitment } from '../src/x402-offer-receipt.mjs'
 
 let goed = 0, fout = 0
@@ -181,6 +175,36 @@ console.log('cap on the number of RPC calls')
   const { rpc } = nepRpc({ logs: [{ blok: 500_000, nonce: NONCE }] })
   const r = await haalKandidaten(rpc, { asset: ASSET, authorizer: PAYER, vanBlok: 1, totBlok: 1_000_000, maxAanroepen: 10_000 })
   toets('but allows it to be raised deliberately', r.nonces.length === 1)
+}
+
+console.log('')
+console.log('waar een bonnetje gezocht wordt')
+{
+  // GEMETEN LES, 2026-10-17. Het commando dat wij publiceren
+  // (npx github:holistis/agent-receipt-verify link --receipt=examples/...) wees naar
+  // een pad in de werkmap van de aanroeper. Vanuit een lege map gaf dat een kale
+  // ENOENT-stacktrace, dus het enige commando in onze eigen uitleg werkte alleen bij
+  // ons. Voor een gereedschap dat om narekenbaarheid vraagt is dat het ergste dat er
+  // kan misgaan, en het was onzichtbaar omdat wij altijd in de repo staan.
+  const bestaatAlles = () => true
+  const bestaatNiets = () => false
+  const alleenPakket = (p) => String(p).includes('agent-receipt-verify') && String(p).includes('examples')
+
+  const eigen = kiesBonnetjePad('mijn-eigen-bonnetje.json', { bestaat: bestaatAlles })
+  toets('een pad dat de aanroeper zelf heeft gaat voor', eigen.pad === 'mijn-eigen-bonnetje.json' && eigen.uitPakket === false)
+
+  const terugval = kiesBonnetjePad('examples/receipt-live-base-sepolia.json', { bestaat: alleenPakket })
+  toets('staat het er niet, dan het meegeleverde bestand, en dat wordt gemeld', !!terugval && terugval.uitPakket === true)
+  toets('die terugval wijst naar een absoluut pad binnen het pakket zelf',
+    !!terugval && terugval.pad.includes('examples') && terugval.pad !== 'examples/receipt-live-base-sepolia.json')
+
+  toets('bestaat het nergens, dan null in plaats van een stacktrace',
+    kiesBonnetjePad('bestaat-nergens.json', { bestaat: bestaatNiets }) === null)
+
+  toets('de drie live voorbeelden liggen echt in het pakket', ['', '-2', '-3'].every((n) => {
+    const r = kiesBonnetjePad('examples/receipt-live-base-sepolia' + n + '.json')
+    return r !== null
+  }))
 }
 
 console.log(`\n${goed} passed, ${fout} failed`)
