@@ -49,14 +49,17 @@ function decodeerHeader(waarde) {
  * oordeel rust, zodat iemand anders hetzelfde eindpunt kan nameten en kan zien
  * waar hij afwijkt.
  */
-export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST' } = {}) {
+export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST', lichaam = null } = {}) {
   const r = { url, treden: {}, bewijs: {} }
   let resp
   try {
     resp = await fetchImpl(url, {
       method: methode,
       headers: { 'User-Agent': UA, Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: methode === 'POST' ? '{}' : undefined,
+      // Een gedeclareerd voorbeeldlichaam als de index er een geeft. Een lege {} naar
+      // een route die velden eist, levert een 400 die niets over x402 zegt: dan meet
+      // je je eigen verzoek in plaats van het eindpunt.
+      body: methode === 'GET' || methode === 'DELETE' ? undefined : lichaam != null ? JSON.stringify(lichaam) : '{}',
       signal: AbortSignal.timeout(15000),
     })
   } catch (e) {

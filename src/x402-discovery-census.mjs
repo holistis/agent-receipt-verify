@@ -31,6 +31,29 @@ const PAGINA = 1000
 
 const slaap = (ms) => new Promise((r) => setTimeout(r, ms))
 
+/**
+ * De door de partij zelf gedeclareerde invoer: padparameters en voorbeeldlichaam.
+ *
+ * Toegevoegd 2026-10-17, nadat de eerste editie bleek dat de index SJABLOON-URL's
+ * bevat (".../v1/ip/:ip") en dat wij die letterlijk opvroegen. De index levert de
+ * waarde ernaast; wij gebruikten hem niet. Dat gaf een 400 die niets over x402 zei.
+ * Dit veld staat er zodat een volgende meting dat niet overdoet.
+ */
+export function gedeclareerdeInvoer(item) {
+  const ext = item?.extensions ?? {}
+  for (const k of Object.keys(ext)) {
+    const inp = ext[k]?.info?.input
+    if (inp && typeof inp === 'object') {
+      return {
+        pathParams: inp.pathParams ?? null,
+        queryParams: inp.queryParams ?? null,
+        body: inp.body ?? null,
+      }
+    }
+  }
+  return { pathParams: null, queryParams: null, body: null }
+}
+
 /** De door de partij zelf gedeclareerde HTTP-methode, of null als hij niets zegt. */
 export function gedeclareerdeMethode(item) {
   const ext = item?.extensions ?? {}
@@ -108,6 +131,7 @@ export function censusPerHost(ruw) {
         eersteOffset: offset,
         eersteResource: res,
         eersteMethode: gedeclareerdeMethode(item),
+        eersteInvoer: gedeclareerdeInvoer(item),
         extensieSleutels: new Set(),
         netwerken: new Set(),
         schemes: new Set(),
@@ -123,6 +147,7 @@ export function censusPerHost(ruw) {
       o.eersteOffset = offset
       o.eersteResource = res
       o.eersteMethode = gedeclareerdeMethode(item)
+      o.eersteInvoer = gedeclareerdeInvoer(item)
     }
     for (const k of Object.keys(item?.extensions ?? {})) {
       o.extensieSleutels.add(k)

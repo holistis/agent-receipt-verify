@@ -12,13 +12,17 @@ node src/x402-index-liveness.mjs editions/2026-10-17/census-payai.json 50 editio
 The raw results are in this folder, as three files:
 
 - `census-payai.json`, the complete declared layer, all 1,127 hosts.
-- `liveness-payai.json`, the live sample of 50 hosts. This is the run that exposed a
-  defect in our own ladder, so it is kept as it was rather than quietly replaced.
+- `liveness-payai.json`, the live sample of 50 hosts. This run exposed two defects
+  in our own method, so it is kept exactly as it was rather than quietly replaced,
+  with a note at the top saying its numbers are superseded.
 - `liveness-payai-na-ladderwijziging.json`, the corrected measurement of the two
   hosts the ladder change can affect. The change widened level 2 only, and level 2
-  is only evaluated for hosts that reached level 1. Exactly two did, so re-measuring
-  those two determines the corrected result and the other 48 were not asked a second
-  time.
+  is only evaluated for hosts that reached level 1. Exactly two did.
+- `liveness-payai-na-invoerfix.json`, the corrected measurement of the two hosts we
+  had asked wrongly. Both answer x402 once asked properly.
+
+In both corrections only the affected hosts were re-measured. The other 48 cannot
+change outcome from either fix, so they did not receive a second request.
 
 ## What is counted, and what is not
 
@@ -33,6 +37,12 @@ disagree, and a single number would hide that:
 The frame is `facilitator.payai.network/discovery/resources`, read on 2026-10-17.
 One index, one day. This is not a measurement of x402 as a whole, and no number
 here should be quoted as one.
+
+Index positions move. Re-reading the index a few hours later returned 20,601 records
+instead of 20,597, and a resource that had been at position 169 was at 193. The
+sample rule is therefore reproducible against the saved `census-payai.json`
+snapshot, which is why that file is in this folder, and not against a live re-query
+by position.
 
 ## The declared layer: one party is half the index
 
@@ -101,34 +111,43 @@ Both behaved as expected, so the numbers below are about the endpoints.
 
 | result | hosts | |
 |---|---|---|
-| answers x402 at level 0 or higher | 31 | 62.0% |
+| answers x402 at level 0 or higher | 33 | 66.0% |
 | 404 or 410, the path is gone | 7 | 14.0% |
 | not reachable at all | 5 | 10.0% |
 | 405, method not allowed | 3 | 6.0% |
-| 400, request refused before any paywall | 2 | 4.0% |
 | 429, rate limited | 1 | 2.0% |
 | 401, behind authentication | 1 | 2.0% |
 
-Two of those rows are about our request, not about the endpoint, and saying so is
-the difference between a number that survives being checked and one that does not:
+That 33 includes two hosts that first came back as 400 and turned out to be our own
+fault rather than theirs. One is a route whose declared `bodyFields` require real
+parameters and we sent an empty body. The other is a template URL,
+`https://api.apibooth.com/v1/ip/:ip`, which we requested literally with the colon
+still in it while the index supplied the value (`8.8.8.8`) right next to it. Asked
+the way the index describes them, both answer 402 correctly.
 
-- All three 405s are hosts that declare no method in the index, where we therefore
-  sent POST. That is our choice, not evidence about their x402 support.
-- Both 400s declare a method, we used it, and the request was refused before a 402
-  appeared. A 402 is supposed to come before body validation, so this is a real
-  observation, but it is about request handling rather than about whether the
-  paywall exists.
+Anyone repeating this measurement should know how wide that second trap is: 41 of
+the 1,127 hosts (3.6%) have a template parameter in the resource this method picks.
+One of them landed in our 50. A sweep that ignores this reports those hosts as
+refusing requests when they are answering a question nobody asked them.
+
+The three 405s are also about our request: all three are hosts that declare no
+method in the index, where we therefore sent POST. That is our default meeting a
+GET-only route, not evidence about their x402 support.
 
 Split by whether the index carries a method, the gap is itself a result: of the 30
-hosts that declare one, 23 answer x402 (76.7%). Of the 20 that declare nothing, 8 do
-(40.0%). The weaker figure is partly our POST default meeting GET-only routes.
+hosts that declare one, 25 answer x402 (83.3%). Of the 20 that declare nothing, 8 do
+(40.0%).
 
-**Two of the 31 live x402 hosts declare the offer-receipt extension. The census
-found zero.** The index does not record extensions faithfully, so anyone measuring
-extension adoption from a discovery index will read zero while live endpoints serve
-it. That includes our own earlier reading, which was wrong for exactly this reason.
+**One of the live x402 hosts declares the offer-receipt extension on every
+observation, and a second declares it intermittently. The census found zero.** The
+index does not record extensions faithfully, so anyone measuring extension adoption
+from a discovery index reads zero while live endpoints serve it. That includes our
+own earlier reading, which was wrong for exactly this reason.
 
-## The two that declare it
+The reliable one carries the finding on its own, which matters: the intermittent one
+is not load bearing here.
+
+## The one that declares it reliably, and the one that does not
 
 `agents.daedalusdevelopmentgroup.com` reaches **level 2**. It signs its offer in
 `jws` with an EdDSA signature and a `did:web` key, and the signature verifies
@@ -158,10 +177,19 @@ buyer cannot rely on receiving the offer.
 
 ## What this edition got wrong before it was published
 
+Two defects, both ours, both found while checking rather than after publishing.
+
 The ladder's level 2 required an `eip712` artifact. That scored
 `agents.daedalusdevelopmentgroup.com` as failing while its signature was valid in a
 form the ladder simply did not know. Published as it stood, the first person to
 check would have found it.
+
+The measurement also asked two hosts the wrong question and counted their answers
+as results: an empty body where the index declares required fields, and a template
+URL requested with its placeholder intact. Both now use what the index itself
+declares, and both hosts turn out to answer x402 correctly. A measurement that
+cannot tell its own bad request from someone else's bad endpoint is not measuring
+the endpoint.
 
 The unit was widened the same day, dated, with the old wording kept readable; see
 the change note in CONFORMANCE.md. The level 2 requirement now asks for a signed
@@ -170,8 +198,11 @@ check. The repository also now distinguishes a check that could not run from a c
 that failed, which it previously claimed to do in a comment and did not do in code.
 
 Our prior reading that no live seller implements the extension came from measuring
-the index rather than the endpoints. It was wrong. There are at least three live
-implementations as of today: the two above and our own.
+the index rather than the endpoints. It was wrong. Three live implementations turned
+up in a sample of fifty hosts: one that signs in jws and verifies on every
+observation, one that signs in ES256 and serves the offer on three observations out
+of nine, and our own, which signs in eip712 and was not in the sample. Fifty of
+1,127 hosts were looked at, so three is a floor and not a count.
 
 ## What is not measured here, on purpose
 

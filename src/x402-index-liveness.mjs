@@ -36,6 +36,38 @@ const NEGATIEVE_CONTROLE = { url: 'https://example.com/', methode: 'GET', verwac
 
 const slaap = (ms) => new Promise((r) => setTimeout(r, ms))
 
+/**
+ * Vult sjabloon-parameters in een resource-URL met de waarden die de index zelf geeft.
+ *
+ * TOEGEVOEGD NA EEN EIGEN FOUT, 2026-10-17. De index bevat URL's als
+ * "https://api.apibooth.com/v1/ip/:ip" en wij vroegen die LETTERLIJK op, inclusief
+ * de dubbele punt. Dat gaf een 400 die wij bijna als "weigert het verzoek" hadden
+ * gepubliceerd, terwijl de index de waarde ("8.8.8.8") ernaast vermeldde. Dat is je
+ * eigen verzoek meten in plaats van het eindpunt.
+ *
+ * Geeft {url, ingevuld, resterend} terug: resterend is wat NIET ingevuld kon worden,
+ * zodat een meting op een half-ingevuld sjabloon zichzelf kan diskwalificeren in
+ * plaats van een getal te produceren dat nergens op rust.
+ */
+export function vulSjabloon(url, pathParams) {
+  const gevonden = [...String(url).matchAll(/:([A-Za-z_][A-Za-z0-9_]*)/g)].map((m) => m[1])
+  const uniek = [...new Set(gevonden)]
+  if (uniek.length === 0) return { url, ingevuld: [], resterend: [] }
+  let uit = url
+  const ingevuld = []
+  const resterend = []
+  for (const naam of uniek) {
+    const waarde = pathParams?.[naam]
+    if (waarde === undefined || waarde === null || String(waarde) === '') {
+      resterend.push(naam)
+      continue
+    }
+    uit = uit.split(':' + naam).join(encodeURIComponent(String(waarde)))
+    ingevuld.push(naam)
+  }
+  return { url: uit, ingevuld, resterend }
+}
+
 /** Stap 1 tot 3 van de steekproefregel hierboven, puur rekenwerk, geen netwerk. */
 export function kiesSteekproef(operators, aantal) {
   const opPositie = [...operators].sort((a, b) => a.eersteOffset - b.eersteOffset)
@@ -73,10 +105,15 @@ export async function meetSteekproef(gekozen, { pauzeMs = 1200, fetchImpl = fetc
   const uit = []
   for (const o of gekozen) {
     const methode = o.eersteMethode ?? 'POST'
-    const m = await meetEindpunt(o.eersteResource, { methode, fetchImpl })
+    const sjab = vulSjabloon(o.eersteResource, o.eersteInvoer?.pathParams)
+    const m = await meetEindpunt(sjab.url, { methode, fetchImpl, lichaam: o.eersteInvoer?.body ?? null })
     uit.push({
       host: o.host,
-      url: o.eersteResource,
+      url: sjab.url,
+      urlInIndex: o.eersteResource,
+      sjabloonIngevuld: sjab.ingevuld,
+      sjabloonNietIngevuld: sjab.resterend,
+      lichaamUitIndex: o.eersteInvoer?.body != null,
       indexPositie: o.eersteOffset,
       registratiesVanDezeHost: o.aantalRegistraties,
       gedeclareerdeMethode: o.eersteMethode,

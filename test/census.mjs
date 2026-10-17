@@ -16,7 +16,7 @@
 //     die niets over x402 zegt.
 
 import { censusPerHost, gedeclareerdeMethode } from '../src/x402-discovery-census.mjs'
-import { kiesSteekproef, emmer } from '../src/x402-index-liveness.mjs'
+import { kiesSteekproef, emmer, vulSjabloon } from '../src/x402-index-liveness.mjs'
 
 let goed = 0
 let fout = 0
@@ -118,6 +118,32 @@ const rec = (resource, offset, extra = {}) => ({ item: { resource, ...extra }, o
   toets('dubbele resource wordt geteld, niet verzwegen', c.dubbeleResources === 1, 'kreeg ' + c.dubbeleResources)
   toets('onbruikbare url wordt geteld, niet stil weggegooid', c.zonderHost === 1, 'kreeg ' + c.zonderHost)
   toets('unieke resources telt de dubbele niet dubbel', c.uniekeResources === 4, 'kreeg ' + c.uniekeResources)
+}
+
+// ── 5. sjabloon-urls worden ingevuld, niet letterlijk opgevraagd ─────────────
+{
+  // De fout die dit vangt is echt gemaakt op 2026-10-17: ".../v1/ip/:ip" werd
+  // letterlijk opgevraagd en de 400 die terugkwam zei niets over x402.
+  const a = vulSjabloon('https://a.example/v1/ip/:ip', { ip: '8.8.8.8' })
+  toets('padparameter wordt ingevuld', a.url === 'https://a.example/v1/ip/8.8.8.8', a.url)
+  toets('en wordt gemeld als ingevuld', a.ingevuld.join(',') === 'ip' && a.resterend.length === 0)
+
+  const b = vulSjabloon('https://a.example/x/:een/y/:twee', { een: '1', twee: '2' })
+  toets('twee parameters tegelijk', b.url === 'https://a.example/x/1/y/2', b.url)
+
+  const c = vulSjabloon('https://a.example/v1/ip/:ip', null)
+  toets('zonder waarde blijft de url onaangeroerd', c.url === 'https://a.example/v1/ip/:ip')
+  toets('en wat NIET ingevuld kon worden wordt gemeld, niet verzwegen', c.resterend.join(',') === 'ip')
+
+  const d = vulSjabloon('https://a.example/gewoon/pad', { ip: '1' })
+  toets('een url zonder sjabloon blijft gelijk', d.url === 'https://a.example/gewoon/pad' && d.ingevuld.length === 0)
+
+  const e = vulSjabloon('https://a.example/p/:id', { id: 'a/b?c' })
+  toets('een waarde wordt url-gecodeerd, niet rauw ingeplakt', e.url === 'https://a.example/p/a%2Fb%3Fc', e.url)
+
+  // Het schema in de url (https:) mag nooit als parameter gelezen worden.
+  const f = vulSjabloon('https://a.example:8443/p/:id', { id: '7' })
+  toets('poort en schema worden niet als parameter gezien', f.url === 'https://a.example:8443/p/7', f.url)
 }
 
 console.log('')
