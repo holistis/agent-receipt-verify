@@ -1,0 +1,18 @@
+{
+  "waarom": "De afrekeningsplaats van ons eigen bonnetje, zelf vastgelegd. Stond eerder alleen in een comment van een derde, en een feit uit andermans tekst overnemen voor onze EIGEN betaling is precies de omgekeerde volgorde.",
+  "gemetenOp": "2026-10-17T16:13:23.755Z",
+  "gelinkt": true,
+  "nonce": "0x0d74587c8b053399647ea598fcc3334c9747a0c0a6b85363429519b197f35aa5",
+  "afrekening": {
+    "nonce": "0x0d74587c8b053399647ea598fcc3334c9747a0c0a6b85363429519b197f35aa5",
+    "blok": 48234957,
+    "tx": "0xc3fc3ff8ea07014aafbaf49f3000c4233e6ed8ebe8f9fcdbeca42bc6c2b96871"
+  },
+  "venster": {
+    "vanBlok": 48234556,
+    "totBlok": 48235356,
+    "blokTijd": 2,
+    "aanroepen": 5,
+    "kandidaten": 1
+  }
+}
