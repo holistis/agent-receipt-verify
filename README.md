@@ -9,6 +9,54 @@ countersigned receipts, and the proofs ERC-8004 consumers count).
 
 `receipt-commons/receipt-interop` covers the first kind. This covers the second.
 
+## Use it from an agent: the MCP server
+
+Both checks are also a Model Context Protocol server, so an agent can run them itself
+instead of a person running a command. It speaks MCP over stdio, protocol version
+2025-11-25. The framing, `initialize`, `tools/list` and `tools/call` are implemented
+directly in `src/mcp-server.mjs`, with no MCP SDK and no required dependency at all.
+
+Two tools, for the two moments where an agent actually needs an answer.
+
+`check_x402_endpoint`, before paying. Sends one request and reports which levels of the
+ladder in [CONFORMANCE.md](CONFORMANCE.md) the endpoint reaches. Levels that need a real
+settlement come back as not measured, never as failed.
+
+`link_receipt_to_settlement`, after paying. Takes the receipt, the authorization salt and
+the asset that was paid, resolves the salted commitment against live chain state, and
+answers linked, not linked, or could not check. Those are three different answers and it
+never collapses them into two.
+
+Add it to a client:
+
+```json
+{
+  "mcpServers": {
+    "agent-receipt-verify": {
+      "command": "npx",
+      "args": ["-y", "github:holistis/agent-receipt-verify", "mcp"]
+    }
+  }
+}
+```
+
+No account, no API key, nothing published to npm. If you would rather not run Node from a
+git ref, there is a Dockerfile:
+
+```sh
+docker build -t agent-receipt-verify . && docker run -i --rm agent-receipt-verify
+```
+
+The server opens no port and writes nothing to disk. Anything that is not a protocol
+frame goes to stderr, because stdout belongs to the client. `npm test` drives the server
+over real frames in 21 cases, including an unknown tool name, a notification that must
+not get a reply, and a network it does not know, which has to answer could not check
+rather than not linked.
+
+`ethers` is an optional dependency, used for one signature check inside
+`check_x402_endpoint`. Without it that single check reports not measured instead of
+passing, and everything else works unchanged.
+
 ## Why independent implementations matter
 
 A receipt signed by a seller is a statement by an interested party. It only becomes
