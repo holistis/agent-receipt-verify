@@ -1,11 +1,25 @@
-# Publishes this package to npm, from CI and never from a laptop.
+# Publishes this package to npm, from CI and never from a laptop, and without a token.
 #
 # WHY NOT FROM A LAPTOP. This account's second factor is a security key, which the npm
 # CLI cannot use, so a local publish ends up asking for a recovery code, and npm's own
 # documentation says using one triggers a 72 hour hold during which nothing can be
-# published. That has happened three times. A token used inside CI never asks for a
-# code, so this path cannot trigger that hold. A repository guard also blocks
+# published. That has happened three times. A repository guard also blocks
 # `npm publish` on a developer machine for the same reason.
+#
+# WHY NO TOKEN ANY MORE. npm's trusted publishing exchanges this workflow's OIDC
+# identity for a short-lived credential, so there is no long-lived secret to leak, to
+# rotate, or to forget before it expires. The trust is pinned on npmjs.com to exactly
+# this repository and this filename, which is why neither may be renamed without
+# recreating that configuration. The earlier token route stayed in place only until the
+# package existed, because a trusted publisher cannot be configured for a name that is
+# not published yet.
+#
+# TWO THINGS THAT MAKE THIS FAIL SILENTLY, both guarded below. Trusted publishing needs
+# npm 11.5.1 or newer, and an older npm does not warn, it simply publishes the old way
+# or fails on authentication. And setup-node's `registry-url` writes an .npmrc with
+# `_authToken=${NODE_AUTH_TOKEN}`; with no token set that leaves an empty credential
+# that can produce an auth error instead of falling through to OIDC. So: no
+# registry-url, and an explicit version gate.
 #
 # WHY MANUAL ONLY. Publishing is close to irreversible: npm restricts unpublishing
 # after 72 hours and once anything depends on the package. A human decides when, and
@@ -45,7 +59,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+
+      # Deliberately not `registry-url` above: that writes an .npmrc expecting a token.
+      - name: npm must be new enough for trusted publishing, and say so out loud
+        run: |
+          echo "npm as shipped with this node: $(npm --version)"
+          npm install -g npm@latest
+          V=$(npm --version)
+          echo "npm after upgrade: $V"
+          node -e '
+            const need = [11, 5, 1];
+            const have = process.argv[1].split(".").map(Number);
+            for (let i = 0; i < 3; i++) {
+              if ((have[i] ?? 0) > need[i]) break;
+              if ((have[i] ?? 0) < need[i]) {
+                console.error("npm " + process.argv[1] + " cannot do trusted publishing, 11.5.1 is the floor");
+                process.exit(1);
+              }
+            }
+            console.log("npm " + process.argv[1] + " can exchange the OIDC identity");
+          ' "$V"
 
       - name: The suite must pass before anything is published
         run: |
@@ -66,14 +99,19 @@ jobs:
             exit 1
           fi
 
-      - name: The tarball must carry NOTICE and LICENSE
+      - name: The tarball must carry NOTICE, LICENSE and everything the cli dispatches to
         run: |
           node -e '
             const { execSync } = require("child_process");
             const files = JSON.parse(execSync("npm pack --dry-run --json", { encoding: "utf8" }))[0]
               .files.map((f) => f.path);
-            const missing = ["NOTICE", "LICENSE", "bin/cli.mjs", "profiles/x402-deployed-ladder-v1.json"]
-              .filter((f) => !files.includes(f));
+            const missing = [
+              "NOTICE",
+              "LICENSE",
+              "bin/cli.mjs",
+              "profiles/x402-deployed-ladder-v1.json",
+              "bench/eip3009-beleid.mjs",
+            ].filter((f) => !files.includes(f));
             if (missing.length) {
               console.error("the tarball is missing: " + missing.join(", "));
               process.exit(1);
@@ -81,14 +119,29 @@ jobs:
             console.log("tarball carries " + files.length + " files, including NOTICE and LICENSE");
           '
 
-      - name: Publish
+      # No NODE_AUTH_TOKEN here on purpose. If this step fails on authentication, the
+      # trusted publisher on npmjs.com is missing or points at a different repository
+      # or filename, and that is the thing to fix. Putting a token back would hide it.
+      - name: Publish with no token, using this workflow's own identity
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Check from outside what the registry now serves
         run: |
-          sleep 15
-          npm view "${{ steps.versie.outputs.name }}@${{ steps.versie.outputs.version }}" version dist.tarball
+          # npm answers 0.0.0-stage for a few minutes after a publish ("your package is
+          # being processed"). That is a staging placeholder and not a failure, so wait
+          # for the real version instead of declaring defeat after a flat sleep. This
+          # exact placeholder made the 0.2.1 run look failed when it had succeeded.
+          N="${{ steps.versie.outputs.name }}"
+          V="${{ steps.versie.outputs.version }}"
+          for i in $(seq 1 30); do
+            if npm view "$N@$V" version >/dev/null 2>&1; then
+              echo "registry serves $N@$V after $((i * 10))s"
+              break
+            fi
+            echo "not there yet after $((i * 10))s, npm says: $(npm view "$N" version 2>&1 | tail -1)"
+            sleep 10
+          done
+          npm view "$N@$V" version dist.tarball
           cd "$(mktemp -d)"
-          npx -y "${{ steps.versie.outputs.name }}@${{ steps.versie.outputs.version }}" kanon
+          npx -y "$N@$V" kanon
+          npx -y "$N@$V" beleid

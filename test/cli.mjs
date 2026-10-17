@@ -63,5 +63,20 @@ console.log('de kruiscontrole als los onderdeel')
   t('en zegt expliciet dat wij niet tegen hun broncode schreven', /never against/.test(r.stdout))
 }
 
+
+// De beleidsmatrix als eigen commando (sinds 0.2.2). Dit is de enige ingang waarmee
+// een vreemde de twee vragen uit x402#2725 zelf kan NAREKENEN in plaats van ons op
+// ons woord te geloven, dus een stille breuk hier kost precies dat.
+{
+  const r = draai('beleid')
+  t('beleid draait en eindigt op 0', r.status === 0, 'status ' + r.status)
+  t('en toont beide bedragbeleiden', /exact/.test(r.stdout) && /at-least/.test(r.stdout))
+  t('en noemt de twee gevallen die geen vector dekt',
+    /paying too much/.test(r.stdout) && /DIFFERENT payer/.test(r.stdout))
+  t('en citeert de regelnummers van de twee referentie-implementaties',
+    /eip3009.go:65/.test(r.stdout) && /facilitator.py:235/.test(r.stdout))
+  t('de uitvoer is Engels, want dit commando is voor vreemden',
+    !/gemeten|vectoren|betaler/.test(r.stdout), r.stdout.slice(0, 60))
+}
 console.log('cli: ' + goed + ' pass, ' + fout + ' fail')
 if (fout > 0) process.exitCode = 1

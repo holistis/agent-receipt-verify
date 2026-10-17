@@ -52,6 +52,11 @@ function gebruik() {
   console.log('  npx github:holistis/agent-receipt-verify kanon')
   console.log('        cross-check our independent EIP-3009 verifier against the ten published')
   console.log('        vectors of iamonuwa/kanon, offline, no account and no key.')
+  console.log('')
+  console.log('  npx github:holistis/agent-receipt-verify beleid')
+  console.log('        the same ten vectors under both amount policies, plus the two cases no')
+  console.log('        published vector covers: overpayment, and one nonce across two payers.')
+  console.log('        Those two are the open questions in x402 issue 2725.')
 }
 
 // Het argument bepaalt welke module draait. De modules zijn ook los te draaien en te
@@ -64,6 +69,7 @@ const onderdelen = {
   inam: '../src/inam-countersigned.mjs',
   liveness: '../src/x402-index-liveness.mjs',
   kanon: '../src/eip3009-autorisatie.mjs',
+  beleid: '../bench/eip3009-beleid.mjs',
 }
 
 if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {
