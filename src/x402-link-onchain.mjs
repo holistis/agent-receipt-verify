@@ -216,7 +216,22 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
   console.log(`rpc         : ${rpcUrl}`)
 
   const rpc = maakRpc(rpcUrl)
-  const r = await linkBonnetje(rpc, { payload, salt, asset, venster })
+
+  // Drie uitkomsten, drie exitcodes, en dat is precies het onderscheid dat
+  // 5.6.4 sinds faa611f eist: gelinkt, niet gelinkt op een VERKREGEN
+  // kandidatenlijst, of een controle die niet kon draaien. De module gooide al
+  // bij een geweigerde aanroep, maar een onbehandelde fout ziet er voor een
+  // script hetzelfde uit als "niet gelinkt", en dat is nu juist het verschil
+  // waarop een teller een bonnetje ten onrechte zou weggooien.
+  let r
+  try {
+    r = await linkBonnetje(rpc, { payload, salt, asset, venster })
+  } catch (e) {
+    console.log('LINKED      : unknown, the check could not be completed')
+    console.log(`  reason    : ${e.message}`)
+    console.log('  note: this is an incomplete check, not a receipt that fails to link.')
+    process.exit(2)
+  }
 
   console.log(`searched    : blocks ${r.venster.vanBlok} to ${r.venster.totBlok} (${r.venster.aanroepen} calls, measured block time ${r.venster.blokTijd.toFixed(2)}s)`)
   console.log(`candidates  : ${r.venster.kandidaten} nonce(s) consumed by this payer in that window`)
