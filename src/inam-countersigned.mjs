@@ -11,13 +11,14 @@
 import { createHash, createPublicKey, verify as edVerify } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
+const DIRECT = process.argv[1]?.endsWith('inam-countersigned.mjs')
 const VECTOREN = process.argv[2]
-if (!VECTOREN) { console.error('gebruik: node verify-inam-onafhankelijk.mjs <vectors.json>'); process.exit(2) }
+if (DIRECT && !VECTOREN) { console.error('usage: node src/inam-countersigned.mjs <vectors.json>'); process.exit(2) }
 
 // ── bouwstenen ───────────────────────────────────────────────────────────────
 
 // §4.2: "recursive key-sorted, whitespace-free JSON serializer"
-function canoniek(x) {
+export function canoniek(x) {
   if (x === null || typeof x !== 'object') return JSON.stringify(x)
   if (Array.isArray(x)) return '[' + x.map(canoniek).join(',') + ']'
   return '{' + Object.keys(x).sort().map(k => JSON.stringify(k) + ':' + canoniek(x[k])).join(',') + '}'
@@ -27,7 +28,7 @@ const sha256hex = s => createHash('sha256').update(s, 'utf8').digest('hex')
 
 // base58btc, zelf geschreven zodat we geen code van hen of van een pakket delen
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-function base58decode(s) {
+export function base58decode(s) {
   let getal = 0n
   for (const teken of s) {
     const i = B58.indexOf(teken)
@@ -41,7 +42,7 @@ function base58decode(s) {
 }
 
 // did:key met multicodec 0xed01 = Ed25519 publieke sleutel
-function didNaarSleutel(did) {
+export function didNaarSleutel(did) {
   const deel = did.replace(/^did:key:/, '').split('#')[0]
   if (!deel.startsWith('z')) throw new Error('verwacht base58btc (z...)')
   const ruw = base58decode(deel.slice(1))
@@ -53,7 +54,7 @@ function didNaarSleutel(did) {
   return createPublicKey({ key: der, format: 'der', type: 'spki' })
 }
 
-function ed25519Klopt(did, inhoud, handtekeningB64) {
+export function ed25519Klopt(did, inhoud, handtekeningB64) {
   try {
     const sig = Buffer.from(handtekeningB64, handtekeningB64.includes('-') || handtekeningB64.includes('_') ? 'base64url' : 'base64')
     return edVerify(null, Buffer.from(inhoud, 'utf8'), didNaarSleutel(did), sig)
@@ -75,7 +76,7 @@ try {
 
 // ── de acht controles, zoals hun README ze beschrijft ────────────────────────
 
-function toetsGeval(geval, vectoren) {
+export function toetsGeval(geval, vectoren) {
   const mislukt = []
   const bestand = geval.feedbackFile
   const f = JSON.parse(bestand)
@@ -133,24 +134,29 @@ function toetsGeval(geval, vectoren) {
 }
 
 // ── draaien en vergelijken met wat de vectoren zelf verwachten ───────────────
+//
+// Alleen bij directe aanroep. Importeren levert de functies, niets anders.
+if (DIRECT) {
 
-const v = JSON.parse(readFileSync(VECTOREN, 'utf8'))
-console.log(`suite: ${v.suite}`)
-console.log(`keccak256 beschikbaar: ${keccak256 ? 'ja' : 'NEE (controle 1 overgeslagen)'}\n`)
+  const v = JSON.parse(readFileSync(VECTOREN, 'utf8'))
+  console.log(`suite: ${v.suite}`)
+  console.log(`keccak256 beschikbaar: ${keccak256 ? 'ja' : 'NEE (controle 1 overgeslagen)'}\n`)
 
-let gelijk = 0, afwijkend = 0
-for (const geval of v.cases) {
-  const onze = toetsGeval(geval, v)
-  const hunne = geval.expected
-  const zelfdeOordeel = onze.accepted === hunne.accepted
-  const onzeSet = [...onze.failedChecks].sort().join(',')
-  const hunSet = [...(hunne.failedChecks ?? [])].sort().join(',')
-  const zelfdeChecks = onzeSet === hunSet
-  const merk = zelfdeOordeel && zelfdeChecks ? 'GELIJK  ' : (zelfdeOordeel ? 'deels   ' : 'AFWIJKEND')
-  if (zelfdeOordeel && zelfdeChecks) gelijk++; else afwijkend++
-  console.log(`${merk} ${geval.id}`)
-  console.log(`   zij : accepted=${hunne.accepted} [${hunSet || '-'}]`)
-  console.log(`   wij : accepted=${onze.accepted} [${onzeSet || '-'}]`)
+  let gelijk = 0, afwijkend = 0
+  for (const geval of v.cases) {
+    const onze = toetsGeval(geval, v)
+    const hunne = geval.expected
+    const zelfdeOordeel = onze.accepted === hunne.accepted
+    const onzeSet = [...onze.failedChecks].sort().join(',')
+    const hunSet = [...(hunne.failedChecks ?? [])].sort().join(',')
+    const zelfdeChecks = onzeSet === hunSet
+    const merk = zelfdeOordeel && zelfdeChecks ? 'GELIJK  ' : (zelfdeOordeel ? 'deels   ' : 'AFWIJKEND')
+    if (zelfdeOordeel && zelfdeChecks) gelijk++; else afwijkend++
+    console.log(`${merk} ${geval.id}`)
+    console.log(`   zij : accepted=${hunne.accepted} [${hunSet || '-'}]`)
+    console.log(`   wij : accepted=${onze.accepted} [${onzeSet || '-'}]`)
+  }
+  console.log(`\n${gelijk} van ${v.cases.length} volledig gelijk, ${afwijkend} afwijkend`)
+  process.exit(afwijkend === 0 ? 0 : 1)
+
 }
-console.log(`\n${gelijk} van ${v.cases.length} volledig gelijk, ${afwijkend} afwijkend`)
-process.exit(afwijkend === 0 ? 0 : 1)
