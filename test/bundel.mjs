@@ -113,5 +113,50 @@ const doel = path.join(wortel, 'build', 'bundel-test')
   fs.rmSync(path.join(wortel, 'build'), { recursive: true, force: true })
 }
 
+console.log('')
+console.log('het npm-pakket: wat een vreemde echt binnenhaalt')
+{
+  // WAAROM DIT EEN TEST IS. De files-lijst in package.json is handwerk, en wat er NIET
+  // in staat ontbreekt stil bij iedereen behalve ons. Twee soorten schade: de CLI valt
+  // om bij een vreemde omdat een bestand mist (zelfde klasse als het commando dat
+  // vandaag alleen binnen deze repo werkte), en NOTICE mist, wat bij Apache-2.0 geen
+  // slordigheid is maar een licentieovertreding, want wij verspreiden vectoren van
+  // drie andere partijen.
+  // execSync en niet execFileSync: op Windows blokkeert node sinds een beveiligingsfix
+  // het starten van een .cmd zonder shell (EINVAL) en bestaat kaal "npm" niet (ENOENT),
+  // terwijl execFileSync met shell:true argumenten concateneert in plaats van ontsnapt
+  // en daar terecht voor waarschuwt. execSync neemt een commandoREGEL en is hiervoor
+  // bedoeld. Gevonden door alle drie te proberen, niet door erover na te denken.
+  const { execSync } = await import('node:child_process')
+  const pkg = JSON.parse(fs.readFileSync(path.join(wortel, 'package.json'), 'utf8'))
+  let lijst = null, pakFout = null
+  try {
+    const uit = execSync('npm pack --dry-run --json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], cwd: wortel })
+    lijst = JSON.parse(uit)[0].files.map((f) => f.path)
+  } catch (e) {
+    pakFout = String(e && e.message ? e.message : e).slice(0, 110)
+  }
+
+  // DIT MOET ROOD WORDEN ALS DE CONTROLE NIET KON DRAAIEN. Een eerdere versie sloeg hem
+  // stil over en meldde alsnog groen, waardoor twaalf controles verdwenen zonder dat
+  // iemand het zag: van 42 geslaagd naar 30, en de uitslag bleef groen. Deze controle
+  // bewaakt een licentieverplichting, dus niet-kunnen-meten is hier geen neutraal
+  // resultaat.
+  t('npm pack kon draaien, anders is de pakketinhoud ONGEMETEN' + (pakFout ? ': ' + pakFout : ''), lijst !== null)
+
+  t('het pakket is niet meer private, anders publiceert npm het nooit', pkg.private === undefined)
+  t('er staat een repository in, want een pakket zonder bron vraagt vertrouwen zonder het te geven',
+    String(pkg.repository && pkg.repository.url || '').includes('holistis/agent-receipt-verify'))
+  t('en een auteur die naar ons wijst', String(pkg.author || '').includes('holistis'))
+  if (lijst) {
+    for (const nodig of ['NOTICE', 'LICENSE', 'README.md', 'CONFORMANCE.md', 'bin/cli.mjs',
+      'src/mcp-server.mjs', 'src/eip3009-autorisatie.mjs', 'src/profiel.mjs',
+      'profiles/x402-deployed-ladder-v1.json', 'examples/receipt-live-base-sepolia.json',
+      'vectors/kanon/valid-baseline-001.json', 'vectors/inam/vectors.json']) {
+      t('het pakket bevat ' + nodig, lijst.includes(nodig))
+    }
+  }
+}
+
 console.log(`\nbundel: ${groen} pass, ${rood} fail`)
 process.exitCode = rood === 0 ? 0 : 1
