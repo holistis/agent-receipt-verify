@@ -35,6 +35,13 @@ npm test      # all of the above, no network, no keys
 Node built-ins only, apart from keccak256. Only the settlement link below touches
 the network, and then only a public read-only RPC.
 
+Confirmed from the other side, which matters more than the table: the author of
+the x402 specification ran their own implementation, which shares no code with
+this one, against all three live receipts below and reached the same three
+settlements, starting from the receipt, the salt and the asset as §5.6.4
+requires. Their result and ours are in
+[x402#3827](https://github.com/x402-foundation/x402/pull/3827#issuecomment-6230063003).
+
 ## Linking a receipt to its settlement
 
 A receipt with an empty `transaction` field can be matched to a payment only by

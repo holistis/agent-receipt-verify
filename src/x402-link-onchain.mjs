@@ -15,10 +15,21 @@
 // HET ZOEKVENSTER, en waarom het niet "de hele keten" is. De publieke Base
 // Sepolia-RPC staat per aanroep maar 200 blokken toe, GEMETEN en niet uit
 // documentatie. Terugscannen over een dag zou dus ruim 200 aanroepen kosten. Een
-// bonnetje draagt echter zijn eigen tijdstip (issuedAt), en de afrekening ligt
-// daar per definitie vlak voor. We leiden het venster dus af uit het bonnetje
-// zelf en melden ALTIJD welk venster is afgezocht, zodat een lege uitslag leest
-// als "niet in dit venster" en nooit als "bestaat niet".
+// bonnetje draagt echter zijn eigen tijdstip (issuedAt), en daar zoeken we
+// SYMMETRISCH rond.
+//
+// Symmetrisch, en niet alleen ervoor, en dat is een gecorrigeerde aanname. Een
+// eerdere versie van dit commentaar beweerde dat de afrekening per definitie
+// vlak VOOR het bonnetje ligt. Dat is onjuist: volgens 5.6.3 houdt de verkoper
+// de nonce al vast voordat de afrekening draait, dus een versie-2-bonnetje kan
+// ondertekend zijn voordat zijn betaling op de keten staat. De code zocht al
+// symmetrisch, de uitleg erbij was fout. Gecorrigeerd door babyblueviper1 op
+// x402#3827, en het staat hier omdat de volgende lezer anders dezelfde verkeerde
+// reden overneemt.
+//
+// We melden ALTIJD welk venster is afgezocht, zodat een lege uitslag leest als
+// "niet in dit venster" en nooit als "bestaat niet". Verbreden gaat via
+// --window, en dat is ook wat de spec-notitie nu aanraadt bij geen match.
 
 import { readFileSync } from 'node:fs'
 import { opentCommitment } from './x402-offer-receipt.mjs'
