@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/holistis/agent-receipt-verify/blob/main/profiles/profile.schema.json",
+  "title": "Deployed-endpoint conformance profile",
+  "description": "A versioned, declarative description of what can be checked on someone else's deployed endpoint from the response it already returns. A profile names the clause each check comes from, the input the check needs, and what to report when the check cannot decide. It does not describe how to run the check; that is the runner's job, and the evaluator field is the name that binds the two.",
+  "type": "object",
+  "required": ["profile", "version", "published", "intent", "outcomes", "specs", "checks"],
+  "additionalProperties": true,
+  "properties": {
+    "profile": { "type": "string", "description": "Stable name of the profile, independent of its version." },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "published": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "description": "A profile without a date cannot be told apart from a later one, and then a published number cannot be traced back to the ladder it was measured on." },
+    "intent": { "type": "string", "minLength": 20 },
+    "notMeasured": { "type": "string", "description": "What this profile deliberately says nothing about. A profile that only lists what it checks invites the reader to assume the rest was fine." },
+    "outcomes": {
+      "type": "object",
+      "description": "Exactly four, and each one described. Three is the common mistake: it collapses 'we did not try' into 'we could not decide', and a reader cannot then tell a gap in the runner from a defect in the endpoint.",
+      "required": ["pass", "fail", "skip", "inconclusive"],
+      "additionalProperties": false,
+      "properties": {
+        "pass": { "type": "string", "minLength": 10 },
+        "fail": { "type": "string", "minLength": 10 },
+        "skip": { "type": "string", "minLength": 10 },
+        "inconclusive": { "type": "string", "minLength": 10 }
+      }
+    },
+    "wireStates": { "type": "object", "description": "Optional. How a particular runner's own state names map onto the four outcomes, so a consumer does not have to read that runner's source." },
+    "specs": {
+      "type": "object",
+      "description": "Every specification this profile cites, pinned. A clause reference without a pinned version is a reference to whatever the document says today.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["repo", "path", "commit", "state"],
+        "additionalProperties": true,
+        "properties": {
+          "repo": { "type": "string" },
+          "path": { "type": "string" },
+          "commit": { "type": "string", "minLength": 7 },
+          "state": { "type": "string", "enum": ["merged on main", "proposed, not merged"] },
+          "pullRequest": { "type": "integer" },
+          "retrieved": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+          "warning": { "type": "string" }
+        }
+      }
+    },
+    "relatedWork": { "type": "object", "description": "Optional. Other vector or profile sets this one references instead of restating." },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "key", "level", "name", "requirement", "clause", "input", "assertion", "normative", "whenNotObservable"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]+-[A-Za-z0-9]+$" },
+          "key": { "type": "string", "description": "Short key a runner uses in its own output. Kept separate from id so a runner's existing output does not have to change when a profile is adopted." },
+          "level": { "type": "integer", "minimum": 0 },
+          "name": { "type": "string", "minLength": 5 },
+          "requirement": { "type": "string", "minLength": 20 },
+          "clause": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Where the requirement comes from. Each entry names a key of specs, so the pin travels with the reference.",
+            "items": {
+              "type": "object",
+              "required": ["spec", "section"],
+              "additionalProperties": true,
+              "properties": {
+                "spec": { "type": "string" },
+                "section": { "type": "string", "minLength": 3 },
+                "quote": { "type": "string" }
+              }
+            }
+          },
+          "input": {
+            "type": "object",
+            "required": ["needs", "pays"],
+            "additionalProperties": true,
+            "properties": {
+              "needs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "requests": { "type": "integer", "minimum": 0 },
+              "pays": { "type": "boolean", "description": "Whether the check needs a real settlement. A passive profile must skip these rather than fail them." }
+            }
+          },
+          "assertion": {
+            "type": "object",
+            "required": ["evaluator", "describes"],
+            "additionalProperties": false,
+            "properties": {
+              "evaluator": { "type": "string", "description": "Name of the routine that decides this check. Deliberately a name and not an expression language: the two checks that matter here involve signature recovery and a chain read, and pretending those fit in a data expression would mean either a dishonest profile or an expression language nobody else implements." },
+              "describes": { "type": "string", "minLength": 20, "description": "What is actually asserted, in plain words, so a second implementation can be written from the profile alone." }
+            }
+          },
+          "normative": { "type": "string", "enum": ["MUST", "SHOULD"] },
+          "whenNotObservable": { "type": "string", "enum": ["skip", "inconclusive"] },
+          "inconclusiveWhen": { "type": "array", "items": { "type": "string" } },
+          "relatedVectors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["set", "id"],
+              "additionalProperties": true,
+              "properties": {
+                "set": { "type": "string" },
+                "id": { "type": "string" },
+                "subject": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

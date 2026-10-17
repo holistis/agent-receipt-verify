@@ -15,51 +15,17 @@
 // verifieert, ongeacht in welke van beide vormen.
 
 import { createPublicKey, verify as edVerify } from 'node:crypto'
+import { laadProfiel, tredenUitProfiel } from './profiel.mjs'
 
-export const TREDEN = [
-  {
-    sleutel: 't0',
-    nummer: 0,
-    naam: 'asks for payment the way x402 says',
-    eis: 'HTTP 402 carrying accepts[] with scheme, network, payTo and an amount, in the body or in the Payment-Required header',
-    meetbaarZonderTeBetalen: true,
-  },
-  {
-    sleutel: 't1',
-    nummer: 1,
-    naam: 'declares the offer-receipt extension',
-    eis: 'the 402 carries an offer-receipt entry in extensions',
-    meetbaarZonderTeBetalen: true,
-  },
-  {
-    sleutel: 't2',
-    nummer: 2,
-    naam: 'signs its offer, and the signature verifies',
-    eis: 'extensions["offer-receipt"].info.offers[0] is a signed artifact whose signature verifies: either an eip712 artifact recovering to an address, or a jws with an EdDSA signature over the offer payload whose key resolves from its kid',
-    meetbaarZonderTeBetalen: true,
-  },
-  {
-    sleutel: 't3',
-    nummer: 3,
-    naam: 'emits a receipt that verifies',
-    eis: 'after payment, the settlement response carries a receipt whose signature recovers to the same signer',
-    meetbaarZonderTeBetalen: false,
-  },
-  {
-    sleutel: 't4',
-    nummer: 4,
-    naam: 'receipt is version 2 and the salt arrives where 5.6.3 says',
-    eis: 'payload.version is 2 with both commitment fields, and the salt is at extensions["offer-receipt"].info.authorizationSalt',
-    meetbaarZonderTeBetalen: false,
-  },
-  {
-    sleutel: 't5',
-    nummer: 5,
-    naam: 'the commitment opens against the chain to exactly one settlement',
-    eis: 'section 5.6.4 run against live chain state resolves to exactly one AuthorizationUsed nonce',
-    meetbaarZonderTeBetalen: false,
-  },
-]
+// De treden komen nu UIT het profiel en staan niet meer hier. Zie src/profiel.mjs
+// voor waarom: een meetlat die in een .mjs opgesloten zit, kan geen tweede
+// implementatie voeden, en dat is precies de scheefgroei die x402#3396 benoemt.
+// De veldnamen zijn met opzet onveranderd gelaten, zodat geen enkele aanroeper
+// hoeft te wijzigen en de omzetting dus aantoonbaar niets aan het gedrag verandert.
+// Nieuw per trede, alleen toegevoegd: profielId, clausule, citeertVoorstel en
+// terugvalAlsNietTeZien.
+export const PROFIEL = laadProfiel()
+export const TREDEN = tredenUitProfiel(PROFIEL)
 
 /**
  * ethers, als het er is.
