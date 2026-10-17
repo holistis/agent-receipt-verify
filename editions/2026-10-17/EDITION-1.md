@@ -158,19 +158,10 @@ is not load bearing here.
 ## The one that declares it reliably, and the one that does not
 
 `agents.daedalusdevelopmentgroup.com` reaches **level 2**. It signs its offer in
-`jws` with an EdDSA signature and a `did:web` key, and the signature verifies
-against the key in its own did document. The payload carries exactly the offer
+`jws` with an EdDSA signature and a `did:web` key, and that signature verifies
+against the key its own did document publishes. The payload carries exactly the offer
 fields the spec names. This is a real second implementation, with 280 registrations
 in the index, and none of them declare the extension.
-
-One defect worth passing on, because it is a single field. Its JWS `kid` points at
-`#keys-1`, a `Multikey` whose `publicKeyMultibase` decodes to 32 raw bytes with no
-multicodec prefix. did-core requires the `0xed01` ed25519-pub prefix there, which
-renders as `z6Mk...`; theirs renders as `zAFr...`. The signature underneath is
-correct, so this is encoding only, but a verifier that follows the specification
-rejects the key before it ever reaches the signature. The same document already
-carries a correct `publicKeyJwk` one entry below, so the fix is to add the prefix or
-to point the `kid` at the JWK entry.
 
 `markdown-x402.nordman-tehau.workers.dev` reaches **level 1**, and its level 2 is
 **not measured** rather than failed: it signs with `alg: ES256`, which this checker

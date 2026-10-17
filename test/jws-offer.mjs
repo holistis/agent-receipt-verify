@@ -7,11 +7,11 @@
 // bevriest het echte, in het veld aangetroffen artefact zodat die fout niet stil kan
 // terugkomen.
 //
-// Het artefact en het did-document hieronder zijn ECHT, letterlijk opgehaald op
-// 2026-10-17 van agents.daedalusdevelopmentgroup.com. Ze staan hier als vaste
-// gegevens zodat de test offline draait en bij iedereen hetzelfde doet. Gaat die
-// partij morgen om, dan blijft deze test gewoon geldig: hij toetst onze controle,
-// niet hun uptime.
+// Het artefact hieronder is ECHT, in het veld aangetroffen op 2026-10-17, en staat
+// hier als vast gegeven zodat de test offline draait en precies de vorm die ons brak
+// niet stil kan terugkomen. Het bijbehorende did-document is hier OPGEBOUWD in de
+// vorm die did-core voorschrijft, want deze test moet bewijzen dat ONZE controle
+// werkt, niet hoe iemand anders zijn document heeft opgeschreven.
 
 import { verifyOfferSignature, sleutelUitVerificationMethod, didWebNaarUrl } from '../src/x402-conformance-treden.mjs'
 
@@ -31,21 +31,31 @@ const ECHTE_JWS =
   'NjgzMEJjNiIsImFtb3VudCI6IjEwMDAwIiwidmFsaWRVbnRpbCI6MTc5MjIzMzQ4N30.' +
   'upSN4bcrrGOsn4x9i1wWGtqFYtE1FDdS7Nd3LX1o7Mr0mQ1B3BxUgrROm5BBVCu3RmjC2Zgu0wCGY0jcqbXWAA'
 
-const ECHT_DID_DOCUMENT = {
+const RUWE_SLEUTEL = Buffer.from('8987018e323f0889098deec91619bb0bf78dc6c933ccc95ba17242ec80dcdff5', 'hex')
+
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+function base58encode(buf) {
+  let getal = 0n
+  for (const b of buf) getal = getal * 256n + BigInt(b)
+  let uit = ''
+  while (getal > 0n) { uit = B58[Number(getal % 58n)] + uit; getal /= 58n }
+  for (const b of buf) { if (b === 0) uit = '1' + uit; else break }
+  return uit
+}
+
+/** Een Multikey zoals did-core hem wil: multibase over multicodec 0xed01 plus de sleutel. */
+const multikey = (sleutel) => 'z' + base58encode(Buffer.concat([Buffer.from('ed01', 'hex'), sleutel]))
+
+const DID_DOCUMENT = {
   '@context': ['https://www.w3.org/ns/did/v1', 'https://w3id.org/security/suites/ed25519-2020/v1'],
-  id: 'did:web:agents.daedalusdevelopmentgroup.com',
+  id: KID.split('#')[0],
   verificationMethod: [
-    {
-      id: KID,
-      type: 'Multikey',
-      controller: 'did:web:agents.daedalusdevelopmentgroup.com',
-      publicKeyMultibase: 'zAFrFmeXNnLs5cqSWupkuAhuw874dAHNUejw4hNp2G6n8',
-    },
+    { id: KID, type: 'Multikey', controller: KID.split('#')[0], publicKeyMultibase: multikey(RUWE_SLEUTEL) },
     {
       id: KID + '-jwk',
       type: 'JsonWebKey2020',
-      controller: 'did:web:agents.daedalusdevelopmentgroup.com',
-      publicKeyJwk: { kty: 'OKP', crv: 'Ed25519', x: 'iYcBjjI_CIkJje7JFhm7C_eNxskzzMlboXJC7IDc3_U' },
+      controller: KID.split('#')[0],
+      publicKeyJwk: { kty: 'OKP', crv: 'Ed25519', x: RUWE_SLEUTEL.toString('base64url') },
     },
   ],
 }
@@ -58,21 +68,9 @@ const nepFetch = (doc, { status = 200 } = {}) => async (url) => ({
   _url: url,
 })
 
-const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-function base58encode(buf) {
-  let getal = 0n
-  for (const b of buf) getal = getal * 256n + BigInt(b)
-  let uit = ''
-  while (getal > 0n) { uit = B58[Number(getal % 58n)] + uit; getal /= 58n }
-  for (const b of buf) { if (b === 0) uit = '1' + uit; else break }
-  return uit
-}
-
-const RUWE_SLEUTEL = Buffer.from('8987018e323f0889098deec91619bb0bf78dc6c933ccc95ba17242ec80dcdff5', 'hex')
-
 // ── het echte artefact verifieert ────────────────────────────────────────────
 {
-  const r = await verifyOfferSignature({ format: 'jws', signature: ECHTE_JWS }, { fetchImpl: nepFetch(ECHT_DID_DOCUMENT) })
+  const r = await verifyOfferSignature({ format: 'jws', signature: ECHTE_JWS }, { fetchImpl: nepFetch(DID_DOCUMENT) })
   toets('het echte jws-aanbod verifieert', r.ok === true, r.reden)
   toets('de ondertekenaar is de kid uit de header', r.signer === KID, r.signer)
   toets('de offer-lading komt mee terug', r.payload?.resourceUrl?.includes('daedalus') === true)
@@ -82,43 +80,53 @@ const RUWE_SLEUTEL = Buffer.from('8987018e323f0889098deec91619bb0bf78dc6c933ccc9
 
 // ── de sleutelcodering is zelf een uitslag ───────────────────────────────────
 {
-  const r = await verifyOfferSignature({ format: 'jws', signature: ECHTE_JWS }, { fetchImpl: nepFetch(ECHT_DID_DOCUMENT) })
-  toets('afwijkende codering wordt gemeld, niet weggelaten bij een groene uitslag', typeof r.afwijking === 'string' && r.afwijking.length > 20, String(r.afwijking))
-  toets('en de codering staat er met naam bij', r.codering === 'raw 32 bytes', r.codering)
-  // Dezelfde sleutel, nu wel met de prefix die did-core eist. Rendert als z6Mk...
-  const metPrefix = 'z' + base58encode(Buffer.concat([Buffer.from('ed01', 'hex'), RUWE_SLEUTEL]))
-  toets('een sleutel met multicodec-prefix rendert als z6Mk', metPrefix.startsWith('z6Mk'), metPrefix.slice(0, 8))
-  const goedeDoc = { ...ECHT_DID_DOCUMENT, verificationMethod: [{ id: KID, type: 'Multikey', publicKeyMultibase: metPrefix }] }
-  const r2 = await verifyOfferSignature({ format: 'jws', signature: ECHTE_JWS }, { fetchImpl: nepFetch(goedeDoc) })
-  toets('met prefix verifieert dezelfde handtekening ook', r2.ok === true, r2.reden)
-  toets('en dan is er geen afwijking te melden', r2.afwijking === undefined && r2.codering === 'multicodec ed25519-pub', r2.codering)
+  toets('een correcte multikey rendert als z6Mk', multikey(RUWE_SLEUTEL).startsWith('z6Mk'), multikey(RUWE_SLEUTEL).slice(0, 8))
+  const r = await verifyOfferSignature({ format: 'jws', signature: ECHTE_JWS }, { fetchImpl: nepFetch(DID_DOCUMENT) })
+  toets('met prefix verifieert de handtekening en valt er niets te melden',
+    r.ok === true && r.codering === 'multicodec ed25519-pub' && r.afwijking === undefined, r.reden ?? r.codering)
+
+  // Een sleutel ZONDER die prefix komt in het veld voor. Onze controle hoort de
+  // handtekening dan nog te kunnen beoordelen, maar de afwijking te MELDEN in plaats
+  // van hem te verzwijgen achter een groene uitslag. Met een zelf gemaakt sleutelpaar
+  // getoetst, zodat dit geval over de SPECIFICATIE gaat en niet over een partij.
+  const { generateKeyPairSync, sign: edSign } = await import('node:crypto')
+  const paar = generateKeyPairSync('ed25519')
+  const ruw = paar.publicKey.export({ type: 'spki', format: 'der' }).subarray(-32)
+  const kop = Buffer.from(JSON.stringify({ alg: 'EdDSA', kid: KID }), 'utf8').toString('base64url')
+  const lading = Buffer.from(JSON.stringify({ version: 1, amount: '1' }), 'utf8').toString('base64url')
+  const sig = edSign(null, Buffer.from(kop + '.' + lading, 'ascii'), paar.privateKey).toString('base64url')
+  const kaalDoc = { verificationMethod: [{ id: KID, type: 'Multikey', publicKeyMultibase: 'z' + base58encode(ruw) }] }
+  const r2 = await verifyOfferSignature({ format: 'jws', signature: kop + '.' + lading + '.' + sig }, { fetchImpl: nepFetch(kaalDoc) })
+  toets('zonder prefix verifieert de handtekening nog wel', r2.ok === true, r2.reden)
+  toets('en de afwijking wordt gemeld in plaats van verzwegen', typeof r2.afwijking === 'string' && r2.afwijking.length > 20, String(r2.afwijking))
+  toets('met de codering erbij', r2.codering === 'raw 32 bytes', r2.codering)
 }
 
 // ── de jwk-vorm werkt ook ────────────────────────────────────────────────────
 {
-  const jwkDoc = { verificationMethod: [{ id: KID, type: 'JsonWebKey2020', publicKeyJwk: ECHT_DID_DOCUMENT.verificationMethod[1].publicKeyJwk }] }
+  const jwkDoc = { verificationMethod: [{ id: KID, type: 'JsonWebKey2020', publicKeyJwk: DID_DOCUMENT.verificationMethod[1].publicKeyJwk }] }
   const r = await verifyOfferSignature({ format: 'jws', signature: ECHTE_JWS }, { fetchImpl: nepFetch(jwkDoc) })
   toets('publicKeyJwk werkt net zo goed', r.ok === true && r.codering === 'publicKeyJwk', r.reden ?? r.codering)
-  toets('dezelfde bytes in jwk-vorm', sleutelUitVerificationMethod(ECHT_DID_DOCUMENT.verificationMethod[1]).codering === 'publicKeyJwk')
+  toets('dezelfde bytes in jwk-vorm', sleutelUitVerificationMethod(DID_DOCUMENT.verificationMethod[1]).codering === 'publicKeyJwk')
 }
 
 // ── de faalpaden, en het verschil tussen kon-niet en klopt-niet ──────────────
 {
   const geknoeid = ECHTE_JWS.slice(0, -4) + 'AAAA'
-  const r = await verifyOfferSignature({ format: 'jws', signature: geknoeid }, { fetchImpl: nepFetch(ECHT_DID_DOCUMENT) })
+  const r = await verifyOfferSignature({ format: 'jws', signature: geknoeid }, { fetchImpl: nepFetch(DID_DOCUMENT) })
   toets('een geknoeide handtekening faalt', r.ok === false && !r.ongemeten, JSON.stringify(r).slice(0, 80))
   toets('en zegt dat de handtekening niet verifieert', /does not verify/.test(r.reden), r.reden)
 }
 {
   // Een ander algoritme is NIET ondersteund, en dat is iets anders dan ongeldig.
   const kop = Buffer.from(JSON.stringify({ alg: 'ES256', kid: KID }), 'utf8').toString('base64url')
-  const r = await verifyOfferSignature({ format: 'jws', signature: kop + '.eyJ9.AAAA' }, { fetchImpl: nepFetch(ECHT_DID_DOCUMENT) })
+  const r = await verifyOfferSignature({ format: 'jws', signature: kop + '.eyJ9.AAAA' }, { fetchImpl: nepFetch(DID_DOCUMENT) })
   toets('een onbekend alg is ongemeten, geen mislukking', r.ok === false && r.ongemeten === true, JSON.stringify(r).slice(0, 90))
   toets('en noemt het alg bij naam', /ES256/.test(r.reden), r.reden)
 }
 {
   const kop = Buffer.from(JSON.stringify({ alg: 'EdDSA', kid: 'did:key:z6MkTest' }), 'utf8').toString('base64url')
-  const r = await verifyOfferSignature({ format: 'jws', signature: kop + '.eyJ9.AAAA' }, { fetchImpl: nepFetch(ECHT_DID_DOCUMENT) })
+  const r = await verifyOfferSignature({ format: 'jws', signature: kop + '.eyJ9.AAAA' }, { fetchImpl: nepFetch(DID_DOCUMENT) })
   toets('een kid die geen did:web is, is ongemeten', r.ok === false && r.ongemeten === true, r.reden)
 }
 {
@@ -130,7 +138,7 @@ const RUWE_SLEUTEL = Buffer.from('8987018e323f0889098deec91619bb0bf78dc6c933ccc9
   toets('een did-document dat niet op te halen is, is ongemeten', r.ok === false && r.ongemeten === true, r.reden)
 }
 {
-  const r = await verifyOfferSignature({ format: 'jws', signature: 'geen.jws' }, { fetchImpl: nepFetch(ECHT_DID_DOCUMENT) })
+  const r = await verifyOfferSignature({ format: 'jws', signature: 'geen.jws' }, { fetchImpl: nepFetch(DID_DOCUMENT) })
   toets('iets dat geen compacte jws is, faalt netjes', r.ok === false && /three-part/.test(r.reden), r.reden)
 }
 {
