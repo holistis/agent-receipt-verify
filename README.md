@@ -120,6 +120,25 @@ The settlement link does read live chain state, and these are its real edges:
   (measured, not read in documentation). The window it searched is always printed,
   so "not found" reads as "not in this window" and never as "does not exist".
   Widen it with `--window=`.
+
+  A receipt may be signed before its settlement lands, since the seller holds the
+  nonce first, so the window is centred rather than backward-looking. What that
+  costs, measured against a live receipt, with the reach derived from the measured
+  block time:
+
+  | `--window` | reach around `issuedAt` | RPC calls | wall clock |
+  |---|---|---|---|
+  | 50 | 1.7 min | 1 | 0.7s |
+  | 200 | 6.7 min | 3 | 0.8s |
+  | 400 (default) | 13 min | 5 | 1.3s |
+  | 1000 | 33 min | 11 | 1.7s |
+  | 2000 | 67 min | 21 | 2.9s |
+
+  Calls grow linearly with the window and not with the payer's history, which is
+  the trade the window buys: an hour of tolerance for 21 requests. Searching a
+  payer's full set of consumed nonces instead needs no `issuedAt` at all and
+  cannot miss on skew, at a cost that grows with how much that payer has ever
+  spent.
 - A refused RPC call raises an error instead of returning an empty result. A search
   that could not run must never be reported as a search that found nothing.
 - Only `eip3009` is implemented, because that is the only method the specification
