@@ -1,0 +1,12 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.holistis/agent-receipt-verify",
+  "title": "Agent Receipt Verify",
+  "description": "Check an x402 endpoint before an agent pays it, then link the receipt to one on-chain settlement.",
+  "version": "0.2.0",
+  "repository": {
+    "url": "https://github.com/holistis/agent-receipt-verify",
+    "source": "github"
+  },
+  "websiteUrl": "https://github.com/holistis/agent-receipt-verify/blob/main/CONFORMANCE.md"
+}
