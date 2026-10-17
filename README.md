@@ -73,8 +73,8 @@ vectors, that is interop. One implementation agreeing with itself proves nothing
 | Format | Vectors by | Cases | Our verdicts match |
 |---|---|---|---|
 | INAM countersigned | inamprotocol/inam-protocol @ d5e5f45 | 4 | 4 / 4, identical failed-check sets |
-| x402 offer-receipt (commitment §5.6) | x402-foundation/x402 @ 0e492d6 | 1 published example plus 6 own edge cases | yes, byte-identical |
-| x402 settlement link (§5.6.4, on chain) | own tests plus three live settlements | 22 offline, 3 live | yes, each resolves to its own settlement |
+| x402 offer-receipt (commitment §5.6, proposed in PR 3827) | x402-foundation/x402 @ 0e492d6, not on main | 1 published example plus 6 own edge cases | yes, byte-identical |
+| x402 settlement link (§5.6.4, same proposal) | own tests plus three live settlements | 22 offline, 3 live | yes, each resolves to its own settlement |
 
 ```sh
 npm test      # all of the above, no network, no keys
@@ -97,6 +97,15 @@ payer, payee, amount and time. Two payments with the same terms in the same bloc
 cannot be told apart at all. Section 5.6 of the x402 offer-receipt extension fixes
 that with a salted commitment to the ERC-3009 nonce: whoever holds the salt can
 recompute the link to exactly one settlement, and everyone else learns nothing.
+
+Where section 5.6 lives, because it is not where a reader would assume. Sections 5.6
+through 5.6.5 do not exist in the version of the offer-receipt extension on `main`.
+They exist only in pull request 3827, which is open. Everything here that cites 5.6 is
+therefore measured against a proposal, pinned to commit `0e492d6` on that pull request,
+which is four commits ahead of `main` and fetchable by anyone. The numbering can still
+move before it merges. Levels 4 and 5 of the ladder carry this in the profile, and the
+tool says so in its own output, so a result is never quietly presented as measured
+against published text.
 
 Section 5.6.5 is the part that makes this matter in practice. A commitment that
 nobody has opened is still only a statement by the signer: they can issue two
@@ -216,6 +225,12 @@ No install, no account, nothing published to npm:
 ```sh
 npx github:holistis/agent-receipt-verify https://your-endpoint.example/paid
 ```
+
+The ladder itself is a versioned file, [profiles/x402-deployed-ladder-v1.json](profiles/x402-deployed-ladder-v1.json),
+which names the clause behind every level, the input each check needs, and what to
+report when a check cannot decide. The tool reads that file rather than carrying the
+rules in code, so a second implementation can measure the same thing without reading
+ours.
 
 It measures levels 0 to 2 of the ladder in [CONFORMANCE.md](CONFORMANCE.md) without
 paying. Levels 3 to 5 need a real settlement and come back as not measured, never as

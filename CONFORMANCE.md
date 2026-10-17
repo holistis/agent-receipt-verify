@@ -46,6 +46,12 @@ rather than as absent.
 | 4 | receipt is version 2, and the salt arrives where §5.6.3 says | `payload.version` is 2 with both commitment fields, and the salt is at `extensions["offer-receipt"].info.authorizationSalt` | no |
 | 5 | the commitment opens against the chain to exactly one settlement | §5.6.4 run against live chain state resolves to exactly one `AuthorizationUsed` nonce | no |
 
+Levels 4 and 5 cite sections 5.6 and later of the offer-receipt extension. Those do
+not exist on `main`: they live only in pull request 3827, which is open, pinned here
+to commit `0e492d6`. Both levels are marked as citing a proposal in
+[profiles/x402-deployed-ladder-v1.json](profiles/x402-deployed-ladder-v1.json), and
+the tool repeats that in its output.
+
 Level 0 deliberately fails a 402 that carries no requirements. A payment demand
 that does not say what to pay cannot be acted on, and treating it as conforming
 would make the level meaningless.
