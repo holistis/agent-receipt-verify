@@ -141,19 +141,52 @@ export async function beoordeelAutorisatie(input, context = {}) {
     return { valid: false, reason_code: 'SIGNER_MISMATCH', hersteld }
   }
 
-  // 5. Het bedrag, pas NA de handtekening: een authentiek ondertekende onderbetaling.
-  if (BigInt(auth.value ?? 0) < BigInt(accepted.amount ?? 0)) {
-    return { valid: false, reason_code: 'AMOUNT_INSUFFICIENT' }
+  // 5. Het bedrag, pas NA de handtekening: een authentiek ondertekende afwijking.
+  //
+  // DE STANDAARD NEEMT HIER GEEN POSITIE IN, DUS WIJ MAKEN DE KEUZE ZICHTBAAR. Twee
+  // referentie-implementaties eisen GELIJKHEID en wijzen dus ook te veel betalen af:
+  // go/mechanisms/evm/exact/facilitator/eip3009.go regel 65 (`Cmp(requiredValue) != 0`,
+  // fout ErrAuthorizationValueMismatch) en python/x402/mechanisms/evm/exact/
+  // facilitator.py regel 235 (`!=`), met op regel 168 de eigen zin "Amount exactly
+  // matches requirements.amount". Onze eerste versie liet te veel betalen toe en zou
+  // dus op dat ene geval van hen afwijken, terwijl geen enkele gepubliceerde vector
+  // het dekt. Daarom staat 'exact' nu als standaard, is 'at-least' een bewuste keuze,
+  // en draagt de uitslag ALTIJD welke van de twee gebruikt is.
+  const beleid = context.amountPolicy === 'at-least' ? 'at-least' : 'exact'
+  const betaald = BigInt(auth.value ?? 0)
+  const gevraagd = BigInt(accepted.amount ?? 0)
+  const bedragFout = beleid === 'exact' ? betaald !== gevraagd : betaald < gevraagd
+  if (bedragFout) {
+    return { valid: false, reason_code: 'AMOUNT_INSUFFICIENT', amountPolicy: beleid }
   }
 
-  // 6. Is deze nonce al verbruikt. Dit is toestand van buiten, geen eigenschap van de
-  // autorisatie, en komt daarom uit de context in plaats van uit de betaling.
-  const gezien = (context.seen_nonces ?? []).map((n) => String(n).toLowerCase())
-  if (gezien.includes(String(auth.nonce).toLowerCase())) {
+  // 6. Is deze nonce al verbruikt, PER BETALER en niet over iedereen heen.
+  //
+  // EIP-3009 houdt dit zelf per adres bij: `mapping(address => mapping(bytes32 =>
+  // bool))`, en de leesfunctie heet `authorizationState(address authorizer, bytes32
+  // nonce)`. De spec zegt er bovendien bij dat nonces willekeurige 32 bytes zijn,
+  // uniek per adres, en juist geen volgnummers. Een verifieerder die EEN lijst
+  // bijhoudt zonder onderscheid naar betaler is dus STRENGER dan de keten zelf: hij
+  // zou een geldige betaling van een andere partij weigeren die toevallig dezelfde
+  // 32 bytes koos. Onze eerste versie deed precies dat.
+  //
+  // Twee vormen worden aanvaard. Een platte lijst hoort bij DEZE betaler, want zo
+  // gebruiken de gepubliceerde vectoren hem. Een object met het adres als sleutel is
+  // de nauwkeurige vorm en komt overeen met wat het token-contract doet.
+  const betaler = String(auth.from ?? '').toLowerCase()
+  const bron = context.seen_nonces
+  let gezien = []
+  if (Array.isArray(bron)) gezien = bron
+  else if (bron && typeof bron === 'object') {
+    for (const [adres, lijst] of Object.entries(bron)) {
+      if (String(adres).toLowerCase() === betaler) gezien = lijst ?? []
+    }
+  }
+  if (gezien.map((n) => String(n).toLowerCase()).includes(String(auth.nonce).toLowerCase())) {
     return { valid: false, reason_code: 'NONCE_REPLAY' }
   }
 
-  return { valid: true, reason_code: 'VALID', ondertekenaar: hersteld }
+  return { valid: true, reason_code: 'VALID', ondertekenaar: hersteld, amountPolicy: beleid }
 }
 
 /** Een hele vector beoordelen, met zijn eigen context en doelnetwerk. */

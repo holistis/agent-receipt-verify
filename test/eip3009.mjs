@@ -95,12 +95,52 @@ console.log('\nde tegencontrole: dezelfde baseline twaalf keer stukgemaakt')
     v.input.payload.authorization.nonce = '0x' + '11'.repeat(32)
   }, 'SIGNER_MISMATCH')
 
-  // En een mutatie die juist NIET mag afkeuren: een bedrag BOVEN het gevraagde is
-  // geen gebrek. Wie dit toch afkeurt heeft de vergelijking omgedraaid, en dat is een
-  // fout die alleen een positieve controle vangt.
+  // DEZE CONTROLE IS MEEVERANDERD MET DE CODE, en dat hoort zo. Eerst stond hier dat
+  // een bedrag BOVEN het gevraagde geldig blijft. Sinds twee referentie-implementaties
+  // bleken gelijkheid te eisen (go eip3009.go:65, python facilitator.py:235) is exact
+  // het standaardbeleid, en moet juist AFKEUREN de verwachting zijn. De oorspronkelijke
+  // bedoeling, een omgekeerde vergelijking vangen, staat nu onder het at-least-beleid.
   if (ethersAanwezig) {
     const u = await draai((v) => { v.input.accepted.amount = '1' })
-    t('een bedrag BOVEN het gevraagde blijft geldig, de vergelijking staat niet omgekeerd', u.valid === true)
+    t('een bedrag boven het gevraagde wordt standaard afgekeurd, zoals go en python doen',
+      u.valid === false && u.reason_code === 'AMOUNT_INSUFFICIENT')
+  }
+}
+
+console.log('')
+console.log('de twee keuzes die geen enkele vector dekt')
+{
+  const basis = lees('valid-baseline-001.json')
+  const erIsEthers = !(await beoordeelVector(basis)).ongemeten
+  const kopie = () => JSON.parse(JSON.stringify(basis))
+  const run = async (muteer, ctx = {}) => {
+    const v = kopie(); muteer(v)
+    return beoordeelAutorisatie(v.input, { ...(v.context ?? {}), doelNetwerk: v.network, ...ctx })
+  }
+  if (!erIsEthers) {
+    console.log('  (overgeslagen, geen ethers)')
+  } else {
+    const teVeel = await run((v) => { v.input.accepted.amount = '9999' })
+    t('standaard wijst TE VEEL betalen af, zoals go en python doen',
+      teVeel.valid === false && teVeel.reason_code === 'AMOUNT_INSUFFICIENT')
+    t('en de uitslag noemt het gebruikte beleid, want dit is een keuze en geen natuurwet',
+      teVeel.amountPolicy === 'exact')
+    const soepel = await run((v) => { v.input.accepted.amount = '9999' }, { amountPolicy: 'at-least' })
+    t('met at-least is te veel betalen juist geldig', soepel.valid === true && soepel.amountPolicy === 'at-least')
+    const teWeinig = await run((v) => { v.input.accepted.amount = '20000' }, { amountPolicy: 'at-least' })
+    t('maar te WEINIG blijft ook met at-least afgewezen', teWeinig.reason_code === 'AMOUNT_INSUFFICIENT')
+    t('een bedrag dat precies klopt is onder beide beleiden geldig', (await run(() => {})).valid === true)
+    const nonce = basis.input.payload.authorization.nonce
+    const ander = '0x000000000000000000000000000000000000dEaD'
+    t('dezelfde nonce verbruikt door een ANDER adres blokkeert ons niet, net als op de keten',
+      (await run(() => {}, { seen_nonces: { [ander]: [nonce] } })).valid === true)
+    t('dezelfde nonce verbruikt door DEZE betaler blokkeert wel',
+      (await run(() => {}, { seen_nonces: { [basis.input.payload.authorization.from]: [nonce] } })).reason_code === 'NONCE_REPLAY')
+    t('een platte lijst telt als de nonces van deze betaler, zoals hun eigen vector hem gebruikt',
+      (await run(() => {}, { seen_nonces: [nonce] })).reason_code === 'NONCE_REPLAY')
+    t('adressen worden niet op hoofdletters vergeleken',
+      (await run(() => {}, { seen_nonces: { [ander.toUpperCase()]: [nonce] } })).valid === true)
+    t('een lege boekhouding blokkeert niets', (await run(() => {}, { seen_nonces: {} })).valid === true)
   }
 }
 

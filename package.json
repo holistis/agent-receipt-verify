@@ -18,7 +18,8 @@
     "metingen-bundel": "node src/x402-metingen-bundel.mjs",
     "mcp": "node src/mcp-server.mjs",
     "bundel": "node tools/bundel-bouw.mjs build/bundle",
-    "kanon": "node src/eip3009-autorisatie.mjs --vectoren"
+    "kanon": "node src/eip3009-autorisatie.mjs --vectoren",
+    "bench-eip3009": "node bench/eip3009-beleid.mjs"
   },
   "optionalDependencies": {
     "ethers": "^6.17.0"
