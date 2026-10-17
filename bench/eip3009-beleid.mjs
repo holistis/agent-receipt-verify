@@ -11,7 +11,12 @@
 // gevallen die zij niet dekken en die het verschil zichtbaar maken. De uitslag is een
 // tabel waarin te zien is waar de twee keuzes uit elkaar lopen en waar niet.
 //
-// Gebruik: node bench/eip3009-beleid.mjs
+// DE UITVOER IS ENGELS, de commentaren zijn dat niet. Sinds 0.2.2 is dit een eigen
+// commando (`agent-receipt-verify beleid`), dus de regels die iemand op zijn scherm
+// krijgt zijn voor een vreemde bedoeld. Een meting die niemand kan lezen is geen
+// meting die iemand overneemt.
+//
+// Gebruik: node bench/eip3009-beleid.mjs   of   npx agent-receipt-verify beleid
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -24,11 +29,11 @@ const lees = (n) => JSON.parse(fs.readFileSync(path.join(MAP, n), 'utf8'))
 
 const vectoren = fs.readdirSync(MAP).filter((f) => f.endsWith('.json')).sort()
 
-console.log('EIP-3009, de twee open vragen uit x402#2725, gemeten')
+console.log('EIP-3009: the two open questions from x402 issue 2725, measured')
 console.log('')
 
 // ---------------------------------------------------------------------------
-console.log('1. Dezelfde tien vectoren onder beide bedragbeleiden')
+console.log('1. The same ten vectors under both amount policies')
 console.log('')
 const uitkomst = {}
 for (const beleid of ['exact', 'at-least']) {
@@ -38,20 +43,20 @@ for (const beleid of ['exact', 'at-least']) {
     const v = lees(f)
     const u = await beoordeelAutorisatie(v.input, { ...(v.context ?? {}), doelNetwerk: v.network, amountPolicy: beleid })
     if (u.valid === v.expected.valid && u.reason_code === v.expected.reason_code) eens++
-    else afwijkend.push(v.id + ' (' + u.reason_code + ' tegen ' + v.expected.reason_code + ')')
+    else afwijkend.push(v.id + ' (' + u.reason_code + ' against ' + v.expected.reason_code + ')')
   }
   uitkomst[beleid] = { eens, afwijkend }
-  console.log('  ' + beleid.padEnd(9) + ' eens op ' + eens + ' van ' + vectoren.length +
-    (afwijkend.length ? '   afwijkend: ' + afwijkend.join(', ') : ''))
+  console.log('  ' + beleid.padEnd(9) + ' agrees on ' + eens + ' of ' + vectoren.length +
+    (afwijkend.length ? '   differs: ' + afwijkend.join(', ') : ''))
 }
 console.log('')
-console.log('  Beide beleiden halen dezelfde uitslag op alle tien. Dat is het punt: de')
-console.log('  gepubliceerde vectoren dekken alleen ONDERbetaling, dus zij kunnen de vraag')
-console.log('  niet beantwoorden. Wie hier stopt, denkt dat hij het weet.')
+console.log('  Both policies reach the same verdict on all ten. That is the point: the')
+console.log('  published vectors only cover UNDERpayment, so they cannot answer the')
+console.log('  question. Anyone who stops here thinks they know.')
 
 // ---------------------------------------------------------------------------
 console.log('')
-console.log('2. Het geval dat geen enkele vector dekt: te veel betalen')
+console.log('2. The case no vector covers: paying too much')
 console.log('')
 {
   const basis = lees('valid-baseline-001.json')
@@ -59,21 +64,21 @@ console.log('')
     const v = JSON.parse(JSON.stringify(basis))
     v.input.accepted.amount = String(BigInt(v.input.payload.authorization.value) - 1n)
     const u = await beoordeelAutorisatie(v.input, { ...(v.context ?? {}), doelNetwerk: v.network, amountPolicy: beleid })
-    console.log('  ' + beleid.padEnd(9) + ' ondertekend ' + v.input.payload.authorization.value +
-      ', gevraagd ' + v.input.accepted.amount + '  ->  ' + (u.valid ? 'GELDIG' : u.reason_code))
+    console.log('  ' + beleid.padEnd(9) + ' signed ' + v.input.payload.authorization.value +
+      ', asked ' + v.input.accepted.amount + '  ->  ' + (u.valid ? 'VALID' : u.reason_code))
   }
   console.log('')
-  console.log('  Twee referentie-implementaties wijzen dit af:')
+  console.log('  Two reference implementations reject this:')
   console.log('    go/mechanisms/evm/exact/facilitator/eip3009.go:65  Cmp(requiredValue) != 0')
   console.log('    python/x402/mechanisms/evm/exact/facilitator.py:235  value != amount')
-  console.log('    en diezelfde python zegt op regel 168: "Amount exactly matches requirements.amount"')
-  console.log('  Daarom staat exact bij ons als standaard. Het blijft een keuze, dus hij staat')
-  console.log('  in de uitslag en niet alleen in de code.')
+  console.log('    and that same python says on line 168: "Amount exactly matches requirements.amount"')
+  console.log('  So exact is our default. It stays a choice, which is why it is printed in')
+  console.log('  the result and not buried in the code.')
 }
 
 // ---------------------------------------------------------------------------
 console.log('')
-console.log('3. Het tweede geval dat geen vector dekt: dezelfde nonce, een ANDERE betaler')
+console.log('3. The second case no vector covers: the same nonce, a DIFFERENT payer')
 console.log('')
 {
   const basis = lees('valid-baseline-001.json')
@@ -91,18 +96,18 @@ console.log('')
     context: { ...basis.context, seen_nonces: [nonce] },
   })
 
-  console.log('  nonce al verbruikt door een ANDER adres')
-  console.log('    per betaler (contractvorm) ->  ' + (perBetaler.valid ? 'GELDIG' : perBetaler.reason_code))
-  console.log('  dezelfde nonce verbruikt door DEZE betaler')
-  console.log('    platte lijst               ->  ' + (plat.valid ? 'GELDIG' : plat.reason_code))
+  console.log('  nonce already spent by ANOTHER address')
+  console.log('    per payer (how the contract does it) ->  ' + (perBetaler.valid ? 'VALID' : perBetaler.reason_code))
+  console.log('  the same nonce spent by THIS payer')
+  console.log('    flat list                            ->  ' + (plat.valid ? 'VALID' : plat.reason_code))
   console.log('')
-  console.log('  EIP-3009 houdt dit zelf per adres bij: mapping(address => mapping(bytes32')
-  console.log('  => bool)), uitleesbaar als authorizationState(address authorizer, bytes32')
-  console.log('  nonce), en de spec zegt dat nonces willekeurige 32 bytes zijn, uniek per')
-  console.log('  adres. Een verifieerder met een lijst zonder betaler is dus STRENGER dan de')
-  console.log('  keten en zou een geldige betaling van een ander kunnen weigeren.')
+  console.log('  EIP-3009 tracks this per address itself: mapping(address => mapping(bytes32')
+  console.log('  => bool)), readable as authorizationState(address authorizer, bytes32 nonce),')
+  console.log('  and the spec says nonces are random 32 bytes, unique to the authorizer. A')
+  console.log('  verifier holding a list without the payer is therefore STRICTER than the')
+  console.log('  chain, and could refuse a valid payment from someone else.')
 }
 
 console.log('')
-console.log('Kort: op de tien gepubliceerde vectoren maakt geen van beide keuzes verschil.')
-console.log('Op de twee gevallen die niemand gepubliceerd heeft, maakt het alles uit.')
+console.log('Short version: on the ten published vectors neither choice makes a difference.')
+console.log('On the two cases nobody published, it decides everything.')

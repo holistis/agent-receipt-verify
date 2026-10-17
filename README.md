@@ -2,9 +2,9 @@
 
 Independent verification of payment- and outcome-proof receipts used by AI agents.
 
-An agent economy has two kinds of receipt. One says **who was allowed to act**
-(delegation: UCAN, Authproof, Agent Passport). The other says **what was paid for
-and whether the output matches** (settlement and outcome: x402 offer-receipt, INAM
+An agent economy has two kinds of receipt. One says who was allowed to act
+(delegation: UCAN, Authproof, Agent Passport). The other says what was paid for
+and whether the output matches (settlement and outcome: x402 offer-receipt, INAM
 countersigned receipts, and the proofs ERC-8004 consumers count).
 
 `receipt-commons/receipt-interop` covers the first kind. This covers the second.
@@ -90,6 +90,23 @@ settlements, starting from the receipt, the salt and the asset as §5.6.4
 requires. Their result and ours are in
 [x402#3827](https://github.com/x402-foundation/x402/pull/3827#issuecomment-6230063003).
 
+## Recompute it yourself, without an account
+
+Two of the cross-checks run offline from a single command, so nothing here has to be
+taken on trust:
+
+```sh
+npx -y agent-receipt-verify kanon
+npx -y agent-receipt-verify beleid
+```
+
+The first checks our EIP-3009 verifier against the ten published vectors of
+iamonuwa/kanon. The second exists because agreement can hide a question: all ten of
+those vectors cover underpayment only, so they say nothing about overpayment, or
+about one nonce reused across two payers. Those are the two open questions in
+[x402#2725](https://github.com/x402-foundation/x402/issues/2725), and the command
+prints exactly where the two possible answers diverge and where they do not.
+
 ## Linking a receipt to its settlement
 
 A receipt with an empty `transaction` field can be matched to a payment only by
@@ -170,7 +187,7 @@ not show that anyone else is using it.
 
 ## Honest limits
 
-The format checks test the **form** of a receipt: signatures, content addressing,
+The format checks test the form of a receipt: signatures, content addressing,
 and whether the hashes match the bytes a counterparty observed. They do not tell
 you whether an operator is honest, or whether a registry holds a receipt as
 finalized.
