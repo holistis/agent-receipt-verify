@@ -9,7 +9,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node test/interop.mjs && node test/link-onchain.mjs",
-    "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json"
+    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/conformance.mjs",
+    "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json",
+    "conformance": "node src/x402-conformance-check.mjs"
+  },
+  "optionalDependencies": {
+    "ethers": "^6.17.0"
   }
 }

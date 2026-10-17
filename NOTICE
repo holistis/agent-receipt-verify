@@ -11,6 +11,15 @@ so that anyone can reproduce the results without trusting this repository:
   d5e5f4555e7fd2ca8dedfa28bbfcddb0e6eb991d. Apache-2.0. Unmodified.
   Those files contain test keys and made-up addresses only, as their own README states.
 
+- vectors/inam/canonical-vectors.json
+  from inamprotocol/inam-protocol, interop/canonical/vectors.json, at commit
+  d4a2940f936af5353a9a9bf89db1097ca91bdd3c. Apache-2.0. Unmodified.
+  Key-order and escaping cases with characters beyond U+FFFF and lone surrogates.
+  Their maintainer published these after the ones above and pointed us at them, since
+  they are where two implementations written from the same text most easily diverge:
+  they exposed a real bug in their own Python canonicalizer, which sorted keys by code
+  point instead of by UTF-16 code unit.
+
 - The worked example in src/x402-offer-receipt.mjs (asset, authorizer, nonce, salt and
   the expected commitment) is quoted from x402-foundation/x402,
   specs/extensions/extension-offer-and-receipt.md section 5.6.2, on the branch

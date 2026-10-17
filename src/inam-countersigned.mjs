@@ -62,7 +62,12 @@ function ed25519Klopt(did, inhoud, handtekeningB64) {
 
 let keccak256
 try {
-  const ethers = await import('file:///C:/Code/tokenizen/node_modules/ethers/lib.esm/index.js')
+  // Een BARE import, en bewust geen pad op iemands schijf. Dit stond hier als
+  // file:///C:/Code/... en dat werkte alleen op de machine van de schrijver: voor
+  // iedere vreemde viel controle 1 stil weg en kreeg hij zonder het te weten een
+  // zwakkere uitslag dan wij. Dat is het tegenovergestelde van een onafhankelijke
+  // verifieerder. ethers staat nu als optionele afhankelijkheid in package.json.
+  const ethers = await import('ethers')
   keccak256 = b => ethers.keccak256(b)
 } catch {
   keccak256 = null
