@@ -78,6 +78,11 @@ try {
 
 export function toetsGeval(geval, vectoren) {
   const mislukt = []
+  // Apart van de mislukte checks: gevallen waar het formaat niets te toetsen GEEFT.
+  // Die horen niet als mislukking te tellen (dan keur je een geldige bon af) en ook niet
+  // stil te verdwijnen (dan lijkt ongemeten op goedgekeurd). Dit veld raakt `accepted`
+  // bewust niet aan, zodat de vergelijking met hun verwachting zuiver blijft.
+  const onbegrensd = []
   const bestand = geval.feedbackFile
   const f = JSON.parse(bestand)
   const r = f?.inam?.receipt ?? {}
@@ -111,10 +116,27 @@ export function toetsGeval(geval, vectoren) {
   if (!sigA || !ed25519Klopt(didA, inhoud, sigA)) mislukt.push('requesterSignature')
 
   // 5. waarde hoort bij de uitkomst: 100 / 50 / 0
-  const uitkomst = r.result?.outcome ?? r.result?.status
+  //
+  // HET VELD IS `verification.outcome`, EN DAT IS EEN REPARATIE. Deze check las eerder
+  // `result.outcome` en `result.status`. Die velden bestaan niet in dit formaat: de bon
+  // draagt alleen `result.completedAt` en `result.outputHash`. Gevolg was dat `hoort`
+  // altijd undefined bleef en de hele check werd OVERGESLAGEN, waarna wij de
+  // INFLATED-VALUE-vector (waarde 999 bij een succesvolle levering) ACCEPTEERDEN terwijl
+  // de methode hem afkeurt. Een valse goedkeuring is de duurste richting voor een
+  // verifieerder, en de check bestond wel: hij kon alleen niet vuren.
+  //
+  // De plaats staat in hun eigen methodetekst, interop/countersigned/METHOD.md: "The
+  // signed receipt binds the outcome (`verification.outcome`), not an amount. `value` is
+  // derived from the outcome (100 / 50 / 0)". Gelezen in de bron in plaats van geraden,
+  // want geraden was precies de fout.
+  const uitkomst = r.verification?.outcome ?? r.result?.outcome ?? r.result?.status
   const hoort = { success: 100, partial: 50, failed: 0 }[uitkomst]
   const waarde = ev.value ?? f.value
   if (hoort !== undefined && Number(waarde) !== hoort) mislukt.push('valueMatchesOutcome')
+  // Een bon ZONDER uitkomst laat de waarde onbegrensd, en dat is geen detail maar precies
+  // de beperking die wij zelf in die methodetekst hebben laten opnemen. Dus wordt dat
+  // geval apart gemeld in plaats van stil als geldig te passeren.
+  else if (hoort === undefined) onbegrensd.push('valueOnbegrensdZonderUitkomst')
 
   // 6. het bestand noemt het adres dat het event verstuurde
   const inBestand = String(f.clientAddress ?? '').split(':').pop().toLowerCase()
@@ -130,7 +152,7 @@ export function toetsGeval(geval, vectoren) {
   if ('sha256:' + sha256hex(verzoekBytes) !== r.task?.specHash) mislukt.push('specHashMatchesObservedBytes')
   if ('sha256:' + sha256hex(obs.response?.body ?? '') !== r.result?.outputHash) mislukt.push('outputHashMatchesObservedBytes')
 
-  return { accepted: mislukt.length === 0, failedChecks: mislukt }
+  return { accepted: mislukt.length === 0, failedChecks: mislukt, onbegrensd }
 }
 
 // ── draaien en vergelijken met wat de vectoren zelf verwachten ───────────────
