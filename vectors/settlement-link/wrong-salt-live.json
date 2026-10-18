@@ -1,0 +1,46 @@
+{
+  "id": "x402-evm-settlement-link-wrong-salt-live",
+  "schema_version": "3.0.0",
+  "protocol": "x402",
+  "scheme": "exact",
+  "network": "eip155:84532",
+  "asset_transfer_method": "eip3009",
+  "encodes": "A salt that belongs to another payment must not open this commitment.",
+  "provenance": [
+    "x402 offer-receipt extension section 5.6.4, as proposed in pull request 3827 at commit 0e492d6 and not on main",
+    "EIP-3009"
+  ],
+  "description": "The same receipt and the same candidate, but the salt of a different payment. The commitment must not open. This is the case the whole construction rests on: without the salt, two payments with identical terms could not be told apart.",
+  "requires_chain_read": false,
+  "input": {
+    "receipt": {
+      "format": "eip712",
+      "payload": {
+        "version": 2,
+        "network": "eip155:84532",
+        "resourceUrl": "https://api.tokenizen.nl/api/paid/verify-ownership",
+        "payer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "issuedAt": 1792187030,
+        "transaction": "",
+        "authorizationMethod": "eip3009",
+        "authorizationCommitment": "0x5c35a61a09a566a9c284fad18a70ac2ddfff34d01d2a3ce776ce94e8d5b38ff8"
+      },
+      "signature": "0x78615cb22986af0aad6e08b74ca78773bb58ece21660e84e4b35b3e5c1841b0075238ca9bfdf0f969ad3f2903af8f391fafd1b3fc7ebbf1fb5c949a3948fccde1c"
+    },
+    "authorizationSalt": "0x63072ea656fe922bf04c9cefc4275314d695fff01e5b57f6628c8df0252cc5dc",
+    "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "candidates": [
+      {
+        "authorizer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "nonce": "0x1120412c78ea1b2e8bf9eacfc3264c71a23ecd9b1fa579eb16030693344d5dfe"
+      }
+    ]
+  },
+  "context": {
+    "note": "Both salts are real and come from two separate payments with identical terms."
+  },
+  "expected": {
+    "linked": false,
+    "outcome": "NOT_LINKED"
+  }
+}
