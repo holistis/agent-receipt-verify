@@ -38,20 +38,72 @@ export const VECTORMAP = path.join(WORTEL, 'vectors', 'settlement-link')
  * uitkomst: een verifieerder die bij een ongeldig bonnetje crasht, is zelf de storing.
  */
 /**
- * Een commitment berekenen zonder dat een kapot veld de hele ronde omver trekt.
+ * Matcht deze kandidaat het commitment? Ja of nee, en nooit iets daartussenin.
  *
- * WAAROM DIT BESTAAT. De koptekst van dit bestand belooft dat deze loper nooit gooit
- * voor een gewone uitkomst, want een verifieerder die bij een ongeldig bonnetje crasht
- * is zelf de storing. De aanroepen stonden toch kaal in een filter, dus EEN vector met
- * een veld van de verkeerde lengte brak de ronde af voordat ook maar een andere vector
- * beoordeeld was. Een niet-berekenbare kandidaat is geen treffer, en dat is hier de
- * juiste en enige betekenis.
+ * WAAROM DIT EEN BOOLEAN IS EN GEEN WAARDE. De eerste versie van deze reparatie gaf bij
+ * een onberekenbaar veld de TEKENREEKS `0x-niet-te-berekenen` terug, en die werd daarna
+ * vergeleken met het commitment uit het bonnetje. Een foutwaarde die in dezelfde ruimte
+ * leeft als de echte waarde is geen foutwaarde maar een sleutel: een bonnetje dat
+ * precies die tekst als commitment droeg, met een kandidaat die niet te berekenen was,
+ * kwam er als GELINKT uit zonder dat er een byte cryptografie aan te pas kwam. Onze
+ * eigen keuring heeft dat gedraaid, met en zonder hoofdletters, op beide takken van
+ * beoordeelVector. Dat is precies de klasse fout die dit bestand moet uitsluiten, en hij
+ * zat er een uur in.
+ *
+ * `null` teruggeven lost het NIET op, en dat is de reden dat hier een boolean staat:
+ * `String(null)` is de tekenreeks "null", dus een bonnetje met commitment "null" zou
+ * het gat meteen heropenen. De enige vorm die dicht is, is er niets uit laten komen dat
+ * ooit vergeleken wordt. De vergelijking zelf hoort daarom HIER en nergens anders.
+ *
+ * En de oorspronkelijke reden blijft staan: een kapot veld mag de ronde niet omver
+ * trekken. Een onberekenbare kandidaat is geen treffer. Dat is hier de enige betekenis.
  */
-function veiligCommitment(velden) {
+function kandidaatMatcht(velden, commitment) {
+  if (typeof commitment !== 'string' || !commitment) return false
+  let berekend
   try {
-    return berekenCommitment(velden)
+    berekend = berekenCommitment(velden)
   } catch {
-    return '0x-niet-te-berekenen'
+    return false
+  }
+  // berekenCommitment geeft altijd een 0x-sha256 terug of gooit. Deze controle staat er
+  // zodat een toekomstige wijziging daar nooit stil iets anders dan een hash kan laten
+  // doorstromen naar een gelijkheidsvergelijking.
+  if (typeof berekend !== 'string' || !/^0x[0-9a-f]{64}$/i.test(berekend)) return false
+  return berekend.toLowerCase() === commitment.toLowerCase()
+}
+
+/**
+ * Is dit een kandidaat waar uberhaupt iets mee te doen valt?
+ *
+ * Zonder deze zeef overleefde een `null` in de kandidatenlijst de filter (want
+ * `k?.authorizer` is dan gewoon undefined), en als zo'n kandidaat dan matchte, knalde
+ * `passend[0].nonce` met een TypeError. De koptekst van dit bestand belooft letterlijk
+ * dat deze loper niet gooit voor een gewone uitkomst. Gemeten in de eigen keuring.
+ */
+function bruikbareKandidaat(k) {
+  return Boolean(k) && typeof k === 'object' && typeof k.nonce === 'string' && typeof k.authorizer === 'string'
+}
+
+/**
+ * Kunnen wij met ONZE eigen vaste velden uberhaupt een commitment uitrekenen?
+ *
+ * WAAROM DIT APART STAAT VAN DE KANDIDATEN. Een kapotte KANDIDAAT is geen treffer, en
+ * dat is de juiste uitkomst. Een kapot EIGEN veld (een zout of een asset die onze RPC
+ * verkeerd teruggaf) laat elke kandidaat falen, en dan rolt er een stellige "geen enkele
+ * kandidaat opende dit commitment" uit terwijl de waarheid is dat er niets te berekenen
+ * viel. De koptekst van dit bestand noemt dat zelf de ergste fout die deze loper kan
+ * maken: een geldig bonnetje weggooien bij een haperende RPC.
+ *
+ * Deze controle zat al in opentCommitment, en niet hier. Dezelfde commit repareerde de
+ * ene functie en liet de andere staan, en de eigen keuring heeft dat gemeten.
+ */
+function eigenVeldenMeetbaar({ method, asset, salt }) {
+  try {
+    berekenCommitment({ method, asset, authorizer: '0x' + '00'.repeat(20), identifier: '0x' + '00'.repeat(32), salt })
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, reden: 'cannot compute a commitment here: ' + String(e?.message ?? e).slice(0, 90) }
   }
 }
 
@@ -79,14 +131,20 @@ export function beoordeelVector(v) {
       if (!p.authorizationCommitment) {
         return { outcome: 'NOT_MEASURED', reden: `receipt ${i} carries no commitment` }
       }
-      const passend = kandidaten.filter((k) =>
-        String(veiligCommitment({
+      const meetbaar = eigenVeldenMeetbaar({
+        method: p.authorizationMethod ?? 'eip3009',
+        asset: r.asset,
+        salt: r.authorizationSalt,
+      })
+      if (!meetbaar.ok) return { outcome: 'NOT_MEASURED', reden: `receipt ${i}: ` + meetbaar.reden }
+      const passend = kandidaten.filter(bruikbareKandidaat).filter((k) =>
+        kandidaatMatcht({
           method: p.authorizationMethod ?? 'eip3009',
           asset: r.asset,
-          authorizer: k?.authorizer,
-          identifier: k?.nonce,
+          authorizer: k.authorizer,
+          identifier: k.nonce,
           salt: r.authorizationSalt,
-        })).toLowerCase() === String(p.authorizationCommitment).toLowerCase())
+        }, p.authorizationCommitment))
       if (passend.length !== 1) {
         return { outcome: 'NOT_LINKED', reden: `receipt ${i} opened on ${passend.length} candidates, expected exactly one` }
       }
@@ -109,14 +167,21 @@ export function beoordeelVector(v) {
   // en ging de hele ronde eraan.
   if (!Array.isArray(kandidaten)) return { outcome: 'NOT_MEASURED', reden: 'the candidate set is not a list' }
 
-  const passend = kandidaten.filter((k) =>
-    String(veiligCommitment({
+  const meetbaar = eigenVeldenMeetbaar({
+    method: p.authorizationMethod ?? 'eip3009',
+    asset: v.input.asset,
+    salt: v.input.authorizationSalt,
+  })
+  if (!meetbaar.ok) return { outcome: 'NOT_MEASURED', reden: meetbaar.reden }
+
+  const passend = kandidaten.filter(bruikbareKandidaat).filter((k) =>
+    kandidaatMatcht({
       method: p.authorizationMethod ?? 'eip3009',
       asset: v.input.asset,
-      authorizer: k?.authorizer,
-      identifier: k?.nonce,
+      authorizer: k.authorizer,
+      identifier: k.nonce,
       salt: v.input.authorizationSalt,
-    })).toLowerCase() === String(p.authorizationCommitment).toLowerCase())
+    }, p.authorizationCommitment))
 
   if (passend.length === 1) return { outcome: 'LINKED', identifier: passend[0].nonce }
   if (passend.length === 0) return { outcome: 'NOT_LINKED', reden: `none of ${kandidaten.length} candidates opened the commitment` }

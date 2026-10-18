@@ -237,7 +237,13 @@ console.log('de loper valt niet om, en haalt LEEG niet door met AFWEZIG')
     })
   } catch { gegooid = true }
   t('een vector met kapotte veldlengtes gooit niet', !gegooid)
-  t('en levert gewoon NIET GELINKT op', u && u.outcome === 'NOT_LINKED', u ? u.outcome : 'gegooid')
+  // BIJGESTELD, en de oude verwachting was fout. Deze vector heeft een kapot EIGEN asset
+  // en zout, niet een kapotte kandidaat. Toen deze test werd geschreven gaf dat
+  // NOT_LINKED, en dat is precies de fout die de tweede keuring aanwees: een stellige
+  // afkeuring van de verkoper terwijl de onberekenbaarheid aan onze kant zat. NOT_MEASURED
+  // is de juiste uitkomst, en deze regel legt dat nu vast in plaats van het omgekeerde.
+  t('en levert NIET GEMETEN op, want de kapotte velden zijn de ONZE',
+    u && u.outcome === 'NOT_MEASURED', u ? u.outcome : 'gegooid')
 }
 {
   // Een kandidaat die geen object is mag ook niets breken.
@@ -260,5 +266,158 @@ console.log('de loper valt niet om, en haalt LEEG niet door met AFWEZIG')
   t('een bonnetje zonder payload is NIET GEMETEN', u.outcome === 'NOT_MEASURED', u.outcome)
 }
 console.log('')
+
+console.log('')
+console.log('de foutwaarde leeft NIET in de waarde-ruimte, want dat was mijn eigen gat')
+
+// GEMETEN DOOR ONZE EIGEN TWEEDE KEURING, op de reparatie van diezelfde dag. De eerste
+// versie gaf bij een onberekenbaar veld de TEKENREEKS 0x-niet-te-berekenen terug, en die
+// werd daarna vergeleken met het commitment uit het bonnetje. Een bonnetje dat precies
+// die tekst droeg kwam er als GELINKT uit, zonder dat er een byte cryptografie aan te pas
+// kwam, op beide takken, met en zonder hoofdletters. Dit is exact het primitief dat
+// diezelfde dag in onze eigen registry werd vastgelegd, en ik trapte er binnen een uur
+// zelf in. Daarom staat de aanval hier als eerste testgeval.
+{
+  const vroegereSentinels = [
+    '0x-niet-te-berekenen',
+    '0X-NIET-TE-BEREKENEN',
+    'null',
+    'undefined',
+    'NaN',
+    '[object Object]',
+    'false',
+    '0',
+  ]
+  for (const kwaad of vroegereSentinels) {
+    const enkel = beoordeelVector({
+      id: 'proef-sentinel-enkel',
+      input: {
+        asset: '0x' + 'aa'.repeat(20),
+        authorizationSalt: '0x' + 'bb'.repeat(32),
+        receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: kwaad } },
+        candidates: [{ authorizer: 'KAPOT', nonce: 'OOK-KAPOT' }],
+      },
+    })
+    t('"' + kwaad + '" als commitment opent niets (enkel bonnetje)', enkel.outcome === 'NOT_LINKED', enkel.outcome)
+
+    const twee = beoordeelVector({
+      id: 'proef-sentinel-twee',
+      input: {
+        receipts: [{
+          asset: '0x' + 'aa'.repeat(20),
+          authorizationSalt: '0x' + 'bb'.repeat(32),
+          receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: kwaad } },
+        }],
+        candidates: [{ authorizer: 'KAPOT', nonce: 'OOK-KAPOT' }],
+      },
+    })
+    t('"' + kwaad + '" opent ook niets op de twee-bonnetjes-tak', twee.outcome === 'NOT_LINKED', twee.outcome)
+  }
+}
+{
+  // Een niet-tekstueel commitment mag ook nooit per ongeluk gelijk worden aan iets.
+  for (const kwaad of [null, undefined, 0, false, {}, []]) {
+    const u = beoordeelVector({
+      id: 'proef-commitment-geen-tekst',
+      input: {
+        asset: '0x' + 'aa'.repeat(20),
+        authorizationSalt: '0x' + 'bb'.repeat(32),
+        receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: kwaad } },
+        candidates: [{ authorizer: 'KAPOT', nonce: 'OOK-KAPOT' }],
+      },
+    })
+    t('een commitment van het type ' + typeof kwaad + ' opent niets', u.outcome !== 'LINKED', u.outcome)
+  }
+}
+
+console.log('')
+console.log('een kapotte kandidaat laat de loper niet gooien, ook niet als hij matcht')
+
+{
+  // GEMETEN: de optionele toegang op authorizer liet een null-kandidaat de filter
+  // overleven, en als die dan matchte knalde passend[0].nonce met een TypeError. De
+  // koptekst van dit bestand belooft letterlijk dat deze loper niet gooit voor een
+  // gewone uitkomst.
+  let gegooid = false
+  let u = null
+  try {
+    u = beoordeelVector({
+      id: 'proef-kandidaat-null-matcht',
+      input: {
+        asset: '0x' + 'aa'.repeat(20),
+        authorizationSalt: '0x' + 'bb'.repeat(32),
+        receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: '0x-niet-te-berekenen' } },
+        candidates: [null],
+      },
+    })
+  } catch { gegooid = true }
+  t('een null-kandidaat die de oude sentinel zou matchen gooit niet', !gegooid)
+  t('en levert gewoon NIET GELINKT op', u && u.outcome === 'NOT_LINKED', u ? u.outcome : 'gegooid')
+}
+{
+  const rommels = [null, undefined, 42, 'tekst', {}, { authorizer: 123, nonce: 456 }, { nonce: 'x' }]
+  for (const rommel of rommels) {
+    let gegooid = false
+    try {
+      beoordeelVector({
+        id: 'proef-kandidaatzeef',
+        input: {
+          asset: '0x' + 'aa'.repeat(20),
+          authorizationSalt: '0x' + 'bb'.repeat(32),
+          receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: '0x' + 'dd'.repeat(32) } },
+          candidates: [rommel],
+        },
+      })
+    } catch { gegooid = true }
+    t('een kandidaat van de vorm ' + JSON.stringify(rommel) + ' gooit niet', !gegooid)
+  }
+}
+
+console.log('')
+console.log('ONZE eigen kapotte velden geven NIET GEMETEN, geen stellige afkeuring')
+
+{
+  // GEMETEN: deze voorcontrole zat wel in opentCommitment en niet in beoordeelVector.
+  // Dezelfde commit repareerde de ene functie en liet de andere staan. Gevolg: een zout
+  // dat onze RPC verkeerd teruggaf leverde "geen enkele kandidaat opende dit commitment"
+  // op, wat een uitspraak over de VERKOPER is terwijl de fout bij ons lag.
+  const basis = (over) => ({
+    id: 'proef-eigen-velden',
+    input: {
+      asset: '0x' + 'aa'.repeat(20),
+      authorizationSalt: '0x' + 'bb'.repeat(32),
+      receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: '0x' + 'dd'.repeat(32) } },
+      candidates: [{ authorizer: '0x' + 'cc'.repeat(20), nonce: '0x' + 'ee'.repeat(32) }],
+      ...over,
+    },
+  })
+  const zoutKapot = beoordeelVector(basis({ authorizationSalt: 'rommel' }))
+  t('een kapot eigen zout is NIET GEMETEN', zoutKapot.outcome === 'NOT_MEASURED', zoutKapot.outcome)
+  t('en de reden zegt dat er niets te berekenen viel', /cannot compute/.test(zoutKapot.reden ?? ''), zoutKapot.reden ?? '')
+
+  const assetKapot = beoordeelVector(basis({ asset: '0xaa' }))
+  t('een kapot eigen asset is NIET GEMETEN', assetKapot.outcome === 'NOT_MEASURED', assetKapot.outcome)
+
+  const zoutWeg = beoordeelVector(basis({ authorizationSalt: undefined }))
+  t('een ontbrekend eigen zout is NIET GEMETEN', zoutWeg.outcome === 'NOT_MEASURED', zoutWeg.outcome)
+
+  const twee = beoordeelVector({
+    id: 'proef-eigen-velden-twee',
+    input: {
+      receipts: [{
+        asset: '0x' + 'aa'.repeat(20),
+        authorizationSalt: 'rommel',
+        receipt: { payload: { payer: '0x' + 'cc'.repeat(20), authorizationMethod: 'eip3009', authorizationCommitment: '0x' + 'dd'.repeat(32) } },
+      }],
+      candidates: [{ authorizer: '0x' + 'cc'.repeat(20), nonce: '0x' + 'ee'.repeat(32) }],
+    },
+  })
+  t('ook op de twee-bonnetjes-tak is dat NIET GEMETEN', twee.outcome === 'NOT_MEASURED', twee.outcome)
+
+  // De controle die bewijst dat het werkende pad heel is gebleven.
+  const echt = beoordeelVector(basis({}))
+  t('en met goede eigen velden wordt er gewoon gerekend', echt.outcome === 'NOT_LINKED', echt.outcome)
+}
+
 console.log('settlement-link vectoren: ' + goed + ' pass, ' + fout + ' fail')
 process.exitCode = fout === 0 ? 0 : 1
