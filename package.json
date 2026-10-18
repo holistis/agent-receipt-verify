@@ -21,6 +21,7 @@
     "kanon": "node src/eip3009-autorisatie.mjs --vectoren",
     "bench-eip3009": "node bench/eip3009-beleid.mjs",
     "link-vectors": "node src/settlement-link-vectors.mjs",
+    "verify-delivery": "node src/verify-delivery.mjs",
     "kanon-vorm": "node tools/naar-kanon-vorm.mjs"
   },
   "optionalDependencies": {
