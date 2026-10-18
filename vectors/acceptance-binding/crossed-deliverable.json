@@ -1,0 +1,40 @@
+{
+  "id": "acceptance-binding-crossed-deliverable",
+  "schema_version": "3.0.0",
+  "verifies": "receipt-to-acceptance",
+  "encodes": "The case babyblueviper1 asked for: an acceptance record paired with a receipt for a different deliverable. It must not link.",
+  "provenance": [
+    "trilatic.acceptance-receipt/1.2, as cited in x402-foundation/tsc#4",
+    "requested in erc-8004/erc-8004-contracts#99 by babyblueviper1 on 18 October 2026: \"a vector in which the acceptance record names a different deliverable hash than the receipt it is paired with. It should not link.\""
+  ],
+  "description": "Identical to the positive control except for one byte of the acceptance record's deliverable hash. Everything else still passes: the sidecar names the right receipt, the checker is independent, and the criteria were committed first. A verifier that reports LINKED here is reading the pair as a whole instead of checking that both halves name the same deliverable, which is the one thing this binding exists to prove.",
+  "requires_chain_read": false,
+  "input": {
+    "receipt": {
+      "format": "eip712",
+      "authorizationNonce": "0x43457c8e57b7c4ff92d716350c61c88c8f3b644d09d7c813d5a7ee6450a843da"
+    },
+    "receiptSha256": "9f2c1d4e8a7b6053fe41cc90b2d7a3418e5f6072c9b8d1a4e7f0352698cdba17",
+    "acceptance": {
+      "format": "trilatic.acceptance-receipt/1.2",
+      "deliverable_sha256": "d74ad7d7c41b8e5206f39ac718be40d5392fb6ca07e1d8359f4b26cd0a39e030",
+      "checker": "invinoveritas-checker-a4cecab2",
+      "producer": "tokenizen-seller-2888f365",
+      "criteria_committed_at": "2026-10-18T00:52:03Z",
+      "checked_at": "2026-10-18T00:52:09Z"
+    },
+    "bindings": {
+      "receipt_sha256": "9f2c1d4e8a7b6053fe41cc90b2d7a3418e5f6072c9b8d1a4e7f0352698cdba17",
+      "deliverable_sha256": "d74ad7d7c41b8e5206f39ac718be40d5392fb6ca07e1d8359f4b26cd0a39e02f",
+      "authorization": "0x43457c8e57b7c4ff92d716350c61c88c8f3b644d09d7c813d5a7ee6450a843da"
+    }
+  },
+  "expected": {
+    "valid": false,
+    "reason_code": "NOT_LINKED",
+    "detail": "DELIVERABLE_HASH_MISMATCH"
+  },
+  "limits": [
+    "This proves the pair does not hold together. It says nothing about which of the two artifacts is the wrong one."
+  ]
+}

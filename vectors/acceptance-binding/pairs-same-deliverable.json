@@ -1,0 +1,39 @@
+{
+  "id": "acceptance-binding-pairs-same-deliverable",
+  "schema_version": "3.0.0",
+  "verifies": "receipt-to-acceptance",
+  "encodes": "The positive control. Without it, a set that only contains failures proves nothing about the harness.",
+  "provenance": [
+    "trilatic.acceptance-receipt/1.2, as cited in x402-foundation/tsc#4",
+    "proposed in erc-8004/erc-8004-contracts#99 by babyblueviper1 on 18 October 2026"
+  ],
+  "description": "A signed bindings sidecar names one receipt and one deliverable hash, and the acceptance record names that same deliverable hash. The checker is not the producer, and the criteria were committed before the check. This must link.",
+  "requires_chain_read": false,
+  "input": {
+    "receipt": {
+      "format": "eip712",
+      "authorizationNonce": "0x43457c8e57b7c4ff92d716350c61c88c8f3b644d09d7c813d5a7ee6450a843da"
+    },
+    "receiptSha256": "9f2c1d4e8a7b6053fe41cc90b2d7a3418e5f6072c9b8d1a4e7f0352698cdba17",
+    "acceptance": {
+      "format": "trilatic.acceptance-receipt/1.2",
+      "deliverable_sha256": "d74ad7d7c41b8e5206f39ac718be40d5392fb6ca07e1d8359f4b26cd0a39e02f",
+      "checker": "invinoveritas-checker-a4cecab2",
+      "producer": "tokenizen-seller-2888f365",
+      "criteria_committed_at": "2026-10-18T00:52:03Z",
+      "checked_at": "2026-10-18T00:52:09Z"
+    },
+    "bindings": {
+      "receipt_sha256": "9f2c1d4e8a7b6053fe41cc90b2d7a3418e5f6072c9b8d1a4e7f0352698cdba17",
+      "deliverable_sha256": "d74ad7d7c41b8e5206f39ac718be40d5392fb6ca07e1d8359f4b26cd0a39e02f",
+      "authorization": "0x43457c8e57b7c4ff92d716350c61c88c8f3b644d09d7c813d5a7ee6450a843da"
+    }
+  },
+  "expected": {
+    "valid": true,
+    "reason_code": "LINKED"
+  },
+  "limits": [
+    "The signature on the acceptance record is not checked here, and neither are its criteria. That is the issuing checker's own verifier. A LINKED verdict says the two artifacts are about the same thing, not that the acceptance record itself is sound."
+  ]
+}

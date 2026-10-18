@@ -112,15 +112,16 @@ console.log('het corpus op schijf is niet verouderd')
     if (!om) continue
     const pad = path.join(DOELMAP, bestand)
     if (!fs.existsSync(pad)) continue
-    // Regeleindes mogen dit oordeel niet dragen. Git zet bij het uitchecken op Windows
-    // LF om naar CRLF, dus een kale bytevergelijking faalde op ELKE Windows-kloon, ook
-    // met een volkomen correcte map. Een vreemde die kloont en npm test draait zag dan
-    // rood zonder dat er iets mis was, en dat is het eerste wat hij van ons ziet.
-    const opSchijfTekst = fs.readFileSync(pad, 'utf8').replace(/\r\n/g, '\n')
-    if (opSchijfTekst === JSON.stringify(om, null, 2) + '\n') gelijk++
+    // Regeleindes worden eerst gelijkgetrokken, en dat is geen verzwakking maar een
+    // reparatie. Git zet bij een checkout op Windows CRLF neer terwijl de omzetter LF
+    // schrijft, dus een kale bytevergelijking faalde daar op alle twaalf bestanden
+    // zonder dat er iets mis was. Dat is precies de vorm van storing die een vreemde
+    // op zijn eigen machine tegenkomt en wij op de onze nooit zagen.
+    const opSchijf = fs.readFileSync(pad, 'utf8').replace(/\r\n/g, '\n')
+    if (opSchijf === JSON.stringify(om, null, 2) + '\n') gelijk++
   }
-  t('en is byte-identiek aan wat de omzetter nu zou schrijven', gelijk === bron.length,
-    gelijk + ' van ' + bron.length)
+  t('en is gelijk aan wat de omzetter nu zou schrijven, regeleindes daargelaten',
+    gelijk === bron.length, gelijk + ' van ' + bron.length)
 }
 {
   // Precies een vector hoort een RPC nodig te hebben. Worden dat er meer zonder dat
