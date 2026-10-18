@@ -99,12 +99,17 @@ jobs:
             exit 1
           fi
 
+      # Reads the tarball through tools/pack-inhoud.mjs rather than parsing npm's output
+      # here. The shape of `npm pack --dry-run --json` changed between npm versions (an
+      # array of one became an object keyed by package name), and that assumption used to
+      # live in two places: this file and test/bundel.mjs. It broke the suite on the first
+      # run after this workflow started upgrading npm, and would have broken here next.
+      # One reader, one place to fix, and it fails loudly on a shape it does not know.
       - name: The tarball must carry NOTICE, LICENSE and everything the cli dispatches to
         run: |
-          node -e '
-            const { execSync } = require("child_process");
-            const files = JSON.parse(execSync("npm pack --dry-run --json", { encoding: "utf8" }))[0]
-              .files.map((f) => f.path);
+          node --input-type=module -e '
+            const { pakInhoud } = await import("./tools/pack-inhoud.mjs");
+            const files = pakInhoud();
             const missing = [
               "NOTICE",
               "LICENSE",

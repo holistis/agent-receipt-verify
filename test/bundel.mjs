@@ -131,8 +131,11 @@ console.log('het npm-pakket: wat een vreemde echt binnenhaalt')
   const pkg = JSON.parse(fs.readFileSync(path.join(wortel, 'package.json'), 'utf8'))
   let lijst = null, pakFout = null
   try {
-    const uit = execSync('npm pack --dry-run --json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], cwd: wortel })
-    lijst = JSON.parse(uit)[0].files.map((f) => f.path)
+    // De vorm van npm pack --dry-run --json is tussen npm-versies veranderd, en
+    // dezelfde aanname stond ook in de publicatie-workflow. Nu op EEN plek, zie
+    // tools/pack-inhoud.mjs voor de drie gemeten vormen.
+    const { pakInhoud } = await import('../tools/pack-inhoud.mjs')
+    lijst = pakInhoud({ cwd: wortel })
   } catch (e) {
     pakFout = String(e && e.message ? e.message : e).slice(0, 110)
   }
@@ -156,6 +159,42 @@ console.log('het npm-pakket: wat een vreemde echt binnenhaalt')
       t('het pakket bevat ' + nodig, lijst.includes(nodig))
     }
   }
+}
+
+// De drie vormen van npm pack, ELK GEMETEN op 2026-10-18, plus de vormen die niet
+// bestaan. Dit is de test die de publicatie had moeten redden: die viel om omdat de
+// nieuwste npm een object met de PAKKETNAAM als sleutel teruggeeft in plaats van een
+// array, en onze lezer alleen de array kende. De fout luidde "Cannot read properties
+// of undefined", wat niemand naar een npm-wijziging leidt.
+{
+  console.log('\nde lezer van npm pack, tegen elke gemeten vorm')
+  const { lijstUitPackUitvoer } = await import('../tools/pack-inhoud.mjs')
+  const entry = { files: [{ path: 'NOTICE' }, { path: 'bin/cli.mjs' }] }
+  const verwacht = JSON.stringify(['NOTICE', 'bin/cli.mjs'])
+
+  t('vorm 1, een array van een element, zoals npm 11.11.0 geeft',
+    JSON.stringify(lijstUitPackUitvoer([entry])) === verwacht)
+
+  t('vorm 2, een object met de PAKKETNAAM als sleutel, zoals de nieuwste npm geeft',
+    JSON.stringify(lijstUitPackUitvoer({ 'agent-receipt-verify': entry })) === verwacht)
+
+  t('vorm 3, een object dat de lijst zelf draagt',
+    JSON.stringify(lijstUitPackUitvoer(entry)) === verwacht)
+
+  t('een json-TEKST wordt net zo goed gelezen als een object',
+    JSON.stringify(lijstUitPackUitvoer(JSON.stringify([entry]))) === verwacht)
+
+  // En de kant die telt: een onbekende vorm mag NOOIT een lege lijst opleveren, want
+  // dan slaagt de licentiecontrole terwijl er niets gemeten is.
+  const moetGooien = (waarde, naam) => {
+    let gegooid = false
+    try { lijstUitPackUitvoer(waarde) } catch { gegooid = true }
+    t(naam + ' gooit een fout in plaats van een lege lijst', gegooid)
+  }
+  moetGooien({ iets: { anders: true } }, 'een object zonder files')
+  moetGooien([], 'een lege array')
+  moetGooien('geen json', 'onparseerbare uitvoer')
+  moetGooien(42, 'een getal')
 }
 
 console.log(`\nbundel: ${groen} pass, ${rood} fail`)
