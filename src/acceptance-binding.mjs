@@ -300,6 +300,11 @@ export function koppelAcceptatie({ receipt, acceptance, bindings, sidecar, doc, 
     measurable: true,
     reason_code: 'LINKED',
     independence: onafhankelijkheid(document).staat,
+    // Het ketenanker hoort BIJ het groene antwoord, niet in een aparte aanroep die een
+    // lezer kan overslaan. Een LINKED-record zonder anker is nog steeds gekoppeld, maar
+    // een uitdager kan er later geen reorg van een fout onderscheiden, en dat hoort hij
+    // te zien zonder erom te vragen.
+    chain_anchor: ketenanker(document).staat,
     // Wat er WEL en NIET vergeleken is, want een groen antwoord zonder dat lijstje laat
     // een lezer denken dat alles getoetst is.
     compared: vergeleken,
@@ -307,3 +312,159 @@ export function koppelAcceptatie({ receipt, acceptance, bindings, sidecar, doc, 
 }
 
 export const UITKOMSTEN = ['LINKED', 'NOT_LINKED', 'NOT_MEASURED']
+
+// ─── HET KETENANKER ──────────────────────────────────────────────────────────────────
+//
+// Waarom dit erbij hoort, en de aanleiding staat in een publieke draad. Een bonded
+// verifieerder merkte op dat een record ook het BLOK hoort te noemen waarop de
+// verifieerder `AuthorizationUsed` las, met nummer EN hash, omdat een uitdager dan een
+// reorg kan onderscheiden van een verkeerd antwoord. Dat is een reel verschil: zonder
+// anker zijn die twee gevallen van buitenaf identiek, en ze vragen een tegengestelde
+// reactie (bij een reorg had de verifieerder gelijk op dat moment, bij een fout niet).
+//
+// EN DE SCHERPE VERSIE ERVAN, want hier zit de eigenlijke eis. Een bloknummer alleen is
+// GEEN anker. Bij een reorg blijft dat nummer bestaan en verandert de inhoud eronder, dus
+// een nummer zonder hash pint niets vast. Alleen de blokhash maakt de uitspraak
+// controleerbaar, en daarom is nummer-zonder-hash hieronder een EIGEN uitkomst en niet
+// een half-goed geval.
+//
+// De classificatie is OFFLINE en blijft dat, want offline werken is de belofte van dit
+// pakket. Wil een lezer het anker ook echt bij de keten natrekken, dan is dat een aparte,
+// expliciete stap (`bevestigKetenanker`), nooit iets dat stil op de achtergrond gebeurt.
+
+export const KETENANKER = [
+  // Het record doet geen uitspraak over de keten, dus er is niets om te ankeren. Dit is
+  // geen gebrek: een acceptatierecord zonder afrekening hoort hier.
+  'GEEN_KETENLEZING',
+  // Nummer en hash staan er beide. Daarmee is de uitspraak navraagbaar.
+  'ANKER_VOLLEDIG',
+  // Een nummer zonder hash. Leest als zorgvuldig en is het niet, zie de uitleg hierboven.
+  'ANKER_ZONDER_HASH',
+  // Het record leunt op een ketenlezing maar noemt geen blok. Dan is een reorg later niet
+  // van een fout te onderscheiden.
+  'ANKER_ONTBREEKT',
+  // Nagetrokken bij de keten en gelijk.
+  'ANKER_BEVESTIGD',
+  // Nagetrokken bij de keten en NIET gelijk. Dit is het geval waar de suggestie voor
+  // bestaat: op dit nummer staat vandaag een ander blok dan het record noemt.
+  'ANKER_WIJKT_AF',
+]
+
+// De velden die we accepteren. Onze eigen voorkeursvorm staat vooraan; de rest is er
+// omdat een conventie die alleen de eigen spelling leest geen conventie is maar een
+// eigen formaat. Zelfde keuze als bij de rest van `leesRecord`.
+export function leesKetenanker(doc) {
+  const d = doc && typeof doc === 'object' ? (doc.record ?? doc) : {}
+  const sidecar = d.bindings_sidecar ?? d.sidecar ?? null
+  const b = sidecar?.bindings ?? d.bindings ?? {}
+  const lezing = d.onchain_read ?? d.onchain ?? d.verification?.onchain ?? d.settlement?.onchain ?? null
+
+  const getal = (v) => {
+    if (typeof v === 'number' && Number.isInteger(v) && v >= 0) return v
+    if (typeof v === 'string' && /^(0x[0-9a-fA-F]+|[0-9]+)$/.test(v.trim())) {
+      return Number(v.trim().startsWith('0x') ? BigInt(v.trim()) : BigInt(v.trim()))
+    }
+    return null
+  }
+  const hash = (v) => (typeof v === 'string' && /^0x[0-9a-fA-F]{64}$/.test(v.trim()) ? v.trim().toLowerCase() : null)
+
+  return {
+    nummer:
+      getal(lezing?.block_number) ??
+      getal(lezing?.blockNumber) ??
+      getal(b.x402_settlement_block_number) ??
+      getal(d.block_number) ??
+      null,
+    blokhash:
+      hash(lezing?.block_hash) ??
+      hash(lezing?.blockHash) ??
+      hash(b.x402_settlement_block_hash) ??
+      hash(d.block_hash) ??
+      null,
+    keten: lezing?.chain ?? lezing?.chain_id ?? lezing?.network ?? b.x402_network ?? d.network ?? null,
+    gebeurtenis: lezing?.event ?? lezing?.log ?? null,
+    // Waarop we vaststellen DAT er een ketenlezing achter dit record zit. De twee
+    // x402-sleutels zijn precies de velden die uit een afrekening op de keten komen, dus
+    // hun aanwezigheid is de claim.
+    leuntOpKeten: Boolean(
+      lezing ||
+        b.x402_authorization_nonce ||
+        b.x402_receipt_commitment ||
+        d.tx_hash ||
+        d.transaction_hash ||
+        lezing?.tx_hash,
+    ),
+  }
+}
+
+// De offline uitspraak. Geen netwerk, geen sleutel, geen klok.
+export function ketenanker(doc) {
+  const a = leesKetenanker(doc)
+  if (!a.leuntOpKeten) {
+    return { staat: 'GEEN_KETENLEZING', nummer: null, blokhash: null, waarom: 'het record doet geen uitspraak over een afrekening op een keten' }
+  }
+  if (a.nummer !== null && a.blokhash !== null) {
+    return { staat: 'ANKER_VOLLEDIG', nummer: a.nummer, blokhash: a.blokhash, keten: a.keten, waarom: 'nummer en blokhash staan er beide, dus de lezing is navraagbaar' }
+  }
+  if (a.nummer !== null) {
+    return {
+      staat: 'ANKER_ZONDER_HASH',
+      nummer: a.nummer,
+      blokhash: null,
+      keten: a.keten,
+      waarom: 'alleen een bloknummer. Bij een reorg blijft dat nummer staan en verandert de inhoud, dus het pint niets vast',
+    }
+  }
+  return {
+    staat: 'ANKER_ONTBREEKT',
+    nummer: null,
+    blokhash: a.blokhash,
+    keten: a.keten,
+    waarom: 'het record leunt op een ketenlezing maar noemt geen blok, dus een reorg is later niet van een fout te onderscheiden',
+  }
+}
+
+// De optionele, expliciete stap: het verklaarde anker bij de keten natrekken.
+//
+// Drie dingen die bewust zo zijn. Hij draait NOOIT uit zichzelf, want dit pakket werkt
+// offline. Een mislukte aanroep geeft NIET_GEMETEN en nooit een afkeuring, want niet
+// kunnen meten is geen bewijs van iets. En hij vraagt het blok op NUMMER en vergelijkt de
+// hash, want dat is precies de richting waarin een reorg zichtbaar wordt.
+export async function bevestigKetenanker(doc, { rpcUrl, fetchImpl } = {}) {
+  const basis = ketenanker(doc)
+  if (basis.staat !== 'ANKER_VOLLEDIG') return { ...basis, nagetrokken: false }
+  const haal = fetchImpl ?? (typeof fetch === 'function' ? fetch : null)
+  if (!haal || !rpcUrl) {
+    return { ...basis, nagetrokken: false, waarom_niet: 'geen rpcUrl of fetch meegegeven, dus niet nagetrokken' }
+  }
+  let echteHash = null
+  try {
+    const r = await haal(rpcUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_getBlockByNumber',
+        params: ['0x' + basis.nummer.toString(16), false],
+      }),
+    })
+    const j = await r.json()
+    echteHash = typeof j?.result?.hash === 'string' ? j.result.hash.toLowerCase() : null
+  } catch {
+    echteHash = null
+  }
+  if (!echteHash) {
+    return { ...basis, nagetrokken: false, waarom_niet: 'de keten gaf geen blok terug op dit nummer, dus niet gemeten' }
+  }
+  if (echteHash === basis.blokhash) {
+    return { ...basis, staat: 'ANKER_BEVESTIGD', nagetrokken: true, ketenhash: echteHash }
+  }
+  return {
+    ...basis,
+    staat: 'ANKER_WIJKT_AF',
+    nagetrokken: true,
+    ketenhash: echteHash,
+    waarom: 'op dit bloknummer staat vandaag een ander blok dan het record noemt, dus een reorg of een verkeerd antwoord',
+  }
+}
