@@ -57,7 +57,7 @@
   "expected": {
     "valid": true,
     "reason_code": "LINKED",
-    "independence": "VERIFIEERBAAR_ONAFHANKELIJK"
+    "independence": "LABELS_VERSCHILLEN"
   },
   "limits": [
     "The signature on the record is not checked here, and neither are its criteria. That is the issuing checker's own verifier.",

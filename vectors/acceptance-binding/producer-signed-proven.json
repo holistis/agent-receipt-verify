@@ -1,0 +1,55 @@
+{
+  "_why": "The only vector that reaches BEWEZEN_ONAFHANKELIJK. It exists because a state no case can reach is not a state but a promise, and a check that cannot fire has been the most expensive fault class in this project. The producer signs over bindings_sidecar.receipt_sha256, a field every record already carries, so no new canonical object is needed.",
+  "input": {
+    "doc": {
+      "record": {
+        "receipt": {
+          "schema": "trilatic.acceptance-receipt/1.2",
+          "independence": "independent",
+          "issued_utc": "2026-10-18T12:00:00Z",
+          "criteria": {
+            "committed_at": "2026-10-17T12:00:00Z"
+          },
+          "files": {
+            "remediated": {
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          },
+          "parties": {
+            "checker": {
+              "key_id": "checker-1"
+            },
+            "producer": {
+              "key_id": "producer-1",
+              "key": "did:key:z6MkkzboU1uCdTLz81dS5Tw6rdmCvzcpwhbmo7bLCRDgaE2J",
+              "signature": "R/2RIzv5fOJIb82H3032knBBbT7E7JbsH9O5SsHXB3ZWvXvLsrdIQ+z4p2rj0oixm2xRtCXiDI78NjQbBqDSBg=="
+            }
+          }
+        }
+      },
+      "bindings_sidecar": {
+        "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bindings": {}
+      }
+    },
+    "receipt": {
+      "format": "eip712"
+    },
+    "receiptSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "deliverableSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "expected": {
+    "reason_code": "LINKED",
+    "valid": true,
+    "independence": "BEWEZEN_ONAFHANKELIJK"
+  },
+  "provenance": [
+    "Zelf opgewekt op 18 oktober 2026 met node:crypto: een echte ed25519-sleutel, een echte handtekening over bindings_sidecar.receipt_sha256. Geen bestaand record, want trilatic 1.2 draagt dit veld nog niet.",
+    "De VORM volgt het live record van invinoveritas (trilatic.acceptance-receipt/1.2), met één toevoeging: parties.producer.key en parties.producer.signature."
+  ],
+  "limits": [
+    "Dit veld bestaat nog NIET in trilatic 1.2. Deze vector toont wat de controle doet zodra het er is, en is geen bewijs dat enig echt record dit vandaag draagt.",
+    "Een geldige handtekening bewijst dat de producent de sleutel bezit die hij noemt. Het bewijst NIET dat hij een andere partij is dan de controleur in het echte leven: twee sleutels kunnen van dezelfde persoon zijn.",
+    "De handtekening dekt alleen receipt_sha256, dus de producent bindt zich aan DIT record en niet aan de inhoud van de toets."
+  ]
+}
