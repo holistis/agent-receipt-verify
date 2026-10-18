@@ -2,6 +2,27 @@
 
 Independent verification of payment- and outcome-proof receipts used by AI agents.
 
+## Run it, one line
+
+```
+npx -y agent-receipt-verify https://api.bitrefill.com/x402/gift-cards/search
+```
+
+No account, no key, no payment. It tells you whether that endpoint asks for money the
+way x402 says, and says NOT MEASURED for the levels that need a real settlement instead
+of failing them.
+
+What it does NOT do: it judges the SHAPE of a receipt, not the honesty of the party that
+issued it. See CONFORMANCE.md for what is deliberately left unmeasured.
+
+```
+npx -y agent-receipt-verify attempt-identity   # 19 vectors for x402 spec section 5.5
+npx -y agent-receipt-verify link-vectors       # 12 vectors, receipt to settlement
+npx -y agent-receipt-verify kanon              # cross-check against iamonuwa/kanon
+```
+
+## What this is
+
 An agent economy has two kinds of receipt. One says who was allowed to act
 (delegation: UCAN, Authproof, Agent Passport). The other says what was paid for
 and whether the output matches (settlement and outcome: x402 offer-receipt, INAM
