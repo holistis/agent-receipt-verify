@@ -79,7 +79,18 @@ export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST', l
     // noemt in zijn Allow-kop. Noemt het er geen, dan is GET de enige redelijke tweede
     // poging, en dat staat dan ook als gok in het bewijs. Een meter die zijn eigen
     // aanname niet opschrijft, laat een lezer niet zien waar hij kan afwijken.
-    if (resp.status === 405) {
+    // EN EEN 404 IS DEZELFDE FOUT MET EEN ANDER NUMMER. Gemeten dezelfde dag, op een
+    // eindpunt van een DERDE: api.thaikit.dev/number-text antwoordt 402 met een geldige
+    // payment-required-kop op GET, en 404 op POST. Dat is geen afwijkend eindpunt maar
+    // het normale gedrag van veel webraamwerken, die een pad plus een niet-geregistreerde
+    // methode als "niet gevonden" behandelen in plaats van als "methode niet toegestaan".
+    // Onze meter noemde die levende, correcte verkoper daardoor niet-conform. Alleen de
+    // 405 repareren liet dus de helft van het probleem staan.
+    //
+    // De herhaling blijft bewust smal: alleen 404 en 405, alleen als wij NIET met GET
+    // sondeerden, en precies een keer. Elke 404 blind herhalen zou het verkeer naar elk
+    // dood adres verdubbelen, en dat is niet aan ons om te doen.
+    if (resp.status === 405 || resp.status === 404) {
       const allow = resp.headers.get('allow') || resp.headers.get('Allow') || ''
       const genoemd = allow
         .split(',')
@@ -89,9 +100,11 @@ export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST', l
       if (tweede) {
         r.bewijs.methode_opnieuw = {
           eerste: methode,
-          eerste_status: 405,
+          eerste_status: resp.status,
           tweede,
-          bron: genoemd.length ? 'Allow header' : 'guessed, the 405 carried no Allow header',
+          bron: genoemd.length
+            ? 'Allow header'
+            : 'guessed, the ' + resp.status + ' carried no Allow header',
         }
         resp = await vraag(tweede)
         gebruikteMethode = tweede
