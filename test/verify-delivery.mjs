@@ -182,11 +182,15 @@ console.log('de drie uitkomsten blijven gescheiden')
     u.outcome === 'NOT_SUPPORTED', u.outcome)
 }
 {
+  // BIJGESTELD, en de oude verwachting was de fout zelf. Dit stond op NIET TE METEN, en
+  // dat was een van de acht routes waarlangs een verkoper die niets leverde toch de
+  // zachte uitslag kreeg. Het token komt VAN DE VERKOPER: onbruikbare waar sturen is
+  // zijn keuze en niet onze storing, dus het is een afkeuring.
   for (const slecht of [undefined, null, 42, '', 'kort', '       ']) {
     const u = await zoekToken({ method: 'dns-txt', token: slecht, location: PLEK },
       { endpoint: EINDPUNT, resolveTxt: async () => [[TOKEN]] })
-    t('een onbruikbaar token (' + JSON.stringify(slecht) + ') is NIET TE METEN',
-      u.outcome === 'NOT_MEASURED', u.outcome)
+    t('een onbruikbaar token (' + JSON.stringify(slecht) + ') is een AFKEURING',
+      u.outcome === 'NOT_SUPPORTED', u.outcome)
   }
 }
 {
@@ -268,7 +272,11 @@ console.log('de poort kijkt naar het OPGELOSTE adres, niet naar de naam')
 }
 {
   const geweigerd = [
-    'http://example.com/pad',
+    // http staat hier NIET meer bij: de uitgever staat het toe en publiceert er ook op,
+    // dus het weigeren was onze eigen, strengere regel die een eerlijke verkoper afkeurde.
+    // De echte grens zit op het opgeloste adres, en die staat hieronder volledig.
+    'ftp://example.com/pad',
+    'file:///etc/passwd',
     'https://gebruiker:geheim@example.com/pad',
     'https://localhost/pad',
     'https://iets.localhost/pad',
@@ -367,7 +375,12 @@ console.log('het ophalen heeft een dak en een klok')
     lookup: PUBLIEK,
     fetchImpl: async () => ({ ok: false, status: 404 }),
   })
-  t('een 404 op de plek is NIET TE METEN, geen afkeuring', u.outcome === 'NOT_MEASURED', u.outcome)
+  // BIJGESTELD. Een 404 is een ANTWOORD van de bron: er staat daar niets. Dat is bewijs
+  // van afwezigheid, net zoals "het token staat in geen van de N records" dat is. Op
+  // NIET TE METEN kon een verkoper de zachte uitslag kiezen door simpelweg de andere
+  // methode te noemen dan die de klant gebruikte.
+  t('een 404 op de plek is een AFKEURING, want de bron zei dat er niets staat',
+    u.outcome === 'NOT_SUPPORTED', u.outcome)
 }
 {
   const u = await zoekToken({ method: 'well-known-file', token: TOKEN }, {
@@ -384,7 +397,13 @@ console.log('het ophalen heeft een dak en een klok')
     lookup: PUBLIEK,
     fetchImpl: async () => ({ ok: true, text: async () => '# commentaar\n' + TOKEN + '\nnog een regel\n' }),
   })
-  t('het token op een eigen regel in het bestand wordt gevonden', u.outcome === 'SUPPORTED', u.outcome)
+  // BIJGESTELD, en deze legde de interop-fout vast. De uitgever eist dat het GETRIMDE
+  // LICHAAM gelijk is aan het token, met als eigen onderbouwing dat een token ergens in
+  // een onverwante pagina niet aantoont dat de beheerder het met opzet publiceerde. Wij
+  // accepteerden elke REGEL, dus wij zeiden GESTEUND over een bestand dat de echte poort
+  // afwijst. Dat is de enige richting die echt telt.
+  t('het token op een eigen regel tussen andere regels is NIET genoeg',
+    u.outcome === 'NOT_SUPPORTED', u.outcome)
 }
 {
   // En een regel die het token alleen BEVAT is niet genoeg.
@@ -419,6 +438,104 @@ console.log('een vreemde kan onze eigen uitslagregel niet naschrijven')
   t('en de tekst blijft wel leesbaar', schoon.includes('SUPPORTED'), schoon.slice(0, 60))
   t('een leeg veld wordt zichtbaar leeg', veiligVeld(undefined) === '(none)')
   t('een eindeloos veld wordt afgekapt', veiligVeld('a'.repeat(5000), 50).length <= 53)
+}
+
+
+console.log('')
+console.log('afwezigheid is een antwoord, een storing is dat niet')
+
+{
+  // De dns-tak. Een naam die NIET BESTAAT is bewijs dat er niets gepubliceerd staat.
+  // Een resolver die uitvalt of weigert is een storing aan onze kant. Eerder gingen die
+  // twee allebei naar NIET TE METEN.
+  const metCode = (code) => async () => { const e = new Error(code); e.code = code; throw e }
+  for (const code of ['ENOTFOUND', 'ENODATA', 'NXDOMAIN']) {
+    const u = await zoekToken(ANTWOORD, { endpoint: EINDPUNT, resolveTxt: metCode(code) })
+    t('dns ' + code + ' is een AFKEURING, want de naam bestaat niet',
+      u.outcome === 'NOT_SUPPORTED', u.outcome + ' ' + (u.reden ?? ''))
+  }
+  for (const code of ['ESERVFAIL', 'ETIMEOUT', 'ECONNREFUSED', 'EREFUSED']) {
+    const u = await zoekToken(ANTWOORD, { endpoint: EINDPUNT, resolveTxt: metCode(code) })
+    t('dns ' + code + ' blijft NIET TE METEN, want dat is een storing',
+      u.outcome === 'NOT_MEASURED', u.outcome + ' ' + (u.reden ?? ''))
+  }
+  const zonderCode = await zoekToken(ANTWOORD, {
+    endpoint: EINDPUNT,
+    resolveTxt: async () => { throw new Error('iets onbekends') },
+  })
+  t('een dns-fout zonder code blijft NIET TE METEN, fail-closed naar zacht',
+    zonderCode.outcome === 'NOT_MEASURED', zonderCode.outcome)
+}
+{
+  // De http-tak. 4xx is een antwoord, 5xx is een storing.
+  for (const status of [400, 403, 404, 410]) {
+    const u = await zoekToken({ method: 'well-known-file', token: TOKEN }, {
+      endpoint: EINDPUNT,
+      lookup: PUBLIEK,
+      fetchImpl: async () => ({ ok: false, status }),
+    })
+    t('http ' + status + ' is een AFKEURING', u.outcome === 'NOT_SUPPORTED', u.outcome)
+  }
+  for (const status of [500, 502, 503]) {
+    const u = await zoekToken({ method: 'well-known-file', token: TOKEN }, {
+      endpoint: EINDPUNT,
+      lookup: PUBLIEK,
+      fetchImpl: async () => ({ ok: false, status }),
+    })
+    t('http ' + status + ' blijft NIET TE METEN', u.outcome === 'NOT_MEASURED', u.outcome)
+  }
+}
+
+console.log('')
+console.log('de plek volgt de uitgever: met poort, met het echte schema')
+
+{
+  // GEMETEN TEGEN proofLocation in packages/endpoint-attest/src/ownership.ts. Wij bouwden
+  // 'https://' plus hostname, dus zonder poort en met https afgedwongen, terwijl de
+  // uitgever protocol plus host gebruikt en http uitdrukkelijk toestaat. Een eerlijke
+  // verkoper met http of een andere poort werd daardoor onterecht afgekeurd.
+  const paren = [
+    ['https://klant.example/mcp', 'https://klant.example' + WELL_KNOWN_PATH],
+    ['http://klant.example/mcp', 'http://klant.example' + WELL_KNOWN_PATH],
+    ['https://klant.example:8443/mcp', 'https://klant.example:8443' + WELL_KNOWN_PATH],
+    ['http://klant.example:8080/mcp', 'http://klant.example:8080' + WELL_KNOWN_PATH],
+  ]
+  for (const [endpoint, verwacht] of paren) {
+    const w = verwachtePlek(endpoint, 'well-known-file')
+    t(endpoint + ' leidt naar ' + verwacht, w.plek === verwacht, String(w.plek))
+    // En de dns-plek draagt NOOIT een poort, want een dns-naam kan er geen hebben.
+    const d = verwachtePlek(endpoint, 'dns-txt')
+    t(endpoint + ' geeft een dns-naam zonder poort', d.plek === DNS_LABEL + '.klant.example', String(d.plek))
+  }
+}
+{
+  t('inloggegevens in het eindpunt zijn een klacht, zoals bij de uitgever',
+    Boolean(verwachtePlek('https://gebruiker:geheim@klant.example/mcp', 'dns-txt').klacht))
+}
+{
+  // Een http-plek mag gelezen worden, en de uitslag hoort te zeggen dat het plat was.
+  const u = await zoekToken({ method: 'well-known-file', token: TOKEN }, {
+    endpoint: 'http://klant.example/mcp',
+    lookup: PUBLIEK,
+    fetchImpl: async () => ({ ok: true, text: async () => TOKEN }),
+  })
+  t('een http-plek wordt gelezen in plaats van geweigerd', u.outcome === 'SUPPORTED', u.outcome + ' ' + (u.reden ?? ''))
+  t('en de uitslag zegt dat het over platte http ging',
+    /plain http/.test(u.waarschuwing ?? ''), u.waarschuwing ?? '(geen)')
+}
+{
+  // Het hele lichaam moet gelijk zijn, met witruimte eromheen als enige tolerantie.
+  const leest = (tekst) => zoekToken({ method: 'well-known-file', token: TOKEN }, {
+    endpoint: EINDPUNT,
+    lookup: PUBLIEK,
+    fetchImpl: async () => ({ ok: true, text: async () => tekst }),
+  })
+  t('precies het token is genoeg', (await leest(TOKEN)).outcome === 'SUPPORTED')
+  t('witruimte en een nieuwe regel eromheen mag', (await leest('  ' + TOKEN + ' \n')).outcome === 'SUPPORTED')
+  t('het token met een commentaarregel erboven is NIET genoeg',
+    (await leest('# commentaar\n' + TOKEN)).outcome === 'NOT_SUPPORTED')
+  t('het token in een langere regel is NIET genoeg',
+    (await leest('token=' + TOKEN + ';')).outcome === 'NOT_SUPPORTED')
 }
 
 console.log('')

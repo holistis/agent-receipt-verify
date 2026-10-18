@@ -27,7 +27,19 @@
 // verzonnen bonnetje dat naar een vreemd domein wees, en het kwam groen uit met
 // exitcode 0. Daarom moet de koper nu het eindpunt noemen.
 //
-// UITKOMSTEN, drie met opzet, en de zachte mag nooit door de verkoper te kiezen zijn.
+// UITKOMSTEN, drie met opzet, en over de zachte moet eerlijk gezegd worden wat hij wel
+// en niet uitsluit. Een eerdere versie van deze koptekst beweerde dat de verkoper de
+// zachte uitkomst nooit kan kiezen. Dat was onwaar, en onze eigen tweede keuring heeft
+// acht routes gemeten waarlangs het toch lukte. Zeven daarvan zijn nu dicht: een
+// onbruikbaar token, een 404 op de plek, en een dns-naam die niet bestaat zijn alle drie
+// een AFKEURING geworden, want het zijn antwoorden en geen storingen.
+//
+// EEN ROUTE BLIJFT OPEN, EN DIE STAAT HIER OMDAT HIJ NIET TE DICHTEN IS. De verkoper
+// noemt de METHODE, dus hij kiest welke van de twee bronnen gelezen wordt. Noemt hij een
+// methode die wij niet kennen, dan kunnen wij niets afleiden en is de uitslag NIET
+// GEMETEN. Dat is eerlijk, want wij hebben werkelijk niets gemeten, en het is tegelijk
+// een route die een verkoper kan nemen. NIET GEMETEN betekent dus: wij konden niet
+// kijken. Het betekent NIET: de verkoper is eerlijk.
 // SUPPORTED als het token werkelijk op de AFGELEIDE plek staat. NOT_SUPPORTED als de
 // bron bereikbaar was en het token er niet staat, en ook als het antwoord over een
 // ander domein gaat dan waarvoor betaald is. NOT_MEASURED alleen als de controle
@@ -124,13 +136,33 @@ export function privaatAdres(ip) {
  * gaan we niet.
  */
 export async function plekIsPubliek(waarde, { lookup = dns.lookup } = {}) {
+  // EEN ANDER SCHEMA WORDT GEWEIGERD EN NIET OMGEBOUWD. Zonder deze regel vuurde de
+  // schema-controle hieronder NOOIT: alles wat niet met http of https begon kreeg er
+  // https voor, dus een ftp-adres werd een https-adres met hostnaam "ftp". Gevonden
+  // door een NIEUWE test van onze eigen suite, die dus iets echts aanwees in plaats van
+  // alleen een oude verwachting te bevestigen.
+  const heeftSchema = /^[a-z][a-z0-9+.-]*:/i.test(String(waarde))
+  if (heeftSchema && !/^https?:/i.test(String(waarde))) {
+    const schema = String(waarde).split(':')[0]
+    return { ok: false, reden: 'only http or https is allowed, got ' + schema + ':' }
+  }
   let u
   try {
     u = new URL(/^https?:\/\//i.test(waarde) ? waarde : 'https://' + waarde)
   } catch {
     return { ok: false, reden: 'not a usable location' }
   }
-  if (u.protocol !== 'https:') return { ok: false, reden: 'only https is allowed, got ' + u.protocol }
+  // HTTP WORDT NIET MEER GEWEIGERD, EN DAT IS EEN CORRECTIE. Hier stond "alleen https",
+  // maar de uitgever van dit bewijs staat http uitdrukkelijk toe (zie parseEndpoint in
+  // packages/endpoint-attest/src/ownership.ts) en publiceert dan ook op http. Een eigen,
+  // strengere eis klinkt veiliger en levert hier het tegenovergestelde op: een eerlijke
+  // verkoper met een http-eindpunt werd afgekeurd op een regel die de dienst zelf niet
+  // heeft. De echte grens blijft staan en die zit op het OPGELOSTE ADRES, niet op het
+  // schema. Wie over platte http leest hoort dat wel in de uitslag te zien, want dan kan
+  // iemand op het pad ertussen het antwoord verzinnen.
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') {
+    return { ok: false, reden: 'only http or https is allowed, got ' + u.protocol }
+  }
   if (u.username || u.password) return { ok: false, reden: 'credentials in the location are refused' }
   const h = normaliseerHost(u.hostname)
   if (!h) return { ok: false, reden: 'no hostname in the location' }
@@ -141,7 +173,7 @@ export async function plekIsPubliek(waarde, { lookup = dns.lookup } = {}) {
   if (/^[0-9]{1,3}(\.[0-9]{1,3}){3}$/.test(h)) {
     const r = privaatAdres(h)
     if (r) return { ok: false, reden: r }
-    return { ok: true, url: u, adressen: [h] }
+    return { ok: true, url: u, adressen: [h], plattekst: u.protocol === 'http:' }
   }
   let adressen
   try {
@@ -155,7 +187,7 @@ export async function plekIsPubliek(waarde, { lookup = dns.lookup } = {}) {
     const r = privaatAdres(a)
     if (r) return { ok: false, reden: h + ' resolves to a ' + r }
   }
-  return { ok: true, url: u, adressen }
+  return { ok: true, url: u, adressen, plattekst: u.protocol === 'http:' }
 }
 
 /**
@@ -170,14 +202,32 @@ export function verwachtePlek(endpoint, methode) {
   }
   let u
   try {
+    // Een kale hostnaam krijgt https ervoor, want dan is er geen schema om te volgen.
+    // Staat er WEL een schema, dan blijft het staan: http is bij de uitgever geldig en
+    // stilzwijgend naar https tillen levert een andere plek dan hij publiceert.
     u = new URL(/^https?:\/\//i.test(endpoint) ? endpoint : 'https://' + endpoint)
   } catch {
     return { klacht: 'the endpoint is not a usable url: ' + endpoint.slice(0, 60) }
   }
+  if (u.username || u.password) {
+    return { klacht: 'the endpoint must not carry credentials' }
+  }
   const host = normaliseerHost(u.hostname)
   if (!host) return { klacht: 'the endpoint has no hostname' }
+  // DE PLEK WORDT PRECIES ZO GEBOUWD ALS DE UITGEVER HEM BOUWT, en dat was hij niet.
+  // Gemeten tegen hun eigen proofLocation in packages/endpoint-attest/src/ownership.ts:
+  // bij dns-txt gebruikt die `hostname`, dus zonder poort, want een dns-naam kan geen
+  // poort dragen. Bij well-known-file gebruikt die `${url.protocol}//${url.host}`, dus
+  // MET poort en met het ECHTE schema, en hun parseEndpoint staat http uitdrukkelijk
+  // toe. Wij bouwden hier 'https://' plus hostname, dus wij lieten de poort vallen en
+  // dwongen https af. Gevolg, en dat is de valse beschuldiging waar deze hele controle
+  // tegen bedoeld is: een eerlijke verkoper met een http-eindpunt of een poort die niet
+  // 443 is, kreeg NIET TE METEN, of zelfs een harde NIET GESTEUND als er op 443
+  // toevallig een ander bestand stond.
   if (methode === 'dns-txt') return { host, plek: DNS_LABEL + '.' + host }
-  if (methode === 'well-known-file') return { host, plek: 'https://' + host + WELL_KNOWN_PATH }
+  if (methode === 'well-known-file') {
+    return { host, plek: u.protocol + '//' + u.host + WELL_KNOWN_PATH, schema: u.protocol }
+  }
   return { klacht: 'unknown ownership method: ' + String(methode) }
 }
 
@@ -240,7 +290,17 @@ async function haalDocument(url, fetchImpl) {
     headers: { accept: 'text/plain' },
     signal: AbortSignal.timeout(HAAL_TIJDSLIMIET_MS),
   })
-  if (!r.ok) return { klacht: 'the location answered http ' + r.status }
+  if (!r.ok) {
+    // EEN HTTP-FOUTSTATUS IS EEN ANTWOORD VAN DE BRON, GEEN STORING VAN ONS. Een 404 op
+    // het well-known pad betekent dat de klant daar niets heeft gepubliceerd, en dat is
+    // bewijs van afwezigheid. Dit ging eerder naar NIET GEMETEN, waardoor een verkoper de
+    // zachte uitslag kon kiezen door simpelweg de andere methode te noemen dan die de
+    // klant gebruikte. Een 5xx is wel een storing, en blijft dus niet-gemeten.
+    if (r.status >= 400 && r.status < 500) {
+      return { afwezig: 'the location answered http ' + r.status + ', so nothing is published there' }
+    }
+    return { klacht: 'the location answered http ' + r.status }
+  }
   // Het dak hoort OP de stroom. Pas na het inlezen knippen is geen grens.
   if (r.body && typeof r.body.getReader === 'function') {
     const lezer = r.body.getReader()
@@ -278,7 +338,12 @@ export async function zoekToken(antwoord, opties = {}) {
   const genoemdePlek = typeof antwoord?.location === 'string' ? antwoord.location.trim() : ''
 
   if (typeof token !== 'string' || token.trim().length < 8) {
-    return { outcome: 'NOT_MEASURED', reden: 'the answer carries no usable token' }
+    // EEN ONBRUIKBAAR TOKEN IS EEN AFKEURING, GEEN ONVOLLEDIGE METING. Dit gaf eerder
+    // NIET GEMETEN, en dat was een van de acht routes waarlangs een verkoper die niets
+    // leverde toch de zachte uitslag kreeg: stuur een token van zeven tekens, of een
+    // getal, en de uitslag was exitcode 2 in plaats van 1. Het token komt van de
+    // verkoper. Onbruikbare waar sturen is zijn keuze, niet onze storing.
+    return { outcome: 'NOT_SUPPORTED', reden: 'the answer carries no usable token' }
   }
   const verwacht = verwachtePlek(endpoint, methode)
   if (verwacht.klacht) return { outcome: 'NOT_MEASURED', reden: verwacht.klacht }
@@ -298,6 +363,20 @@ export async function zoekToken(antwoord, opties = {}) {
     try {
       records = await resolveTxt(verwacht.plek)
     } catch (e) {
+      // AFWEZIGHEID IS EEN ANTWOORD, EEN STORING IS DAT NIET. Hier ging elke dns-fout
+      // naar NIET GEMETEN, dus ook het geval dat de naam gewoon NIET BESTAAT. Dat is
+      // precies het bewijs dat er niets gepubliceerd staat, net zoals "het token staat in
+      // geen van de N records" dat is. Een resolver die uitvalt of weigert is wel een
+      // echte storing aan onze kant. De codes komen uit node se eigen dns-module.
+      const code = String(e?.code ?? '')
+      const bestaatNiet = code === 'ENOTFOUND' || code === 'ENODATA' || code === 'NXDOMAIN'
+      if (bestaatNiet) {
+        return {
+          outcome: 'NOT_SUPPORTED',
+          reden: 'there is no TXT record at ' + verwacht.plek + ', so nothing is published there',
+          waarschuwing,
+        }
+      }
       return { outcome: 'NOT_MEASURED', reden: 'dns lookup failed: ' + String(e?.message ?? e).slice(0, 90) }
     }
     const geplakt = (records ?? []).map((r) => (Array.isArray(r) ? r.join('') : String(r)))
@@ -319,14 +398,30 @@ export async function zoekToken(antwoord, opties = {}) {
     } catch (e) {
       return { outcome: 'NOT_MEASURED', reden: 'fetch failed: ' + String(e?.message ?? e).slice(0, 90) }
     }
+    if (uit.afwezig) return { outcome: 'NOT_SUPPORTED', reden: uit.afwezig, waarschuwing }
     if (uit.klacht) return { outcome: 'NOT_MEASURED', reden: uit.klacht }
-    const regels = String(uit.tekst).split(/\r?\n/)
-    return tokenStaatEr(regels, token)
-      ? { outcome: 'SUPPORTED', bron: poort.url.toString(), records: regels.length, waarschuwing }
+    // HET HELE GETRIMDE LICHAAM, NIET EEN REGEL ERVAN, en dat is een correctie tegen mijn
+    // eigen onderbouwing in. Dit bestand beargumenteert hierboven dat de vergelijking
+    // exact is omdat de uitgever exact vergelijkt, en deed daarna iets ruimers: het token
+    // werd geaccepteerd als ELKE regel van het document. Gemeten tegen de uitgever zelf
+    // (packages/endpoint-attest/src/ownership.ts): die eist dat het getrimde lichaam
+    // GELIJK is aan het token, en zegt er in zijn eigen commentaar bij waarom, namelijk
+    // dat een token dat ergens in een verder onverwante pagina staat niet aantoont dat de
+    // beheerder het met opzet heeft gepubliceerd. Een bestand met het token op een eigen
+    // regel tussen html kwam bij ons uit op GESTEUND terwijl de echte poort het afwees.
+    // Dat is de enige richting die echt telt: ons gereedschap zei waar over iets dat
+    // geweigerd wordt.
+    const lichaam = String(uit.tekst).trim()
+    const platteNoot = poort.plattekst
+      ? 'read over plain http, so anyone on the path could have written this answer'
+      : null
+    const samen = [waarschuwing, platteNoot].filter(Boolean).join('; ') || undefined
+    return lichaam === String(token).trim()
+      ? { outcome: 'SUPPORTED', bron: poort.url.toString(), records: 1, waarschuwing: samen }
       : {
           outcome: 'NOT_SUPPORTED',
-          reden: 'the token is not a line in the document at ' + poort.url.toString(),
-          waarschuwing,
+          reden: 'the document at ' + poort.url.toString() + ' is not exactly the token',
+          waarschuwing: samen,
         }
   }
 
