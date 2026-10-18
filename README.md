@@ -77,11 +77,23 @@ vectors, that is interop. One implementation agreeing with itself proves nothing
 | x402 settlement link (§5.6.4, same proposal) | own tests plus three live settlements | 22 offline, 3 live | yes, each resolves to its own settlement |
 
 ```sh
-npm test      # all of the above, no network, no keys
+npm test      # all of the above. No account, no key, and nobody else's server
 ```
 
-Node built-ins only, apart from keccak256. Only the settlement link below touches
-the network, and then only a public read-only RPC.
+Node built-ins only, apart from keccak256. Two honest footnotes, because "no network"
+was not quite true and is the kind of claim this package should not make loosely:
+
+- One case dials a closed port on localhost on purpose, to prove that a dead address
+  reports not-measured instead of crashing the tool. That is a socket, but it leaves
+  the machine alone and reaches no third party.
+- Until recently the suite also fetched a live discovery index belonging to someone
+  else, roughly twenty thousand entries, because one test handed an unknown flag to
+  `census` and `census` ignored unknown flags and went to work. That flag is now
+  refused, so the suite finishes in about eleven seconds and contacts nobody. A single
+  index round alone used to take over thirty.
+
+Only the settlement link below reaches a real network, and then only a public,
+read-only RPC.
 
 Confirmed from the other side, which matters more than the table: the author of
 the x402 specification ran their own implementation, which shares no code with
@@ -98,6 +110,7 @@ taken on trust:
 ```sh
 npx -y agent-receipt-verify kanon
 npx -y agent-receipt-verify beleid
+npx -y agent-receipt-verify link-vectors
 ```
 
 The first checks our EIP-3009 verifier against the ten published vectors of
@@ -106,6 +119,28 @@ those vectors cover underpayment only, so they say nothing about overpayment, or
 about one nonce reused across two payers. Those are the two open questions in
 [x402#2725](https://github.com/x402-foundation/x402/issues/2725), and the command
 prints exactly where the two possible answers diverge and where they do not.
+
+The third runs twelve vectors for the half AFTER paying: does this receipt belong to
+that one settlement. Eleven of them need no network at all; the twelfth reads the chain
+and is marked and skipped rather than reported as a failure, because a check that could
+not run says nothing about the receipt. The same twelve also exist in the field layout
+of the Kanon vectors, in `vectors/settlement-link-kanon`, so the two corpora can sit
+side by side.
+
+Two more commands, both of which measure other people's endpoints rather than our own,
+and both read-only:
+
+```sh
+npx -y agent-receipt-verify census [out.json]
+npx -y agent-receipt-verify liveness [out.json]
+```
+
+`census` counts a discovery index per HOST rather than per resource, so a party with
+three hundred paths does not outweigh three hundred parties with one. `liveness` takes
+that census and asks each host whether it still answers 402 today, because a
+registration in an index is not a promise that the endpoint is alive. Both are slow by
+design: they pause between requests, because the hosts in that list did not ask to be
+measured.
 
 ## Linking a receipt to its settlement
 

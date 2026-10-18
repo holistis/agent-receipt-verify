@@ -108,20 +108,20 @@ jobs:
       - name: The tarball must carry NOTICE, LICENSE and everything the cli dispatches to
         run: |
           node --input-type=module -e '
-            const { pakInhoud } = await import("./tools/pack-inhoud.mjs");
+            const { pakInhoud, verwachteBestanden } = await import("./tools/pack-inhoud.mjs");
             const files = pakInhoud();
-            const missing = [
-              "NOTICE",
-              "LICENSE",
-              "bin/cli.mjs",
-              "profiles/x402-deployed-ladder-v1.json",
-              "bench/eip3009-beleid.mjs",
-            ].filter((f) => !files.includes(f));
+            // The list is DERIVED from the dispatch table in bin/cli.mjs, not written
+            // out here. This step was named "everything the cli dispatches to" and
+            // checked five fixed paths while the table held nine modules, so seven
+            // subcommands were never checked at all. A hand-kept list always lags the
+            // table it guards.
+            const expected = verwachteBestanden();
+            const missing = expected.filter((f) => !files.includes(f));
             if (missing.length) {
               console.error("the tarball is missing: " + missing.join(", "));
               process.exit(1);
             }
-            console.log("tarball carries " + files.length + " files, including NOTICE and LICENSE");
+            console.log("tarball carries " + files.length + " files, all " + expected.length + " required ones present");
           '
 
       # No NODE_AUTH_TOKEN here on purpose. If this step fails on authentication, the

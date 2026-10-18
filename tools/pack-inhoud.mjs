@@ -28,6 +28,7 @@
 // Exitcode 0 als er een lijst is, 1 als de inhoud niet te meten was.
 
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -47,7 +48,13 @@ export function lijstUitPackUitvoer(ruw) {
     throw new Error('npm pack gaf geen json terug: ' + String(e.message).slice(0, 80))
   }
 
-  const uitEntry = (e) => (e && Array.isArray(e.files) ? e.files.map((f) => f.path) : null)
+  // EEN LEGE LIJST IS GEEN LIJST. `Array.isArray([])` is waar en `[]` is in javascript
+  // ook waar, dus een entry met `files: []` kwam hier als geldige uitkomst door en gaf
+  // een lege bestandslijst terug. Dat is precies wat de koptekst hierboven belooft NIET
+  // te doen, en het is ook de storing die deze file se eigen geschiedenis beschrijft:
+  // twaalf controles die verdwenen terwijl de suite groen bleef. Een tarball met nul
+  // bestanden bestaat niet, dus dit is altijd een meetfout en nooit een uitkomst.
+  const uitEntry = (e) => (e && Array.isArray(e.files) && e.files.length ? e.files.map((f) => f.path) : null)
 
   // Vorm 1: een array van entries (npm 11.11.0 en ouder).
   if (Array.isArray(j)) {
@@ -81,6 +88,43 @@ export function pakInhoud({ cwd = WORTEL, draai = null } = {}) {
     ? draai()
     : execSync('npm pack --dry-run --json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], cwd })
   return lijstUitPackUitvoer(uit)
+}
+
+
+/**
+ * Wat de tarball MOET dragen, afgeleid uit de verzendtabel van de cli zelf.
+ *
+ * WAAROM AFGELEID EN NIET OPGESCHREVEN. De publicatiestap heette "de tarball moet NOTICE,
+ * LICENSE en alles waar de cli naar verwijst dragen" en toetste vijf vaste paden, terwijl
+ * de verzendtabel negen modules heeft. Zeven subcommando's werden dus nooit gecontroleerd.
+ * Zou `files` in package.json ooit `src/` kwijtraken, dan ging er een pakket uit waarvan
+ * elk subcommando bij de eerste aanroep crasht, en deze poort zou groen staan. Een lijst
+ * die met de hand wordt bijgehouden loopt per definitie achter op de tabel die hij
+ * bewaakt; deze leest die tabel.
+ *
+ * De drie vaste regels eronder staan er wel met de hand, en met opzet: NOTICE en LICENSE
+ * zijn een LICENTIEPLICHT (wij verspreiden testvectoren van derden onder Apache-2.0) en
+ * volgen uit geen enkele tabel. Het profielbestand staat erbij omdat de ladder het leest
+ * zonder dat een importregel dat verraadt.
+ */
+export function verwachteBestanden({ cliPad = null } = {}) {
+  const pad = cliPad ?? path.join(WORTEL, 'bin', 'cli.mjs')
+  const bron = readFileSync(pad, 'utf8')
+  const tabel = bron.match(/const onderdelen = \{([^}]*)\}/)
+  if (!tabel) {
+    throw new Error('de verzendtabel is niet te vinden in ' + pad + ', dus de verwachte inhoud is ONGEMETEN')
+  }
+  const modules = [...tabel[1].matchAll(/'([^']+\.mjs)'/g)].map((m) => m[1].replace(/^\.\.\//, ''))
+  if (!modules.length) {
+    throw new Error('de verzendtabel in ' + pad + ' bevat geen enkel modulepad, dus hier is iets stuk')
+  }
+  return [
+    'NOTICE',
+    'LICENSE',
+    'bin/cli.mjs',
+    'profiles/x402-deployed-ladder-v1.json',
+    ...modules,
+  ]
 }
 
 const ditBestand = fileURLToPath(import.meta.url)
