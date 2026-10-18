@@ -7,7 +7,8 @@
 // theorie klopt is precies wat hier mis kan gaan.
 
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { existsSync, readFileSync } from 'node:fs'
 
 const CLI = fileURLToPath(new URL('../bin/cli.mjs', import.meta.url))
 
@@ -78,5 +79,43 @@ console.log('de kruiscontrole als los onderdeel')
   t('de uitvoer is Engels, want dit commando is voor vreemden',
     !/gemeten|vectoren|betaler/.test(r.stdout), r.stdout.slice(0, 60))
 }
+
+console.log('')
+console.log('elk woord in de verzendtabel bestaat ook voor een vreemde')
+
+// WAAROM DIT UIT HET BESTAND ZELF WORDT GELEZEN EN NIET UIT EEN LIJST HIER. Een lijst
+// hier is een tweede verklaring, en twee verklaringen lopen uit elkaar. Dit leest de
+// echte verzendtabel en toetst per woord drie dingen die los van elkaar fout kunnen
+// gaan. De aanleiding was gemeten: twee ingangen (liveness en verify-delivery) stonden
+// wel in de tabel en in nul regels van de helptekst, en bestonden dus niet voor iemand
+// die het pakket voor het eerst opent.
+{
+  const bron = readFileSync(CLI, 'utf8')
+  const tabel = bron.match(/const onderdelen = {([^}]*)}/)
+  t('de verzendtabel is te lezen uit bin/cli.mjs', Boolean(tabel))
+  const woorden = tabel
+    ? [...tabel[1].matchAll(/^\s*'?([a-z-]+)'?\s*:\s*'([^']+)'/gm)].map((m) => ({ woord: m[1], pad: m[2] }))
+    : []
+  t('en bevat meer dan een handvol ingangen', woorden.length >= 8, 'aantal ' + woorden.length)
+
+  const help = draai('--help').stdout
+  const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8'))
+
+  for (const { woord, pad } of woorden) {
+    const echtPad = fileURLToPath(new URL(pad, pathToFileURL(CLI)))
+    t(woord + ': het doelbestand bestaat echt', existsSync(echtPad), pad)
+    t(woord + ': staat in --help, anders bestaat het niet voor een vreemde',
+      help.includes(woord), 'niet in help')
+    // Een script met DEZELFDE naam is een tweede, onafhankelijke verklaring. Wijst die
+    // naar een ander bestand, dan is er ergens een stille verwisseling.
+    const script = pkg.scripts?.[woord]
+    if (script) {
+      const kaal = pad.replace(/^\.\.\//, '')
+      t(woord + ': het npm-script wijst naar hetzelfde bestand', script.includes(kaal),
+        script + ' vs ' + kaal)
+    }
+  }
+}
+
 console.log('cli: ' + goed + ' pass, ' + fout + ' fail')
 if (fout > 0) process.exitCode = 1

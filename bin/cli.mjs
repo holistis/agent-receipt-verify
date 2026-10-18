@@ -58,6 +58,15 @@ function gebruik() {
   console.log('        published vector covers: overpayment, and one nonce across two payers.')
   console.log('        Those two are the open questions in x402 issue 2725.')
   console.log('')
+  console.log('  npx github:holistis/agent-receipt-verify liveness [uit.json]')
+  console.log('        takes the census and asks each host whether it still answers 402 today.')
+  console.log('        A registration in an index is not a promise that the endpoint is alive.')
+  console.log('')
+  console.log('  npx github:holistis/agent-receipt-verify verify-delivery --answer=<file> --endpoint=<url>')
+  console.log('        reads, at the source, whether a paid answer is TRUE. The location is')
+  console.log('        DERIVED from --endpoint and never taken from the answer, because a seller')
+  console.log('        who picks both the token and the place can stage any outcome.')
+  console.log('')
   console.log('  npx github:holistis/agent-receipt-verify link-vectors')
   console.log('        twelve vectors for the half AFTER paying: does this receipt belong to')
   console.log('        that one settlement? Eleven run offline, the chain-reading one is')
@@ -76,6 +85,7 @@ const onderdelen = {
   kanon: '../src/eip3009-autorisatie.mjs',
   beleid: '../bench/eip3009-beleid.mjs',
   'link-vectors': '../src/settlement-link-vectors.mjs',
+  'verify-delivery': '../src/verify-delivery.mjs',
 }
 
 if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {
