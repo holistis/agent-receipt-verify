@@ -154,7 +154,7 @@ console.log('the ladder is data, and the result points at it')
 // Een nagemaakt eindpunt dat PER METHODE anders antwoordt, want dat is precies het
 // gedrag dat we fout lazen: een route die alleen GET bedient, antwoordt op POST met
 // 405, en dat is correct van het eindpunt en niet van ons verzoek.
-function nepPerMethode({ toegestaan = 'GET', metAllow = true, aanbod = ACCEPTS_OK } = {}) {
+function nepPerMethode({ toegestaan = 'GET', metAllow = true, aanbod = ACCEPTS_OK, status = 405 } = {}) {
   const gezien = []
   const f = async (url, opties) => {
     const m = opties.method
@@ -163,7 +163,7 @@ function nepPerMethode({ toegestaan = 'GET', metAllow = true, aanbod = ACCEPTS_O
       const h = new Map()
       if (metAllow) h.set('allow', toegestaan)
       return {
-        status: 405,
+        status,
         headers: { keys: () => h.keys(), get: (k) => h.get(String(k).toLowerCase()) ?? null },
         text: async () => '',
       }
@@ -211,6 +211,19 @@ console.log('a 405 mag nooit als een fout van het eindpunt gelden')
   const d = await meetEindpunt('https://x/y', { fetchImpl: getSonde, methode: 'GET' })
   toets('een GET die 405 krijgt probeert niet nog eens GET', getSonde.gezien.length === 1, getSonde.gezien.join(','))
   toets('en dat is dan gewoon HAALT_NIET', d.treden.t0 === 'HAALT_NIET')
+
+  // Een 404 is dezelfde fout met een ander nummer. Gemeten op een eindpunt van een
+  // DERDE: 402 met een geldige kop op GET, 404 op POST. Veel webraamwerken doen dat.
+  const vierNulVier = nepPerMethode({ toegestaan: "GET", metAllow: false, status: 404 })
+  const f = await meetEindpunt("https://x/y", { fetchImpl: vierNulVier })
+  toets("een 404 op POST wordt ook een keer met GET gemeten", f.treden.t0 === "HAALT", f.bewijs.t0)
+  toets("en het bewijs noemt de 404 als eerste status", f.bewijs.methode_opnieuw?.eerste_status === 404, JSON.stringify(f.bewijs.methode_opnieuw))
+
+  // Een GET die 404 krijgt is gewoon niet gevonden, en wordt niet herhaald.
+  const echtWeg = nepPerMethode({ toegestaan: "POST", metAllow: false, status: 404 })
+  const g = await meetEindpunt("https://x/y", { fetchImpl: echtWeg, methode: "GET" })
+  toets("een GET die 404 krijgt wordt niet herhaald", echtWeg.gezien.length === 1, echtWeg.gezien.join(","))
+  toets("en blijft HAALT_NIET", g.treden.t0 === "HAALT_NIET")
 
   // Een 402 blijft ongewijzigd: geen tweede verzoek, geen extra bewijsveld.
   const gewoon = nepPerMethode({ toegestaan: 'POST' })
