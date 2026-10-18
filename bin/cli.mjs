@@ -75,6 +75,11 @@ function gebruik() {
   console.log('        that one settlement? Eleven run offline, the chain-reading one is')
   console.log('        marked and skipped rather than failed.')
   console.log('')
+  console.log('  npx -y agent-receipt-verify attempt-identity')
+  console.log('        nineteen vectors for the question the other layers assume: are these')
+  console.log('        records about the SAME attempt? One acceptance and at least one refusal')
+  console.log('        per normative clause of x402 spec section 5.5. Offline.')
+  console.log('')
   console.log('What this does NOT do: it judges the SHAPE of a receipt, not the honesty of')
   console.log('the party that issued it. See CONFORMANCE.md for what is deliberately left')
   console.log('unmeasured.')
@@ -92,6 +97,7 @@ const onderdelen = {
   kanon: '../src/eip3009-autorisatie.mjs',
   beleid: '../bench/eip3009-beleid.mjs',
   'link-vectors': '../src/settlement-link-vectors.mjs',
+  'attempt-identity': '../src/attempt-identity.mjs',
   'verify-delivery': '../src/verify-delivery.mjs',
 }
 

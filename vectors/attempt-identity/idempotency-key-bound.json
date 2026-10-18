@@ -1,0 +1,28 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-idempotency-key-bound",
+  "clause": "name-independent-but-bound",
+  "encodes": "The positive control for the name-independence clause: a different field name that satisfies the discipline.",
+  "description": "An implementation using Idempotency-Key, bound to the ingress snapshot and verified against it, satisfies the invariant. The requirement is the discipline, not the field name.",
+  "input": {
+    "identity_field": {
+      "name": "Idempotency-Key",
+      "bound_to": "ingress-snapshot",
+      "client_supplied": true,
+      "verified_against_snapshot": true
+    }
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "Satisfying this clause says nothing about the other seven."
+  ]
+}

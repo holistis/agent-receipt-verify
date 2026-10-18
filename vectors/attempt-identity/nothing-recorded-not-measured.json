@@ -1,0 +1,21 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-nothing-recorded-not-measured",
+  "clause": "all",
+  "encodes": "The fourth outcome: a vector that carries no observations is not conformant and not failing, it is unmeasured.",
+  "description": "An empty observation set must not pass and must not fail. Reporting PASS here would let an implementation claim conformance by showing nothing, and reporting FAIL would blame an implementation for a record that was never collected. This is the distinction the thread settled on for all four evidence layers.",
+  "input": {},
+  "expected": {
+    "outcome": "NOT_MEASURED"
+  },
+  "limits": [
+    "This is a property of the checker, not of any implementation."
+  ]
+}
