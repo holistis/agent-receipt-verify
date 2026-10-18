@@ -90,7 +90,15 @@ export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST', l
     // De herhaling blijft bewust smal: alleen 404 en 405, alleen als wij NIET met GET
     // sondeerden, en precies een keer. Elke 404 blind herhalen zou het verkeer naar elk
     // dood adres verdubbelen, en dat is niet aan ons om te doen.
-    if (resp.status === 405 || resp.status === 404) {
+    // GEMETEN, EN DAARNA VERBREED. Na de 404 en 405 bleef er een restfout van 3,4 procent
+    // staan op zestig echte hosts, en die bestond uit twee andere codes die hetzelfde
+    // zeggen: cheaptokens.ai/api/buy gaf 400 op onze POST met een leeg lichaam en 402 op
+    // GET, en www.getbags.app/api/v1 gaf 406 op onze Accept-kop en 402 op GET. Alle vier
+    // de codes melden iets over ONS VERZOEK en niets over de bron, dus alle vier verdienen
+    // precies een tweede poging. De verzameling staat hier met naam zodat een vijfde code
+    // een gemeten beslissing vergt en niet stil meegroeit.
+    const VRAAG_OPNIEUW_BIJ = new Set([400, 404, 405, 406])
+    if (VRAAG_OPNIEUW_BIJ.has(resp.status)) {
       const allow = resp.headers.get('allow') || resp.headers.get('Allow') || ''
       const genoemd = allow
         .split(',')
