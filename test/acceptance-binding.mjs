@@ -27,6 +27,9 @@ import {
   leesRecord,
   ONAFHANKELIJKHEID,
   UITKOMSTEN,
+  KETENANKER,
+  ketenanker,
+  bevestigKetenanker,
 } from '../src/acceptance-binding.mjs'
 
 const hier = path.dirname(fileURLToPath(import.meta.url))
@@ -303,6 +306,71 @@ console.log('de bonhash en de levering, en wanneer iets niet gemeten is')
   t('een ander bestand koppelt niet', anderBestand.detail === 'DELIVERABLE_HASH_MISMATCH')
 
   t('de drie uitkomsten staan vast', UITKOMSTEN.length === 3 && UITKOMSTEN.includes('NOT_MEASURED'))
+}
+
+
+// ─── HET KETENANKER ──────────────────────────────────────────────────────────────────
+//
+// De gevallen gaan over een ding: kan een uitdager later een reorg onderscheiden van een
+// verkeerd antwoord. Het scherpste geval is nummer-ZONDER-hash, want dat leest als
+// zorgvuldig en pint niets vast: bij een reorg blijft het nummer staan en verandert de
+// inhoud eronder.
+//
+// De fetch is hier GESTUBD, met opzet. Deze suite mag niet van een netwerk afhangen,
+// anders is een rode uitslag niet van een storing te onderscheiden. De echte ketenproef
+// is apart gedaan, op blok 52763468 van Base (onze eigen mainnet-betaling), en gaf
+// ANKER_BEVESTIGD op de echte hash 0xcb1f7c38... en ANKER_WIJKT_AF op een verzonnen hash.
+{
+  const NONCE = '0x' + 'ab'.repeat(16)
+  const HASH64 = '0x' + 'cd'.repeat(32)
+  const ANDERE = '0x' + 'ee'.repeat(32)
+  const metLezing = (lezing) => ({ record: { onchain_read: lezing } })
+
+  t('een record zonder ketenuitspraak heeft niets te ankeren', ketenanker({ record: { files: {} } }).staat === 'GEEN_KETENLEZING')
+
+  const leunt = ketenanker({ record: { bindings_sidecar: { bindings: { x402_authorization_nonce: NONCE } } } })
+  t('een x402-sleutel is zelf de claim dat er op de keten gelezen is', leunt.staat === 'ANKER_ONTBREEKT', leunt.staat)
+  t('en het zegt waarom dat erg is', /reorg/.test(leunt.waarom))
+
+  const zonderHash = ketenanker(metLezing({ block_number: 52763468 }))
+  t('een bloknummer zonder blokhash is GEEN anker', zonderHash.staat === 'ANKER_ZONDER_HASH', zonderHash.staat)
+  t('en de uitleg noemt waarom een nummer niets vastpint', /blijft dat nummer staan/.test(zonderHash.waarom))
+
+  const volledig = ketenanker(metLezing({ block_number: 52763468, block_hash: HASH64 }))
+  t('nummer plus hash is een volledig anker', volledig.staat === 'ANKER_VOLLEDIG' && volledig.nummer === 52763468)
+
+  t('een bloknummer in hex wordt ook gelezen', ketenanker(metLezing({ block_number: '0x3251b4c', block_hash: HASH64 })).nummer === 52763468)
+  t(
+    'een hash die geen 32 bytes is telt niet als hash',
+    ketenanker(metLezing({ block_number: 1, block_hash: '0xabc' })).staat === 'ANKER_ZONDER_HASH',
+  )
+
+  const stub = (hash) => async () => ({ json: async () => ({ result: { hash } }) })
+  const bevestigd = await bevestigKetenanker(metLezing({ block_number: 52763468, block_hash: HASH64 }), {
+    rpcUrl: 'https://voorbeeld.test',
+    fetchImpl: stub(HASH64),
+  })
+  t('een anker dat bij de keten klopt wordt bevestigd', bevestigd.staat === 'ANKER_BEVESTIGD' && bevestigd.nagetrokken === true)
+
+  const afwijkend = await bevestigKetenanker(metLezing({ block_number: 52763468, block_hash: HASH64 }), {
+    rpcUrl: 'https://voorbeeld.test',
+    fetchImpl: stub(ANDERE),
+  })
+  t('een andere hash op hetzelfde nummer wijkt af', afwijkend.staat === 'ANKER_WIJKT_AF', afwijkend.staat)
+  t('en de echte ketenhash staat erbij, zodat een mens het verschil ziet', afwijkend.ketenhash === ANDERE)
+
+  const kapot = await bevestigKetenanker(metLezing({ block_number: 1, block_hash: HASH64 }), {
+    rpcUrl: 'https://voorbeeld.test',
+    fetchImpl: async () => {
+      throw new Error('netwerk weg')
+    },
+  })
+  t('een kapotte keten is NIET GEMETEN en geen afkeuring', kapot.staat === 'ANKER_VOLLEDIG' && kapot.nagetrokken === false)
+
+  const zonderRpc = await bevestigKetenanker(metLezing({ block_number: 1, block_hash: HASH64 }))
+  t('zonder rpcUrl gaat er nooit stil een verzoek de deur uit', zonderRpc.nagetrokken === false)
+
+  t('de zes uitkomsten staan vast', KETENANKER.length === 6 && KETENANKER.includes('ANKER_ZONDER_HASH'))
 }
 
 console.log(`\n${goed} groen, ${fout} rood`)
