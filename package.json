@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/profiel.mjs && node test/eip3009.mjs && node test/conformance.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/poortwachters.mjs && node test/metingen-bundel.mjs && node test/mcp-server.mjs && node test/cli.mjs && node test/bundel.mjs && node test/settlement-link-vectors.mjs",
+    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/profiel.mjs && node test/eip3009.mjs && node test/conformance.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/poortwachters.mjs && node test/metingen-bundel.mjs && node test/mcp-server.mjs && node test/cli.mjs && node test/bundel.mjs && node test/settlement-link-vectors.mjs && node test/naar-kanon-vorm.mjs",
     "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json",
     "conformance": "node src/x402-conformance-check.mjs",
     "bench": "node bench/robustness.mjs",
@@ -20,7 +20,9 @@
     "bundel": "node tools/bundel-bouw.mjs build/bundle",
     "kanon": "node src/eip3009-autorisatie.mjs --vectoren",
     "bench-eip3009": "node bench/eip3009-beleid.mjs",
-    "link-vectors": "node src/settlement-link-vectors.mjs"
+    "link-vectors": "node src/settlement-link-vectors.mjs",
+    "verify-delivery": "node src/verify-delivery.mjs",
+    "kanon-vorm": "node tools/naar-kanon-vorm.mjs"
   },
   "optionalDependencies": {
     "ethers": "^6.17.0"
