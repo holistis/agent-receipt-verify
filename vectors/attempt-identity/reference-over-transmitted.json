@@ -1,0 +1,26 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-reference-over-transmitted",
+  "clause": "reference-over-transmitted-bytes",
+  "encodes": "The positive control for the second trap.",
+  "description": "The reference hash is the digest of the artifact exactly as transmitted, which is what the signature covers.",
+  "input": {
+    "signed_artifact_reference": {
+      "transmitted": "{\"version\":1,\"amount\":\"1000\",\"payTo\":\"0x2888F36548a900B9b08d584524e1f73BC563eC26\"}",
+      "reference_hash": "a0c86bd7167da34f3f06ae274b8284ab1daea5802f10bf1df11e9b54b24182c5"
+    }
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This says the reference names the signed bytes. It does not check that the signature over them is valid."
+  ]
+}

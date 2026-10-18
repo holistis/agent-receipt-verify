@@ -1,0 +1,86 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-changed-amount-announced",
+  "clause": "changed-request-different-artifact",
+  "encodes": "The positive control for the changed-request half: new identity, and an event that names it.",
+  "description": "The amount changed, the identity changed, and an announcement event carries the new identity. This is what the clause asks for, and it is here so the two refusals above cannot be mistaken for \"any change fails\".",
+  "input": {
+    "ingress": {
+      "snapshot": {
+        "method": "POST",
+        "path": "/api/paid/verify-ownership",
+        "query": "",
+        "body": {
+          "endpoint": "https://example.com/api/health",
+          "ownerAddress": "0x1111111111111111111111111111111111111111",
+          "method": "dns-txt"
+        },
+        "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+        "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "network": "eip155:8453",
+        "amount": "1000",
+        "scheme": "exact"
+      },
+      "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+    },
+    "paths": [
+      {
+        "path": "challenge-quote",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "",
+          "body": {
+            "endpoint": "https://example.com/api/health",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "1000",
+          "scheme": "exact"
+        },
+        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+      },
+      {
+        "path": "settle",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "",
+          "body": {
+            "endpoint": "https://example.com/api/health",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "2000",
+          "scheme": "exact"
+        },
+        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb"
+      }
+    ],
+    "events": [
+      {
+        "type": "announcement",
+        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "The event is taken as recorded. Whether it was actually emitted to anyone is outside this layer."
+  ]
+}

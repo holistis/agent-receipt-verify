@@ -1,0 +1,81 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-paths-disagree",
+  "clause": "all-paths-same-artifact",
+  "encodes": "Two paths of one unchanged request resolving different identities, which the clause forbids outright.",
+  "description": "The request is byte-for-byte the same on both paths, and the refusal path resolves a different identity than the challenge quote. A holder of two records about this attempt can no longer tell they are about the same attempt, which is the whole failure the clause exists to prevent.",
+  "input": {
+    "ingress": {
+      "snapshot": {
+        "method": "POST",
+        "path": "/api/paid/verify-ownership",
+        "query": "",
+        "body": {
+          "endpoint": "https://example.com/api/health",
+          "ownerAddress": "0x1111111111111111111111111111111111111111",
+          "method": "dns-txt"
+        },
+        "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+        "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "network": "eip155:8453",
+        "amount": "1000",
+        "scheme": "exact"
+      },
+      "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+    },
+    "paths": [
+      {
+        "path": "challenge-quote",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "",
+          "body": {
+            "endpoint": "https://example.com/api/health",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "1000",
+          "scheme": "exact"
+        },
+        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+      },
+      {
+        "path": "refusal",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "",
+          "body": {
+            "endpoint": "https://example.com/api/health",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "1000",
+          "scheme": "exact"
+        },
+        "identity": "baaf0cfdbd04db77cacfea2dede2cf0c2bc2967a9f5c0fc52d7169d70eb7fa79"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "PATHS_DISAGREE_ON_IDENTITY"
+  },
+  "limits": [
+    "This does not say which of the two paths is wrong, only that they cannot both be right."
+  ]
+}

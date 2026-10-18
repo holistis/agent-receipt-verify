@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-settled-despite-mismatch",
+  "clause": "countersignature-recompute-or-refuse",
+  "encodes": "The money half of the same clause: a mismatch that did not stop settlement.",
+  "description": "The counterparty correctly refused to sign, and the interaction settled anyway. The clause says that on a mismatch the interaction MUST NOT settle, so refusing to sign while still taking the money satisfies the letter of one sentence and breaks the one that matters.",
+  "input": {
+    "countersignature": {
+      "ingress_value": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196",
+      "recomputed": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb",
+      "signed": false,
+      "settled": true
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "SETTLED_DESPITE_MISMATCH"
+  },
+  "limits": [
+    "Whether money actually moved is a chain question and is not read here."
+  ]
+}

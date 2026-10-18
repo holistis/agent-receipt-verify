@@ -1,0 +1,35 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+  ],
+  "id": "attempt-identity-outcome-folded-into-identity",
+  "clause": "outcome-not-folded-into-identity",
+  "encodes": "Metering data from the outcome layer absorbed into the identity, so a partial delivery becomes a different attempt.",
+  "description": "The same attempt delivered in full and in part resolves two identities, because the delivered measurement was folded into the derivation. The clause wants the gap between full and partial delivery to stay visible in the outcome layer; absorbing it into identity makes an incomplete delivery look like an unrelated attempt, which is how a shortfall stops being arguable.",
+  "input": {
+    "outcome_variants": [
+      {
+        "note": "full delivery",
+        "delivered": 100,
+        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+      },
+      {
+        "note": "partial delivery",
+        "delivered": 40,
+        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "OUTCOME_FOLDED_INTO_IDENTITY"
+  },
+  "limits": [
+    "This shows identity moving with the outcome. It does not say which of the two identities is the right one."
+  ]
+}
