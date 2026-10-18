@@ -225,6 +225,24 @@ console.log('a 405 mag nooit als een fout van het eindpunt gelden')
   toets("een GET die 404 krijgt wordt niet herhaald", echtWeg.gezien.length === 1, echtWeg.gezien.join(","))
   toets("en blijft HAALT_NIET", g.treden.t0 === "HAALT_NIET")
 
+  // 400 en 406 zijn ook ONS verzoek, niet hun bron. Gemeten op zestig echte hosts: na de
+  // 404 en 405 bleef precies deze restfout staan, twee hosts die op GET wel 402 geven.
+  for (const code of [400, 406]) {
+    const f = nepPerMethode({ toegestaan: "GET", metAllow: false, status: code })
+    const u = await meetEindpunt("https://x/y", { fetchImpl: f })
+    toets("een " + code + " op POST wordt ook een keer met GET gemeten", u.treden.t0 === "HAALT", u.bewijs.t0)
+    toets("en het bewijs noemt " + code + " als eerste status", u.bewijs.methode_opnieuw?.eerste_status === code, JSON.stringify(u.bewijs.methode_opnieuw))
+  }
+
+  // En een code die NIET over onze methode gaat wordt niet herhaald. Anders groeit de
+  // verzameling stil mee en verdubbelt dit het verkeer naar elk kapot eindpunt.
+  for (const code of [403, 500, 503]) {
+    const f = nepPerMethode({ toegestaan: "GET", metAllow: false, status: code })
+    const u = await meetEindpunt("https://x/y", { fetchImpl: f })
+    toets("een " + code + " wordt NIET herhaald", f.gezien.length === 1, f.gezien.join(","))
+    toets("en blijft afgekeurd", u.treden.t0 === "HAALT_NIET")
+  }
+
   // Een 402 blijft ongewijzigd: geen tweede verzoek, geen extra bewijsveld.
   const gewoon = nepPerMethode({ toegestaan: 'POST' })
   const e = await meetEindpunt('https://x/y', { fetchImpl: gewoon, methode: 'POST' })
