@@ -51,22 +51,58 @@ function decodeerHeader(waarde) {
  */
 export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST', lichaam = null } = {}) {
   const r = { url, treden: {}, bewijs: {} }
-  let resp
-  try {
-    resp = await fetchImpl(url, {
-      method: methode,
+
+  const vraag = (m) =>
+    fetchImpl(url, {
+      method: m,
       headers: { 'User-Agent': UA, Accept: 'application/json', 'Content-Type': 'application/json' },
       // Een gedeclareerd voorbeeldlichaam als de index er een geeft. Een lege {} naar
       // een route die velden eist, levert een 400 die niets over x402 zegt: dan meet
       // je je eigen verzoek in plaats van het eindpunt.
-      body: methode === 'GET' || methode === 'DELETE' ? undefined : lichaam != null ? JSON.stringify(lichaam) : '{}',
+      body: m === 'GET' || m === 'DELETE' ? undefined : lichaam != null ? JSON.stringify(lichaam) : '{}',
       signal: AbortSignal.timeout(15000),
     })
+
+  let resp
+  let gebruikteMethode = methode
+  try {
+    resp = await vraag(methode)
+
+    // EEN EINDPUNT MAG NOOIT AFGEKEURD WORDEN OP EEN METHODE DIE HET NIET AANBIEDT.
+    // Gemeten 18 oktober 2026, op ons eigen eindpunt en koud vanuit een lege map: deze
+    // meter sondeert standaard met POST, en een route die alleen GET bedient antwoordt
+    // daarop correct met 405. Dat werd hier als "haalt trede 0 niet" gelezen, dus als
+    // een fout van het eindpunt, terwijl het een fout van ons verzoek was. Elk
+    // GET-eindpunt in de wereld werd daardoor ten onrechte afgekeurd.
+    //
+    // Dus: bij een 405 een keer opnieuw meten met een methode die het eindpunt zelf
+    // noemt in zijn Allow-kop. Noemt het er geen, dan is GET de enige redelijke tweede
+    // poging, en dat staat dan ook als gok in het bewijs. Een meter die zijn eigen
+    // aanname niet opschrijft, laat een lezer niet zien waar hij kan afwijken.
+    if (resp.status === 405) {
+      const allow = resp.headers.get('allow') || resp.headers.get('Allow') || ''
+      const genoemd = allow
+        .split(',')
+        .map((s) => s.trim().toUpperCase())
+        .filter((m) => m && m !== methode && m !== 'OPTIONS' && m !== 'HEAD')
+      const tweede = genoemd[0] ?? (methode !== 'GET' ? 'GET' : null)
+      if (tweede) {
+        r.bewijs.methode_opnieuw = {
+          eerste: methode,
+          eerste_status: 405,
+          tweede,
+          bron: genoemd.length ? 'Allow header' : 'guessed, the 405 carried no Allow header',
+        }
+        resp = await vraag(tweede)
+        gebruikteMethode = tweede
+      }
+    }
   } catch (e) {
     r.treden.t0 = 'ONGEMETEN'
     r.bewijs.t0 = 'not reachable: ' + String(e.message).slice(0, 80)
     return r
   }
+  r.bewijs.methode = gebruikteMethode
 
   r.bewijs.status = resp.status
   const tekst = await resp.text().catch(() => '')

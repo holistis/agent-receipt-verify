@@ -151,5 +151,73 @@ console.log('the ladder is data, and the result points at it')
   toets('an empty artifact is refused cleanly', v.ok === false)
 }
 
+// Een nagemaakt eindpunt dat PER METHODE anders antwoordt, want dat is precies het
+// gedrag dat we fout lazen: een route die alleen GET bedient, antwoordt op POST met
+// 405, en dat is correct van het eindpunt en niet van ons verzoek.
+function nepPerMethode({ toegestaan = 'GET', metAllow = true, aanbod = ACCEPTS_OK } = {}) {
+  const gezien = []
+  const f = async (url, opties) => {
+    const m = opties.method
+    gezien.push(m)
+    if (m !== toegestaan) {
+      const h = new Map()
+      if (metAllow) h.set('allow', toegestaan)
+      return {
+        status: 405,
+        headers: { keys: () => h.keys(), get: (k) => h.get(String(k).toLowerCase()) ?? null },
+        text: async () => '',
+      }
+    }
+    const json = JSON.stringify({ accepts: [aanbod] })
+    const h = new Map()
+    return {
+      status: 402,
+      headers: { keys: () => h.keys(), get: () => null },
+      text: async () => json,
+    }
+  }
+  f.gezien = gezien
+  return f
+}
+
+console.log('a 405 mag nooit als een fout van het eindpunt gelden')
+{
+  // Gemeten 18 oktober 2026, koud vanuit een lege map op onze eigen live route: deze
+  // meter sondeerde met POST, kreeg 405 en rapporteerde dat het eindpunt trede 0 niet
+  // haalt. Dat keurde elk GET-eindpunt in de wereld ten onrechte af.
+  const metAllow = nepPerMethode({ toegestaan: 'GET', metAllow: true })
+  const a = await meetEindpunt('https://x/y', { fetchImpl: metAllow })
+  toets('een 405 met Allow wordt opnieuw gemeten met de toegestane methode', a.treden.t0 === 'HAALT', a.bewijs.t0)
+  toets('en de meter vertelt dat hij opnieuw vroeg', a.bewijs.methode_opnieuw?.tweede === 'GET', JSON.stringify(a.bewijs.methode_opnieuw))
+  toets('met de Allow-kop als bron, niet als gok', /Allow header/.test(a.bewijs.methode_opnieuw?.bron || ''), a.bewijs.methode_opnieuw?.bron)
+  toets('en legt vast welke methode het oordeel droeg', a.bewijs.methode === 'GET', a.bewijs.methode)
+  toets('twee verzoeken, niet meer', metAllow.gezien.length === 2, metAllow.gezien.join(','))
+
+  // Zonder Allow-kop is GET de enige redelijke tweede poging, en dat hoort als GOK in
+  // het bewijs te staan. Een meter die zijn aanname niet opschrijft, is niet na te rekenen.
+  const zonderAllow = nepPerMethode({ toegestaan: 'GET', metAllow: false })
+  const b = await meetEindpunt('https://x/y', { fetchImpl: zonderAllow })
+  toets('zonder Allow wordt GET alsnog een keer geprobeerd', b.treden.t0 === 'HAALT', b.bewijs.t0)
+  toets('en dat staat als gok in het bewijs', /guessed/.test(b.bewijs.methode_opnieuw?.bron || ''), b.bewijs.methode_opnieuw?.bron)
+
+  // Een 405 die ook op de tweede methode 405 blijft, is wel een echte afkeuring.
+  const nooit = nepPerMethode({ toegestaan: 'PUT', metAllow: false })
+  const c = await meetEindpunt('https://x/y', { fetchImpl: nooit })
+  toets('blijft het 405, dan haalt het eindpunt trede 0 niet', c.treden.t0 === 'HAALT_NIET', c.treden.t0)
+  toets('en het bewijs noemt de status', /405/.test(c.bewijs.t0 || ''), c.bewijs.t0)
+
+  // Een GET-sonde die 405 krijgt mag niet nog een keer GET proberen.
+  const getSonde = nepPerMethode({ toegestaan: 'POST', metAllow: false })
+  const d = await meetEindpunt('https://x/y', { fetchImpl: getSonde, methode: 'GET' })
+  toets('een GET die 405 krijgt probeert niet nog eens GET', getSonde.gezien.length === 1, getSonde.gezien.join(','))
+  toets('en dat is dan gewoon HAALT_NIET', d.treden.t0 === 'HAALT_NIET')
+
+  // Een 402 blijft ongewijzigd: geen tweede verzoek, geen extra bewijsveld.
+  const gewoon = nepPerMethode({ toegestaan: 'POST' })
+  const e = await meetEindpunt('https://x/y', { fetchImpl: gewoon, methode: 'POST' })
+  toets('een eindpunt dat meteen 402 geeft wordt een keer gevraagd', gewoon.gezien.length === 1)
+  toets('en er staat geen herhaling in het bewijs', e.bewijs.methode_opnieuw === undefined)
+}
+
 console.log('\n' + goed + ' passed, ' + fout + ' failed')
 process.exitCode = fout === 0 ? 0 : 1
