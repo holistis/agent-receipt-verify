@@ -113,8 +113,24 @@ export function leesRecord(doc) {
   }
 }
 
+// VIJF toestanden sinds 18 oktober 2026, en de bovenste is vandaag ONBEREIKBAAR. Dat is
+// geen ontwerpfout maar de eerlijke stand van het formaat, en het staat hier zodat niemand
+// de tweede voor de eerste houdt.
+//
+// Aanleiding, en het is een correctie op ons eigen werk. Wij gaven
+// VERIFIEERBAAR_ONAFHANKELIJK zodra twee key_ids verschilden. De uitgever van het formaat
+// wees erop dat dat te sterk is: twee verschillende key_ids bewijzen dat de LABELS
+// verschillen, niet dat de producent de sleutel bezit die hij noemt. Daarvoor zou de
+// producent iets in het record moeten ONDERTEKENEN, en trilatic 1.2 draagt geen
+// producent-handtekening. Zijn woorden: "A key id still shows only that the two keys
+// differ, not that the producer holds the key it names."
 export const ONAFHANKELIJKHEID = [
-  'VERIFIEERBAAR_ONAFHANKELIJK',
+  // De producent heeft iets in het record ondertekend, dus hij bezit aantoonbaar de
+  // sleutel die hij noemt. Met trilatic 1.2 kan geen enkel record hier komen.
+  'BEWEZEN_ONAFHANKELIJK',
+  // Twee key_ids van dezelfde soort met verschillende waarden. Dit is wat wij ECHT zien,
+  // en het is minder dan onafhankelijkheid.
+  'LABELS_VERSCHILLEN',
   'NIET_ONAFHANKELIJK',
   'ZELFVERKLAARD_ONVERIFIEERBAAR',
   'ONBEKEND',
@@ -134,6 +150,11 @@ export const ONAFHANKELIJKHEID = [
  * zijn twee verschillende soorten namen, en "ze zijn verschillend dus onafhankelijk" zou
  * dan een conclusie zijn die uit het formaat komt en niet uit de werkelijkheid.
  */
+// De oude naam blijft bestaan en wijst naar de eerlijke, want dit pakket staat op npm en in
+// de documentatie van een ander project. Stil een geexporteerde naam weghalen zou hun werk
+// breken voor een correctie die van ons komt.
+export const VERIFIEERBAAR_ONAFHANKELIJK_VEROUDERD = 'LABELS_VERSCHILLEN'
+
 export function onafhankelijkheid(doc) {
   const r = leesRecord(doc)
   const c = r.controleur
@@ -162,7 +183,14 @@ export function onafhankelijkheid(doc) {
   if (c.id === p.id) {
     return { staat: 'NIET_ONAFHANKELIJK', reden: 'de controleur en de producent zijn dezelfde partij', vergelekenOp: c.naamruimte }
   }
-  return { staat: 'VERIFIEERBAAR_ONAFHANKELIJK', reden: null, vergelekenOp: c.naamruimte }
+  // Hier stond VERIFIEERBAAR_ONAFHANKELIJK, en dat was een overclaim. Wat we hier weten is
+  // dat twee labels van dezelfde soort verschillen, en dat is minder dan onafhankelijkheid.
+  return {
+    staat: 'LABELS_VERSCHILLEN',
+    reden: 'de twee key_ids verschillen, maar niets in het record bewijst dat de producent de sleutel bezit die hij noemt',
+    vergelekenOp: c.naamruimte,
+    ontbreekt: 'producent-handtekening',
+  }
 }
 
 // Is er genoeg om uberhaupt een oordeel te vellen? Ontbreekt er iets aan ONZE kant van de
@@ -188,7 +216,9 @@ export function recordTelt(doc) {
   const r = leesRecord(doc)
   const o = onafhankelijkheid(doc)
   if (o.staat === 'NIET_ONAFHANKELIJK') return { telt: false, meetbaar: true, reden: 'CHECKER_IS_PRODUCER' }
-  if (o.staat !== 'VERIFIEERBAAR_ONAFHANKELIJK') {
+  // Tellen mag op het zwakkere LABELS_VERSCHILLEN, anders telt met dit formaat NIETS en is
+  // de module waardeloos. Maar de BASIS gaat mee naar buiten, zodat een lezer ziet waarop.
+  if (o.staat !== 'BEWEZEN_ONAFHANKELIJK' && o.staat !== 'LABELS_VERSCHILLEN') {
     return { telt: false, meetbaar: false, reden: 'INDEPENDENCE_NOT_VERIFIABLE', toelichting: o.reden }
   }
   const vastgelegd = tijdstip(r.criteriaVastgelegd)

@@ -26,6 +26,7 @@ import {
   onafhankelijkheid,
   leesRecord,
   ONAFHANKELIJKHEID,
+  VERIFIEERBAAR_ONAFHANKELIJK_VEROUDERD,
   UITKOMSTEN,
 } from '../src/acceptance-binding.mjs'
 
@@ -120,9 +121,16 @@ console.log('de echte vorm en de vlakke vorm komen op dezelfde velden uit')
 
 console.log('onafhankelijkheid is een drieweg, geen ja of nee')
 {
-  t('de vier staten staan vast', ONAFHANKELIJKHEID.length === 4 && ONAFHANKELIJKHEID.includes('ZELFVERKLAARD_ONVERIFIEERBAAR'))
+  t('de vijf staten staan vast', ONAFHANKELIJKHEID.length === 5 && ONAFHANKELIJKHEID.includes('ZELFVERKLAARD_ONVERIFIEERBAAR'))
 
-  t('twee verschillende key_ids: verifieerbaar', onafhankelijkheid(echteVorm()).staat === 'VERIFIEERBAAR_ONAFHANKELIJK')
+    // Deze test zei eerder "verifieerbaar" en dat was de overclaim zelf. Twee verschillende
+  // key_ids bewijzen dat de LABELS verschillen; dat de producent zijn sleutel bezit, bewijst
+  // niets in dit record, want 1.2 draagt geen producent-handtekening.
+  t('twee verschillende key_ids: alleen de labels verschillen', onafhankelijkheid(echteVorm()).staat === 'LABELS_VERSCHILLEN')
+  t('en het zegt wat ontbreekt', onafhankelijkheid(echteVorm()).ontbreekt === 'producent-handtekening')
+  t('de sterkste toestand is vandaag onbereikbaar', ONAFHANKELIJKHEID[0] === 'BEWEZEN_ONAFHANKELIJK')
+  t('vijf toestanden', ONAFHANKELIJKHEID.length === 5)
+  t('de oude naam blijft bestaan voor wie hem importeert', VERIFIEERBAAR_ONAFHANKELIJK_VEROUDERD === 'LABELS_VERSCHILLEN')
 
   const zelf = echteVorm((d) => {
     d.record.receipt.parties.producer.key_id = 'invinoveritas-checker-a4cecab2'
