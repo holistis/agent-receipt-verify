@@ -397,17 +397,46 @@ process.exitCode = fout === 0 ? 0 : 1
   t('de controle zegt dat hij aanwezig is EN klopt', ph.aanwezig === true && ph.klopt === true)
 
   const kapot = JSON.parse(JSON.stringify(v.input.doc))
-  kapot.record.receipt.parties.producer.signature = 'AAAA' + kapot.record.receipt.parties.producer.signature.slice(4)
+  // De handtekening staat sinds vandaag in de SIDECAR en niet meer in het record, want een
+  // handtekening binnen het object waarover de hash gaat kan nooit kloppen.
+  kapot.bindings_sidecar.producer.signature = 'AAAA' + kapot.bindings_sidecar.producer.signature.slice(4)
   const ok = onafhankelijkheid(kapot)
   t('een verminkte handtekening haalt de sterkste toestand NIET', ok.staat !== 'BEWEZEN_ONAFHANKELIJK')
   t('en valt niet STIL terug, maar met een waarschuwing', ok.waarschuwing === 'PRODUCENT_HANDTEKENING_ONGELDIG', String(ok.waarschuwing))
 
   const zonder = JSON.parse(JSON.stringify(v.input.doc))
-  delete zonder.record.receipt.parties.producer.signature
+  delete zonder.bindings_sidecar.producer.signature
   t('zonder handtekening is er geen waarschuwing, alleen een zwakker oordeel', onafhankelijkheid(zonder).waarschuwing === undefined)
   t('en dat oordeel is LABELS_VERSCHILLEN', onafhankelijkheid(zonder).staat === 'LABELS_VERSCHILLEN')
 }
 
 console.log('')
 console.log(goed + ' groen, ' + fout + ' rood (met het producent-vakje)')
+process.exitCode = fout === 0 ? 0 : 1
+
+// ── de plaatsingsfout, aangewezen door de uitgever van het formaat
+//
+// Hij zag twee dingen tegelijk: dat sleutel en handtekening binnen record.receipt niet
+// kunnen werken, EN dat onze vector dat niet ving omdat die een verzonnen hash gebruikte.
+// Dat tweede is de ergere van de twee, want zo blijft een fout onzichtbaar.
+{
+  const binnen = JSON.parse(fs.readFileSync(path.join(vectorMap, 'producer-signed-inside-record.json'), 'utf8'))
+  const o = onafhankelijkheid(binnen.input.doc)
+  t('een handtekening BINNEN het record haalt de sterkste toestand niet', o.staat === 'LABELS_VERSCHILLEN', o.staat)
+  t('en zegt waarom, met het woord zelfverwijzend', o.waarschuwing === 'PRODUCENT_HANDTEKENING_ZELFVERWIJZEND')
+  t('de handtekening zelf is wel geldig, het is de plaats die niet kan', producentHandtekeningKlopt(binnen.input.doc).klopt === true)
+  t('en de plaatsing wordt benoemd', producentHandtekeningKlopt(binnen.input.doc).plaatsing === 'IN_HET_RECORD_ZELFVERWIJZEND')
+
+  // En de kern: de hash is in beide vectoren ECHT uitgerekend, dus deze test zou falen
+  // zodra iemand hem weer door een plaatshouder vervangt.
+  const goed = JSON.parse(fs.readFileSync(path.join(vectorMap, 'producer-signed-proven.json'), 'utf8'))
+  const h = goed.input.doc.bindings_sidecar.receipt_sha256
+  t('de hash in de vector is geen plaatshouder', !/^(.)\1{10,}/.test(h), h.slice(0, 16))
+  t('en de twee vectoren dragen dezelfde hash, want hetzelfde record', binnen.input.doc.bindings_sidecar.receipt_sha256 === h)
+  t('de goede vector zet sleutel en handtekening in de SIDECAR', Boolean(goed.input.doc.bindings_sidecar.producer?.signature))
+  t('en niet in het record', !goed.input.doc.record.receipt.parties.producer.signature)
+}
+
+console.log('')
+console.log(goed + ' groen, ' + fout + ' rood (met de plaatsingsfout)')
 process.exitCode = fout === 0 ? 0 : 1

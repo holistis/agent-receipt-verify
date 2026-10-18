@@ -188,11 +188,32 @@ export function producentHandtekeningKlopt(doc) {
   // niveau te diep, anders dan `leesRecord` hierboven, en de vector legde dat bloot: het
   // record kwam er als NOT_MEASURED uit terwijl alle velden er stonden. Twee functies in
   // hetzelfde bestand die een veld op een andere plek zoeken, is zelf de fout.
+  // DE SLEUTEL EN DE HANDTEKENING STAAN BUITEN HET RECORD, EN DAT IS EEN REPARATIE.
+  //
+  // Onze eerste versie zette ze op `record.receipt.parties.producer`. De uitgever van het
+  // formaat wees aan waarom dat niet kan werken, en hij heeft gelijk: `receipt_sha256` is
+  // sha256 over de canonieke vorm van `record.receipt` zelf. Een veld daarbinnen zetten
+  // verandert die bytes, dus de hash klopt niet meer met de handtekening die erin staat.
+  // De handtekening zou een hash dekken van een record dat die handtekening niet bevat.
+  // Bovendien breken zijn eigen controleur-handtekening en zijn tijdstempel, want die
+  // dekken diezelfde bytes.
+  //
+  // En hij vond ook WAAROM onze vector dat niet ving: die gebruikte een verzonnen hash
+  // (bbbb...), dus hij rekende `receipt_sha256` nooit echt uit en liep tegen geen van
+  // beide fouten aan. Dat is dezelfde klasse als alles wat vandaag misging: een toets met
+  // nepdata kan de fout niet vinden waarvoor hij bestaat.
+  //
+  // Dus staan ze nu in de sidecar, naast de hash waar ze over gaan. De oude plek wordt nog
+  // GELEZEN maar met een waarschuwing, want een record dat het daar zet is niet ongeldig,
+  // het is alleen in een vorm die zichzelf niet kan kloppen.
   const top = doc && typeof doc === 'object' ? doc : {}
   const echt = top.record?.receipt ?? top.receipt ?? top.acceptance ?? top
-  const prod = echt?.parties?.producer
   const sidecar = top.bindings_sidecar ?? top.sidecar ?? null
   const hash = sidecar?.receipt_sha256 ?? top.bindings?.receipt_sha256 ?? null
+  const buiten = sidecar?.producer ?? null
+  const binnen = echt?.parties?.producer ?? null
+  const inHetRecord = Boolean(!buiten?.signature && binnen?.signature)
+  const prod = buiten?.signature ? buiten : binnen
   const sleutel = prod?.key ?? prod?.did ?? null
   const sig = prod?.signature ?? null
   if (!sleutel || !sig || !hash) return { aanwezig: false, klopt: false, waarom: 'het record draagt geen producent-sleutel, -handtekening of receipt_sha256' }
@@ -202,7 +223,16 @@ export function producentHandtekeningKlopt(doc) {
     const der = Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), ruw.subarray(2)])
     const pub = crypto.createPublicKey({ key: der, format: 'der', type: 'spki' })
     const ok = crypto.verify(null, Buffer.from(String(hash), 'utf8'), pub, Buffer.from(String(sig), 'base64'))
-    return { aanwezig: true, klopt: ok, waarom: ok ? null : 'de handtekening klopt niet over receipt_sha256' }
+    return {
+      aanwezig: true,
+      klopt: ok,
+      waarom: ok ? null : 'de handtekening klopt niet over receipt_sha256',
+      // Een handtekening BINNEN het record is zelfverwijzend: zijn aanwezigheid verandert
+      // de bytes waarover receipt_sha256 gaat. Dat is geen afkeuring maar het moet
+      // zichtbaar zijn, want zo een record kan nooit kloppen zodra iemand de hash echt
+      // narekent, en dan lijkt onze groene uitslag een belofte die hij niet waarmaakt.
+      plaatsing: inHetRecord ? 'IN_HET_RECORD_ZELFVERWIJZEND' : 'IN_DE_SIDECAR',
+    }
   } catch (e) {
     return { aanwezig: true, klopt: false, waarom: 'kon de producent-sleutel of -handtekening niet lezen' }
   }
@@ -252,6 +282,22 @@ export function onafhankelijkheid(doc) {
   }
   // De sterkste toestand, en hij is sinds deze commit BEREIKBAAR in plaats van een belofte.
   const ph = producentHandtekeningKlopt(doc)
+  // EEN ZELFVERWIJZENDE PLAATSING HAALT DE STERKSTE TOESTAND NIET, en dat is een aanscherping
+  // na een terechte opmerking van de uitgever. De handtekening is geldig over de hash die hij
+  // dekt, dus de producent heeft wel degelijk getekend. Maar die hash gaat over een object
+  // waar de handtekening zelf in zit, dus wie hem narekent krijgt een andere waarde en keurt
+  // het record af. Gemeten op onze eigen vector: 15341d37... zonder de velden tegen a0744046...
+  // met de velden erin. Ons groen zou dan een belofte zijn die een strengere lezer niet
+  // waarmaakt, en dat is precies wat deze module nergens anders doet.
+  if (ph.aanwezig && ph.klopt && ph.plaatsing === 'IN_HET_RECORD_ZELFVERWIJZEND') {
+    return {
+      staat: 'LABELS_VERSCHILLEN',
+      reden: 'de producent tekende wel, maar sleutel en handtekening staan BINNEN het object waarover receipt_sha256 gaat, dus die hash is niet meer na te rekenen uit het record',
+      vergelekenOp: c.naamruimte,
+      waarschuwing: 'PRODUCENT_HANDTEKENING_ZELFVERWIJZEND',
+      ontbreekt: 'producent-handtekening op een plek buiten het record',
+    }
+  }
   if (ph.aanwezig && ph.klopt) {
     return { staat: 'BEWEZEN_ONAFHANKELIJK', reden: null, vergelekenOp: c.naamruimte, bewijs: 'producent ondertekende receipt_sha256' }
   }
