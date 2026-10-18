@@ -172,8 +172,31 @@ export function censusPerHost(ruw) {
   return { operators, zonderHost, dubbeleResources, uniekeResources: gezieneResources.size }
 }
 
+/**
+ * Het tweede argument is een uitvoerpad, maar een vlag is geen pad.
+ *
+ * WAAROM DIT EEN APARTE FUNCTIE IS. Zonder deze controle schrijft dit commando naar
+ * letterlijk wat je het geeft, dus `census --help` maakt een bestand met de naam
+ * `--help` in de map waar de gebruiker staat. Dat is precies de klasse fout die dit
+ * pakket eerder al kostte: een commando dat wij publiceren moet bij een vreemde doen
+ * wat hij verwacht, niet rommel achterlaten. Onze eigen testsuite liet er zelf een van
+ * achter, en dat was het signaal.
+ */
+export function uitvoerPadUitArgument(arg) {
+  if (arg === undefined) return { pad: null }
+  if (typeof arg !== 'string' || arg.startsWith('-')) {
+    return { pad: null, klacht: `"${arg}" looks like a flag, not an output path. This command takes an optional file path and nothing else.` }
+  }
+  return { pad: arg }
+}
+
 if (process.argv[1]?.endsWith('x402-discovery-census.mjs')) {
-  const uitPad = process.argv[2]
+  const keuze = uitvoerPadUitArgument(process.argv[2])
+  if (keuze.klacht) {
+    console.error(keuze.klacht)
+    process.exit(2)
+  }
+  const uitPad = keuze.pad
   const ruw = await haalIndex()
   const c = censusPerHost(ruw.items)
 
