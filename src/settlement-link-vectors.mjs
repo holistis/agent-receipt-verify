@@ -37,22 +37,54 @@ export const VECTORMAP = path.join(WORTEL, 'vectors', 'settlement-link')
  * Geeft altijd een `outcome` terug uit de drie, nooit een throw voor een gewone
  * uitkomst: een verifieerder die bij een ongeldig bonnetje crasht, is zelf de storing.
  */
+/**
+ * Een commitment berekenen zonder dat een kapot veld de hele ronde omver trekt.
+ *
+ * WAAROM DIT BESTAAT. De koptekst van dit bestand belooft dat deze loper nooit gooit
+ * voor een gewone uitkomst, want een verifieerder die bij een ongeldig bonnetje crasht
+ * is zelf de storing. De aanroepen stonden toch kaal in een filter, dus EEN vector met
+ * een veld van de verkeerde lengte brak de ronde af voordat ook maar een andere vector
+ * beoordeeld was. Een niet-berekenbare kandidaat is geen treffer, en dat is hier de
+ * juiste en enige betekenis.
+ */
+function veiligCommitment(velden) {
+  try {
+    return berekenCommitment(velden)
+  } catch {
+    return '0x-niet-te-berekenen'
+  }
+}
+
 export function beoordeelVector(v) {
   if (v.requires_chain_read) return { outcome: 'SKIPPED', reden: 'requires an RPC; run the link command for this one' }
 
   // Het geval met twee bonnetjes tegelijk: elk moet op zijn eigen kandidaat openen en
   // op geen enkele andere.
   if (Array.isArray(v.input?.receipts)) {
-    const kandidaten = v.input.candidates ?? []
+    // GEEN `?? []` HIER. Dat stond er en het maakte van een ONTBREKENDE lijst een LEGE
+    // lijst, dus van NOT_MEASURED een NOT_LINKED. De koptekst van dit bestand noemt dat
+    // zelf de ergste fout die deze loper kan maken, want dan beschuldigt hij een
+    // eerlijke verkoper omdat de keten even niet te lezen was.
+    if (v.input.candidates == null) {
+      return { outcome: 'NOT_MEASURED', reden: 'no candidate set was obtained' }
+    }
+    if (!Array.isArray(v.input.candidates)) {
+      return { outcome: 'NOT_MEASURED', reden: 'the candidate set is not a list' }
+    }
+    const kandidaten = v.input.candidates
     const mapping = []
     for (const [i, r] of v.input.receipts.entries()) {
-      const p = r.receipt.payload
+      const p = r?.receipt?.payload
+      if (!p) return { outcome: 'NOT_MEASURED', reden: `receipt ${i} has no payload` }
+      if (!p.authorizationCommitment) {
+        return { outcome: 'NOT_MEASURED', reden: `receipt ${i} carries no commitment` }
+      }
       const passend = kandidaten.filter((k) =>
-        String(berekenCommitment({
+        String(veiligCommitment({
           method: p.authorizationMethod ?? 'eip3009',
           asset: r.asset,
-          authorizer: k.authorizer,
-          identifier: k.nonce,
+          authorizer: k?.authorizer,
+          identifier: k?.nonce,
           salt: r.authorizationSalt,
         })).toLowerCase() === String(p.authorizationCommitment).toLowerCase())
       if (passend.length !== 1) {
@@ -73,13 +105,16 @@ export function beoordeelVector(v) {
 
   const kandidaten = v.input.candidates
   if (kandidaten == null) return { outcome: 'NOT_MEASURED', reden: 'no candidate set was obtained' }
+  // Een lijst die geen lijst is, is ook geen meting. Zonder deze regel gooide .filter
+  // en ging de hele ronde eraan.
+  if (!Array.isArray(kandidaten)) return { outcome: 'NOT_MEASURED', reden: 'the candidate set is not a list' }
 
   const passend = kandidaten.filter((k) =>
-    String(berekenCommitment({
+    String(veiligCommitment({
       method: p.authorizationMethod ?? 'eip3009',
       asset: v.input.asset,
-      authorizer: k.authorizer,
-      identifier: k.nonce,
+      authorizer: k?.authorizer,
+      identifier: k?.nonce,
       salt: v.input.authorizationSalt,
     })).toLowerCase() === String(p.authorizationCommitment).toLowerCase())
 
@@ -112,6 +147,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(ditBestand
         console.log(`        ${u.reden}`)
         continue
       }
+      // Een vector zonder verwachting is een kapotte vector, geen reden om de hele
+      // ronde af te breken. Zonder deze regel gooide dit een TypeError en werd geen
+      // enkele andere vector meer beoordeeld, ook de twaalf goede niet.
+      if (!v.expected || typeof v.expected.outcome !== 'string') {
+        fout++
+        console.log(`  FAIL  ${v.id ?? v.bestand}`)
+        console.log('        this vector carries no expected outcome, so it cannot be judged')
+        continue
+      }
       const ok = u.outcome === v.expected.outcome
       if (ok) goed++; else fout++
       console.log(`  ${ok ? 'pass' : 'FAIL'}  ${v.id}`)
@@ -120,9 +164,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(ditBestand
     console.log('')
     console.log(`${goed} agree, ${fout} disagree, ${overgeslagen} skipped because they need an RPC`)
     console.log('')
-    console.log('Every positive case here was re-derived from the signed receipt, not copied:')
-    console.log('the commitment is recomputed from tag, method, asset, authorizer, identifier and')
-    console.log('salt, and compared against what the seller actually signed.')
+    console.log('Every positive case here was re-derived, not copied: the commitment is recomputed')
+    console.log('from tag, method, asset, authorizer, identifier and salt, and compared against the')
+    console.log('authorizationCommitment field carried in the receipt.')
+    console.log('')
+    console.log('What this command does NOT do: it does not check the signature over that receipt.')
+    console.log('So this answers "does this commitment open on that settlement", not "is this')
+    console.log('receipt genuine". For the signature, run the conformance check on the endpoint.')
     process.exitCode = fout === 0 ? 0 : 1
   }
 }

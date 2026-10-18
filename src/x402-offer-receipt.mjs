@@ -16,12 +16,42 @@ import { createHash } from 'node:crypto'
 const TAG = Buffer.from('x402-receipt-authorization/0', 'ascii')
 const NUL = Buffer.from([0])
 
+// De lengte is VERPLICHT, niet optioneel. Eerder was `verwacht === undefined` stil
+// toegestaan, en dan deed deze functie niets anders dan hex naar bytes omzetten. Dat
+// was precies het gat dat hieronder beschreven staat: zodra `lengtes` per ongeluk geen
+// object was, viel elke lengtecontrole weg zonder dat er iets te zien was.
 const bytes = (h, naam, verwacht) => {
+  if (!Number.isInteger(verwacht) || verwacht <= 0) {
+    throw new Error(`geen lengte-eis bekend voor ${naam}, dus dit veld wordt niet geaccepteerd`)
+  }
   const b = Buffer.from(String(h ?? '').replace(/^0x/, ''), 'hex')
-  if (verwacht !== undefined && b.length !== verwacht) {
+  if (b.length !== verwacht) {
     throw new Error(`${naam} moet ${verwacht} bytes zijn, kreeg ${b.length}`)
   }
   return b
+}
+
+// De bekende methoden, met de lengte-eis per veld.
+//
+// WAAROM DIT EEN APARTE TABEL IS EN MET hasOwn WORDT OPGEZOCHT. Dit stond als
+// `{ eip3009: {...} }[method]` in de functie zelf, en dat is een opzoeking die ook de
+// PROTOTYPEKETEN raakt. Zelf gemeten op de gepubliceerde versie: `constructor`,
+// `toString`, `valueOf`, `hasOwnProperty` en `__proto__` kwamen alle vijf door de
+// `!lengtes`-poort, want ze geven een functie terug en een functie is waar. Daarna was
+// `lengtes.asset` undefined en viel elke lengtecontrole weg, en dan zijn de velden
+// zonder scheiding aan elkaar geplakt. De botsing is echt en narekenbaar:
+//
+//   method constructor, asset 0xaabb, authorizer 0xcc
+//   method constructor, asset 0xaa,   authorizer 0xbbcc
+//   geven BEIDE 0xd7f3867bb7a62bc13ba3e5e332c2109f3dc397d94c2f0d8c1238b8d87faa3836
+//
+// Twee verschillende afrekeningen die hetzelfde commitment opleveren is exact wat een
+// commitment moet uitsluiten, dus dit is geen schoonheidsfoutje.
+const LENGTES = { eip3009: { asset: 20, authorizer: 20 } }
+
+/** Is dit een methode die wij echt kennen, en niet iets uit de prototypeketen? */
+export function kentMethode(method) {
+  return typeof method === 'string' && Object.hasOwn(LENGTES, method)
 }
 
 // §5.6.2. Elk veld na `method` heeft een vaste lengte, dus het voorbeeld is
@@ -29,8 +59,8 @@ const bytes = (h, naam, verwacht) => {
 // zou stilzwijgend een ander commitment opleveren dat nergens op opent.
 export function berekenCommitment({ method, asset, authorizer, identifier, salt }) {
   if (!method) throw new Error('method ontbreekt')
-  const lengtes = { eip3009: { asset: 20, authorizer: 20 } }[method]
-  if (!lengtes) throw new Error(`onbekende authorizationMethod: ${method}`)
+  if (!kentMethode(method)) throw new Error(`onbekende authorizationMethod: ${method}`)
+  const lengtes = LENGTES[method]
 
   const pre = Buffer.concat([
     TAG, NUL,
@@ -52,9 +82,25 @@ export function opentCommitment({ receipt, salt, asset, kandidaatIdentifiers }) 
   const commitment = payload?.authorizationCommitment
   if (!method || !commitment) return { linked: false, reden: 'receipt carries no commitment' }
 
+  // De vaste velden EERST, buiten de lus. Anders kan een onbruikbaar zout of een
+  // onbekende methode nooit zichtbaar worden: elke ronde gooit dan dezelfde fout, de
+  // catch slikt hem op, en de uitslag wordt "geen kandidaat opent dit" terwijl de
+  // waarheid is dat er niets te berekenen viel. Dat is het verschil tussen een
+  // afkeuring en een onvolledige meting, en dat verschil mag nooit wegvallen.
+  if (!kentMethode(method)) {
+    return { linked: false, meetbaar: false, reden: `unknown authorizationMethod: ${method}` }
+  }
+  try {
+    berekenCommitment({ method, asset, authorizer: payload.payer, identifier: '0x' + '00'.repeat(32), salt })
+  } catch (e) {
+    return { linked: false, meetbaar: false, reden: 'cannot compute a commitment here: ' + e.message }
+  }
+
   const treffers = []
   for (const identifier of kandidaatIdentifiers ?? []) {
     let berekend
+    // Hier kan nog maar een ding misgaan: deze ene identifier heeft de verkeerde
+    // lengte. Dat is dan geen treffer, en dat is de juiste uitkomst.
     try { berekend = berekenCommitment({ method, asset, authorizer: payload.payer, identifier, salt }) } catch { continue }
     if (berekend.toLowerCase() === String(commitment).toLowerCase()) treffers.push(identifier)
   }
