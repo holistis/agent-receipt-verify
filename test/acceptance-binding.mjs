@@ -27,6 +27,7 @@ import {
   leesRecord,
   ONAFHANKELIJKHEID,
   VERIFIEERBAAR_ONAFHANKELIJK_VEROUDERD,
+  producentHandtekeningKlopt,
   UITKOMSTEN,
 } from '../src/acceptance-binding.mjs'
 
@@ -314,4 +315,31 @@ console.log('de bonhash en de levering, en wanneer iets niet gemeten is')
 }
 
 console.log(`\n${goed} groen, ${fout} rood`)
+process.exitCode = fout === 0 ? 0 : 1
+
+// ── het ontbrekende vakje, en de reden dat deze vector bestaat
+{
+  const pad = path.join(vectorMap, 'producer-signed-proven.json')
+  const v = JSON.parse(fs.readFileSync(pad, 'utf8'))
+  const o = onafhankelijkheid(v.input.doc)
+  t('een ECHT ondertekend record haalt de sterkste toestand', o.staat === 'BEWEZEN_ONAFHANKELIJK', o.staat)
+  t('en noemt waarover getekend is', /receipt_sha256/.test(o.bewijs ?? ''))
+
+  const ph = producentHandtekeningKlopt(v.input.doc)
+  t('de controle zegt dat hij aanwezig is EN klopt', ph.aanwezig === true && ph.klopt === true)
+
+  const kapot = JSON.parse(JSON.stringify(v.input.doc))
+  kapot.record.receipt.parties.producer.signature = 'AAAA' + kapot.record.receipt.parties.producer.signature.slice(4)
+  const ok = onafhankelijkheid(kapot)
+  t('een verminkte handtekening haalt de sterkste toestand NIET', ok.staat !== 'BEWEZEN_ONAFHANKELIJK')
+  t('en valt niet STIL terug, maar met een waarschuwing', ok.waarschuwing === 'PRODUCENT_HANDTEKENING_ONGELDIG', String(ok.waarschuwing))
+
+  const zonder = JSON.parse(JSON.stringify(v.input.doc))
+  delete zonder.record.receipt.parties.producer.signature
+  t('zonder handtekening is er geen waarschuwing, alleen een zwakker oordeel', onafhankelijkheid(zonder).waarschuwing === undefined)
+  t('en dat oordeel is LABELS_VERSCHILLEN', onafhankelijkheid(zonder).staat === 'LABELS_VERSCHILLEN')
+}
+
+console.log('')
+console.log(goed + ' groen, ' + fout + ' rood (met het producent-vakje)')
 process.exitCode = fout === 0 ? 0 : 1

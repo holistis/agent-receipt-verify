@@ -44,6 +44,8 @@
 // sleutels juist om te voorkomen dat een belofte met een nonce vergeleken wordt, en een
 // generieke terugval zou die bescherming meteen weer weggooien.
 
+import crypto from 'node:crypto'
+
 const HEX32 = /^[0-9a-f]{64}$/
 
 const genormaliseerdeHash = (w) => {
@@ -155,6 +157,71 @@ export const ONAFHANKELIJKHEID = [
 // breken voor een correctie die van ons komt.
 export const VERIFIEERBAAR_ONAFHANKELIJK_VEROUDERD = 'LABELS_VERSCHILLEN'
 
+
+// ── HET ONTBREKENDE VAKJE: EEN HANDTEKENING VAN DE PRODUCENT ────────────────────────
+//
+// Waarom dit hier staat en niet alleen in een voorstel. BEWEZEN_ONAFHANKELIJK was bij
+// invoering ONBEREIKBAAR: geen record kon hem halen, dus was het een check die niet kon
+// vuren. Dat is vandaag al vier keer de duurste foutklasse van dit project gebleken, dus
+// hoort de controle te BESTAAN en te werken op het moment dat een record het veld draagt.
+// Een voorstel met een werkende verifieerder erachter is een artefact; een voorstel zonder
+// is een mening.
+//
+// DE VOORGESTELDE VORM, zo klein mogelijk gehouden zodat hij in trilatic past zonder dat
+// er iets anders verandert:
+//
+//   parties.producer.key      een did:key, dus een SLEUTEL en niet een label
+//   parties.producer.signature base64, over de tekst van bindings_sidecar.receipt_sha256
+//
+// Die hash bestaat al in elk record, dus er hoeft geen nieuw te ondertekenen object
+// bedacht te worden, en dat is met opzet: een nieuw canoniek object erbij zou een tweede
+// bron van onenigheid tussen implementaties zijn. Door over een veld te tekenen dat er al
+// staat, bindt de producent zich aan DIT record en aan niets anders.
+//
+// Wat dit WEL bewijst: de producent bezit de sleutel die hij noemt, en hij heeft zich aan
+// dit record verbonden. Wat het NIET bewijst: dat de producent eerlijk is, of dat hij een
+// andere partij is dan de controleur in het echte leven. Twee sleutels kunnen van dezelfde
+// persoon zijn. Daarom blijft dit ONAFHANKELIJKHEID van labels naar sleutels brengen, en
+// niet naar waarheid.
+export function producentHandtekeningKlopt(doc) {
+  // De sidecar staat op het TOPNIVEAU, naast `record`, en niet erin. Dat las ik eerst een
+  // niveau te diep, anders dan `leesRecord` hierboven, en de vector legde dat bloot: het
+  // record kwam er als NOT_MEASURED uit terwijl alle velden er stonden. Twee functies in
+  // hetzelfde bestand die een veld op een andere plek zoeken, is zelf de fout.
+  const top = doc && typeof doc === 'object' ? doc : {}
+  const echt = top.record?.receipt ?? top.receipt ?? top.acceptance ?? top
+  const prod = echt?.parties?.producer
+  const sidecar = top.bindings_sidecar ?? top.sidecar ?? null
+  const hash = sidecar?.receipt_sha256 ?? top.bindings?.receipt_sha256 ?? null
+  const sleutel = prod?.key ?? prod?.did ?? null
+  const sig = prod?.signature ?? null
+  if (!sleutel || !sig || !hash) return { aanwezig: false, klopt: false, waarom: 'het record draagt geen producent-sleutel, -handtekening of receipt_sha256' }
+  try {
+    const ruw = base58decodeLokaal(String(sleutel).replace(/^did:key:/, '').replace(/^z/, ''))
+    if (ruw[0] !== 0xed || ruw[1] !== 0x01) return { aanwezig: true, klopt: false, waarom: 'de producent-sleutel is geen ed25519-did:key' }
+    const der = Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), ruw.subarray(2)])
+    const pub = crypto.createPublicKey({ key: der, format: 'der', type: 'spki' })
+    const ok = crypto.verify(null, Buffer.from(String(hash), 'utf8'), pub, Buffer.from(String(sig), 'base64'))
+    return { aanwezig: true, klopt: ok, waarom: ok ? null : 'de handtekening klopt niet over receipt_sha256' }
+  } catch (e) {
+    return { aanwezig: true, klopt: false, waarom: 'kon de producent-sleutel of -handtekening niet lezen' }
+  }
+}
+
+const B58_LOKAAL = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+function base58decodeLokaal(s) {
+  let n = 0n
+  for (const c of s) {
+    const i = B58_LOKAAL.indexOf(c)
+    if (i < 0) throw new Error('geen base58')
+    n = n * 58n + BigInt(i)
+  }
+  const uit = []
+  while (n > 0n) { uit.unshift(Number(n & 0xffn)); n >>= 8n }
+  for (const c of s) { if (c === '1') uit.unshift(0); else break }
+  return Buffer.from(uit)
+}
+
 export function onafhankelijkheid(doc) {
   const r = leesRecord(doc)
   const c = r.controleur
@@ -183,6 +250,27 @@ export function onafhankelijkheid(doc) {
   if (c.id === p.id) {
     return { staat: 'NIET_ONAFHANKELIJK', reden: 'de controleur en de producent zijn dezelfde partij', vergelekenOp: c.naamruimte }
   }
+  // De sterkste toestand, en hij is sinds deze commit BEREIKBAAR in plaats van een belofte.
+  const ph = producentHandtekeningKlopt(doc)
+  if (ph.aanwezig && ph.klopt) {
+    return { staat: 'BEWEZEN_ONAFHANKELIJK', reden: null, vergelekenOp: c.naamruimte, bewijs: 'producent ondertekende receipt_sha256' }
+  }
+
+  // EEN AANWEZIGE HANDTEKENING DIE NIET KLOPT IS ERGER DAN GEEN HANDTEKENING, en dat mag
+  // niet stil terugvallen op het zwakkere oordeel. Iemand heeft hier iets bijgevoegd dat
+  // niet verifieert: dat is een signaal, niet een ontbrekend veld. Stil terugvallen zou
+  // ongemeten op goedgekeurd laten lijken, precies de fout die deze module elders juist
+  // uitsluit.
+  if (ph.aanwezig && !ph.klopt) {
+    return {
+      staat: 'LABELS_VERSCHILLEN',
+      reden: 'de key_ids verschillen, EN het record draagt een producent-handtekening die niet verifieert: ' + ph.waarom,
+      vergelekenOp: c.naamruimte,
+      waarschuwing: 'PRODUCENT_HANDTEKENING_ONGELDIG',
+      ontbreekt: 'producent-handtekening',
+    }
+  }
+
   // Hier stond VERIFIEERBAAR_ONAFHANKELIJK, en dat was een overclaim. Wat we hier weten is
   // dat twee labels van dezelfde soort verschillen, en dat is minder dan onafhankelijkheid.
   return {
