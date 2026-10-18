@@ -8,6 +8,7 @@
 
 import { AUTHORIZATION_USED_TOPIC, adresAlsTopic, blokBijTijd, haalKandidaten, linkBonnetje, kiesBonnetjePad } from '../src/x402-link-onchain.mjs'
 import { berekenCommitment } from '../src/x402-offer-receipt.mjs'
+import { fileURLToPath } from 'node:url'
 
 let goed = 0, fout = 0
 const toets = (naam, ok, extra = '') => {
@@ -188,7 +189,15 @@ console.log('waar een bonnetje gezocht wordt')
   // kan misgaan, en het was onzichtbaar omdat wij altijd in de repo staan.
   const bestaatAlles = () => true
   const bestaatNiets = () => false
-  const alleenPakket = (p) => String(p).includes('agent-receipt-verify') && String(p).includes('examples')
+  // ANKER OP DE ECHTE PAKKETMAP, NIET OP ZIJN NAAM. Dit stond als
+  // `String(p).includes('agent-receipt-verify')`, en dan hangt de test aan hoe de map
+  // heet waarin iemand het pakket heeft gezet. Gemeten: in een git-worktree met een
+  // andere mapnaam faalden deze twee toetsen, terwijl de code gewoon werkte. Iemand die
+  // `git clone <repo> mijnfork` doet, iets volstrekt normaals, zou dus rood krijgen op
+  // iets dat niets met de code te maken heeft. De functie onder test lost zelf op via
+  // `import.meta.url`, dus de test hoort hetzelfde anker te gebruiken.
+  const PAKKETWORTEL = fileURLToPath(new URL('..', import.meta.url))
+  const alleenPakket = (p) => String(p).startsWith(PAKKETWORTEL) && String(p).includes('examples')
 
   const eigen = kiesBonnetjePad('mijn-eigen-bonnetje.json', { bestaat: bestaatAlles })
   toets('een pad dat de aanroeper zelf heeft gaat voor', eigen.pad === 'mijn-eigen-bonnetje.json' && eigen.uitPakket === false)
