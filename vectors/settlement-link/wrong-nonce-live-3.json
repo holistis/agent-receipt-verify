@@ -1,0 +1,46 @@
+{
+  "id": "x402-evm-settlement-link-wrong-nonce-live-3",
+  "schema_version": "3.0.0",
+  "protocol": "x402",
+  "scheme": "exact",
+  "network": "eip155:84532",
+  "asset_transfer_method": "eip3009",
+  "encodes": "A candidate that is not this payment must not satisfy the commitment.",
+  "provenance": [
+    "x402 offer-receipt extension section 5.6.4, as proposed in pull request 3827 at commit 0e492d6 and not on main",
+    "EIP-3009"
+  ],
+  "description": "The correct receipt and salt, but a candidate nonce that belongs to a different settlement by the same payer. The commitment must not open on it.",
+  "requires_chain_read": false,
+  "input": {
+    "receipt": {
+      "format": "eip712",
+      "payload": {
+        "version": 2,
+        "network": "eip155:84532",
+        "resourceUrl": "https://api.tokenizen.nl/api/paid/verify-ownership",
+        "payer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "issuedAt": 1792188211,
+        "transaction": "",
+        "authorizationMethod": "eip3009",
+        "authorizationCommitment": "0xea8dd34b8beac90f021a4e8d893a689c25249f86947770c8e6647c1cde206008"
+      },
+      "signature": "0x5b3a70cce6978ab44e51828b5ebbc55522e98b015045d94559d369420698da3b5309b28050dcb00ce14d65c8b230a273f8ff5ebff6410c6ae2a308e422ed5a611b"
+    },
+    "authorizationSalt": "0x349ddb90f38a3119817c5fc9cc253a2c20bcbe44aa845302df76889082b314d8",
+    "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "candidates": [
+      {
+        "authorizer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "nonce": "0x1120412c78ea1b2e8bf9eacfc3264c71a23ecd9b1fa579eb16030693344d5dfe"
+      }
+    ]
+  },
+  "context": {
+    "note": "Both nonces were really consumed by this payer; only one belongs to this receipt."
+  },
+  "expected": {
+    "linked": false,
+    "outcome": "NOT_LINKED"
+  }
+}

@@ -57,6 +57,11 @@ function gebruik() {
   console.log('        the same ten vectors under both amount policies, plus the two cases no')
   console.log('        published vector covers: overpayment, and one nonce across two payers.')
   console.log('        Those two are the open questions in x402 issue 2725.')
+  console.log('')
+  console.log('  npx github:holistis/agent-receipt-verify link-vectors')
+  console.log('        twelve vectors for the half AFTER paying: does this receipt belong to')
+  console.log('        that one settlement? Eleven run offline, the chain-reading one is')
+  console.log('        marked and skipped rather than failed.')
 }
 
 // Het argument bepaalt welke module draait. De modules zijn ook los te draaien en te
@@ -70,6 +75,7 @@ const onderdelen = {
   liveness: '../src/x402-index-liveness.mjs',
   kanon: '../src/eip3009-autorisatie.mjs',
   beleid: '../bench/eip3009-beleid.mjs',
+  'link-vectors': '../src/settlement-link-vectors.mjs',
 }
 
 if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {
