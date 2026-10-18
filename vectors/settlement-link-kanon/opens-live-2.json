@@ -1,0 +1,47 @@
+{
+  "id": "x402-evm-settlement-link-opens-live-2",
+  "schema_version": "3.0.0",
+  "protocol": "x402",
+  "scheme": "exact",
+  "network": "eip155:84532",
+  "asset_transfer_method": "eip3009",
+  "verifies": "receipt-to-settlement",
+  "encodes": "Receipt-to-settlement binding verified offline against a supplied candidate set.",
+  "provenance": [
+    "x402 offer-receipt extension section 5.6.4, as proposed in pull request 3827 at commit 0e492d6 and not on main",
+    "EIP-3009"
+  ],
+  "description": "A version 2 receipt whose authorizationCommitment opens on exactly one of the candidate nonces supplied with it. No chain access is needed because the candidates are given; this is the arithmetic half of section 5.6.4.",
+  "input": {
+    "receipt": {
+      "format": "eip712",
+      "payload": {
+        "version": 2,
+        "network": "eip155:84532",
+        "resourceUrl": "https://api.tokenizen.nl/api/paid/verify-ownership",
+        "payer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "issuedAt": 1792187518,
+        "transaction": "",
+        "authorizationMethod": "eip3009",
+        "authorizationCommitment": "0xfecee93e1aec7d6858a218bf324f23e2a4eed07925d8d4542b9662c5026e3d22"
+      },
+      "signature": "0x02f5ba0d2b7928a2dbb1d8845b664a79d38eebcd0a2c4532ed3c6b922051bf8d47c8aafb0520a875a708e3ed480d84a537962ea90d66ce2ee3811f4229aa8b401b"
+    },
+    "authorizationSalt": "0x63072ea656fe922bf04c9cefc4275314d695fff01e5b57f6628c8df0252cc5dc",
+    "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "candidates": [
+      {
+        "authorizer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "nonce": "0x515895dfac6f148a4cfdf5c4f8266b7859dbd6534cdf77104b1be9f484eb5005"
+      }
+    ]
+  },
+  "context": {
+    "note": "Real payment on Base Sepolia to https://api.tokenizen.nl/api/paid/verify-ownership. Buyer and seller are the same party, which proves the chain closes end to end and nothing about adoption.",
+    "settlement_transaction": "0x2898d0ceb97ddf60af98e19c94fc0adddbdf1e64f9032e62454085e37acfe36b"
+  },
+  "expected": {
+    "valid": true,
+    "reason_code": "LINKED"
+  }
+}

@@ -46,11 +46,17 @@ const draai = (...args) => spawnSync(process.execPath, [CLI, ...args], { encodin
   t('en meldt dat trede 0 niet gemeten kon worden', /not reachable|L-/.test(r.stdout), r.stdout.slice(0, 80))
 }
 {
+  // census neemt een optioneel uitvoerpad en anders niets. Een vlag is geen pad, en
+  // zonder deze controle schreef het commando een bestand met de naam van de vlag in
+  // de map waar de vreemde stond. Dat was echt gebeurd: onze eigen testronde liet een
+  // bestand van 717 kB achter met een vlagnaam. Daarom toetst dit twee dingen die los
+  // van elkaar fout kunnen gaan: de klacht komt, EN er blijft niets liggen.
   const r = draai('census', '--help-bestaat-niet')
-  // census negeert onbekende vlaggen en gaat gewoon de index ophalen; dat kost
-  // netwerk, dus hier toetsen we alleen dat de dispatch de juiste module kiest en
-  // niet stil op de conformance-tak belandt.
-  t('census gaat naar de census-module', !/asks for payment/.test(r.stdout + r.stderr))
+  t('census weigert een vlag als uitvoerpad', r.status === 2, 'status ' + r.status)
+  t('en zegt waarom, in de taal van de lezer', /looks like a flag/.test(r.stdout + r.stderr),
+    (r.stdout + r.stderr).slice(0, 90))
+  t('en laat geen bestand met de vlagnaam achter', !existsSync('--help-bestaat-niet'))
+  t('census belandt niet stil op de conformance-tak', !/asks for payment/.test(r.stdout + r.stderr))
 }
 
 console.log('')
