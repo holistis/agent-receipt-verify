@@ -1,0 +1,65 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "receipt-to-acceptance",
+  "requires_chain_read": false,
+  "provenance": [
+    "trilatic.acceptance-receipt/1.2, live record fetched from https://api.babyblueviper.com/work-acceptance/record/4c7273afcdb5333586b0a41c4238a968f3dedc23f66f71c5a1928ff3d279ab3d on 18 October 2026",
+    "the two binding keys were specified by babyblueviper1 in erc-8004/erc-8004-contracts#99 on 18 October 2026",
+    "the record is issued by invinoveritas, not by us; it is copied here as test material"
+  ],
+  "id": "acceptance-binding-real-record-crossed-deliverable",
+  "encodes": "The case babyblueviper1 asked for, in the shape the issuer actually serves.",
+  "description": "Identical to real-record-with-producer-key except for one byte of the deliverable hash we hold. Everything else still passes: the sidecar names the right receipt, the checker is verifiably not the producer, and the criteria were committed first. A verifier that reports LINKED here is reading the pair as a whole instead of checking that both halves name the same deliverable, which is the one thing this binding exists to prove.",
+  "input": {
+    "doc": {
+      "record": {
+        "receipt": {
+          "schema": "trilatic.acceptance-receipt/1.2",
+          "receipt_id": "INV-WA-aa4b8bc740bc2524",
+          "issuer": "invinoveritas",
+          "issued_utc": "2026-10-18T00:52:09Z",
+          "criteria": {
+            "id": "invinoveritas-p1-selftest",
+            "sha256": "d74ad7d7492908f1146b233e89db6ca205065c67f02d33758ff0aa9f8b9e02fc",
+            "committed_at": "2026-10-18T00:52:03Z"
+          },
+          "files": {
+            "remediated": {
+              "name": "refund-policy.txt",
+              "bytes": 121,
+              "sha256": "9c27eee03d50f4ff00fb60a1551a03d7311dbed257b7b943b3ff5d13eb30c083"
+            }
+          },
+          "parties": {
+            "checker": {
+              "name": "invinoveritas",
+              "key_id": "invinoveritas-checker-a4cecab2"
+            },
+            "producer": {
+              "name": "Example Vendor (self-test)",
+              "key_id": "example-vendor-producer-7f31aa02"
+            }
+          },
+          "independence": "independent",
+          "verdict": "pass"
+        }
+      },
+      "bindings_sidecar": {
+        "version": "invinoveritas.work-acceptance-bindings/v0",
+        "receipt_sha256": "4c7273afcdb5333586b0a41c4238a968f3dedc23f66f71c5a1928ff3d279ab3d",
+        "criteria_id": "d74ad7d7492908f1146b233e89db6ca205065c67f02d33758ff0aa9f8b9e02fc",
+        "bindings": {}
+      }
+    },
+    "receiptSha256": "4c7273afcdb5333586b0a41c4238a968f3dedc23f66f71c5a1928ff3d279ab3d",
+    "deliverableSha256": "9c27eee03d50f4ff00fb60a1551a03d7311dbed257b7b943b3ff5d13eb30c084"
+  },
+  "expected": {
+    "valid": false,
+    "reason_code": "NOT_LINKED",
+    "detail": "DELIVERABLE_HASH_MISMATCH"
+  },
+  "limits": [
+    "This proves the pair does not hold together. It says nothing about which of the two artifacts is the wrong one."
+  ]
+}
