@@ -1,5 +1,14 @@
 {
-  "_why": "The only vector that reaches BEWEZEN_ONAFHANKELIJK. It exists because a state no case can reach is not a state but a promise, and a check that cannot fire has been the most expensive fault class in this project. The producer signs over bindings_sidecar.receipt_sha256, a field every record already carries, so no new canonical object is needed.",
+  "_why": "De enige vector die BEWEZEN_ONAFHANKELIJK haalt, nu met een ECHT uitgerekende receipt_sha256. Sleutel en handtekening staan in de sidecar, buiten het object waarover de hash gaat, zodat het toevoegen ervan de hash niet verandert.",
+  "provenance": [
+    "Zelf opgewekt op 18 oktober 2026 met node:crypto: een echte ed25519-sleutel, een echte handtekening, en receipt_sha256 ECHT uitgerekend als sha256 over de canonieke vorm van record.receipt.",
+    "De eerste versie van deze vector gebruikte een verzonnen hash en kon daarom de plaatsingsfout niet vinden. Dat is aangewezen door de uitgever van het formaat in erc-8004/erc-8004-contracts#99."
+  ],
+  "limits": [
+    "Dit veld bestaat nog NIET in trilatic 1.2. De vector toont wat de controle doet zodra het er is.",
+    "Een geldige handtekening bewijst dat de producent de sleutel bezit die hij noemt en dat hij dit record aanvaardt, oordeel inbegrepen. Hij bewijst NIET dat producent en controleur verschillende personen zijn: twee sleutels kunnen van dezelfde persoon zijn.",
+    "De producent kan pas tekenen NA de toets, dus dit is aanvaarding van de uitkomst en geen toezegging vooraf."
+  ],
   "input": {
     "doc": {
       "record": {
@@ -8,6 +17,7 @@
           "independence": "independent",
           "issued_utc": "2026-10-18T12:00:00Z",
           "criteria": {
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "committed_at": "2026-10-17T12:00:00Z"
           },
           "files": {
@@ -15,41 +25,35 @@
               "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
             }
           },
+          "verdict": "accepted",
           "parties": {
             "checker": {
               "key_id": "checker-1"
             },
             "producer": {
-              "key_id": "producer-1",
-              "key": "did:key:z6MkkzboU1uCdTLz81dS5Tw6rdmCvzcpwhbmo7bLCRDgaE2J",
-              "signature": "R/2RIzv5fOJIb82H3032knBBbT7E7JbsH9O5SsHXB3ZWvXvLsrdIQ+z4p2rj0oixm2xRtCXiDI78NjQbBqDSBg=="
+              "key_id": "producer-1"
             }
           }
         }
       },
       "bindings_sidecar": {
-        "receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "bindings": {}
+        "receipt_sha256": "15341d37ab9d2858108a62706285524bf7341344e2576f63d52e1d7e4d1a10b3",
+        "bindings": {},
+        "producer": {
+          "key": "did:key:z6Mkt4c98coqy9DLd1LNTLBhkEqz73bYNPSs5jxttbGyT7jn",
+          "signature": "MNtl2jncimSicTIrJZoqEIxncU6tEtOumldkTplowDrULyY0fN6RPW7FNHQmztgBimSlCVSXOowowaeLeqd6CQ=="
+        }
       }
     },
     "receipt": {
       "format": "eip712"
     },
-    "receiptSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "receiptSha256": "15341d37ab9d2858108a62706285524bf7341344e2576f63d52e1d7e4d1a10b3",
     "deliverableSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "expected": {
     "reason_code": "LINKED",
     "valid": true,
     "independence": "BEWEZEN_ONAFHANKELIJK"
-  },
-  "provenance": [
-    "Zelf opgewekt op 18 oktober 2026 met node:crypto: een echte ed25519-sleutel, een echte handtekening over bindings_sidecar.receipt_sha256. Geen bestaand record, want trilatic 1.2 draagt dit veld nog niet.",
-    "De VORM volgt het live record van invinoveritas (trilatic.acceptance-receipt/1.2), met één toevoeging: parties.producer.key en parties.producer.signature."
-  ],
-  "limits": [
-    "Dit veld bestaat nog NIET in trilatic 1.2. Deze vector toont wat de controle doet zodra het er is, en is geen bewijs dat enig echt record dit vandaag draagt.",
-    "Een geldige handtekening bewijst dat de producent de sleutel bezit die hij noemt. Het bewijst NIET dat hij een andere partij is dan de controleur in het echte leven: twee sleutels kunnen van dezelfde persoon zijn.",
-    "De handtekening dekt alleen receipt_sha256, dus de producent bindt zich aan DIT record en niet aan de inhoud van de toets."
-  ]
+  }
 }
