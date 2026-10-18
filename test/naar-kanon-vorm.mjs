@@ -112,7 +112,12 @@ console.log('het corpus op schijf is niet verouderd')
     if (!om) continue
     const pad = path.join(DOELMAP, bestand)
     if (!fs.existsSync(pad)) continue
-    if (fs.readFileSync(pad, 'utf8') === JSON.stringify(om, null, 2) + '\n') gelijk++
+    // Regeleindes mogen dit oordeel niet dragen. Git zet bij het uitchecken op Windows
+    // LF om naar CRLF, dus een kale bytevergelijking faalde op ELKE Windows-kloon, ook
+    // met een volkomen correcte map. Een vreemde die kloont en npm test draait zag dan
+    // rood zonder dat er iets mis was, en dat is het eerste wat hij van ons ziet.
+    const opSchijfTekst = fs.readFileSync(pad, 'utf8').replace(/\r\n/g, '\n')
+    if (opSchijfTekst === JSON.stringify(om, null, 2) + '\n') gelijk++
   }
   t('en is byte-identiek aan wat de omzetter nu zou schrijven', gelijk === bron.length,
     gelijk + ' van ' + bron.length)

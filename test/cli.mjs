@@ -24,8 +24,11 @@ const draai = (...args) => spawnSync(process.execPath, [CLI, ...args], { encodin
 {
   const r = draai('--help')
   t('help werkt en eindigt op 0', r.status === 0, 'status ' + r.status)
-  t('help noemt het npx-commando', r.stdout.includes('npx github:holistis/agent-receipt-verify'))
-  t('help noemt ook wat het NIET doet', /niet gemeten|NIET doet/.test(r.stdout))
+    // De ingang is ENGELS en noemt de npm-naam, want dat is wat een vreemde typt. Koud
+  // gemeten op 18 oktober 2026 was dit eerste scherm half Nederlands.
+  t('help noemt het npx-commando met de npm-naam', r.stdout.includes('npx -y agent-receipt-verify'))
+  t('help staat in het Engels, want de lezers schrijven Engels', !/meet een|zonder te betalen|bonnetje van versie/.test(r.stdout))
+  t('help noemt ook wat het NIET doet', /does NOT do|deliberately left/.test(r.stdout))
   t('help noemt de kruiscontrole, want een ingang die niemand kent bestaat niet',
     r.stdout.includes('kanon'))
 }
@@ -35,7 +38,7 @@ const draai = (...args) => spawnSync(process.execPath, [CLI, ...args], { encodin
 }
 {
   const r = draai('onzin')
-  t('een onbekend subcommando faalt zichtbaar', r.status === 2 && r.stdout.includes('onbekend'), 'status ' + r.status)
+  t('een onbekend subcommando faalt zichtbaar', r.status === 2 && r.stdout.includes('unknown command'), 'status ' + r.status)
 }
 {
   // Geen netwerk: een adres dat nergens naartoe gaat hoort ONGEMETEN te geven en

@@ -9,7 +9,7 @@
 // BEWUST GEEN NPM-PUBLICATIE NODIG. npx kan een pakket rechtstreeks uit een git-repo
 // draaien, dus dit werkt zonder dat er iets op npm staat:
 //
-//   npx github:holistis/agent-receipt-verify https://een-eindpunt.example/pad
+//   npx -y agent-receipt-verify https://een-eindpunt.example/pad
 //
 // Dat is geen trucje maar een echte eigenschap van npx, en het haalt een hele
 // publicatie-stap plus een naamclaim weg. Het betekent ook dat niemand een
@@ -23,54 +23,61 @@
 const args = process.argv.slice(2)
 const eerste = args[0]
 
+// De helptekst is ENGELS, en dat is geen voorkeur maar een gemeten noodzaak. Koud
+// gedraaid vanuit een lege map op 18 oktober 2026 bleek het eerste scherm dat een vreemde
+// ziet half Nederlands, terwijl iedereen die dit gereedschap in de x402- en
+// erc-8004-draden gaat draaien Engels schrijft. Het meetresultaat zelf was al Engels, dus
+// alleen de ingang stond nog in de weg. En de regel over wat dit NIET meet stond midden
+// in de lijst in plaats van eronder, waar een lezer hem pas leest nadat hij weet wat het
+// wel doet.
 function gebruik() {
-  console.log('agent-receipt-verify, een onafhankelijke controle op bonnetjes van agent-betalingen')
+  console.log('agent-receipt-verify, an independent check on receipts for agent payments')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify <url> [url ...]')
-  console.log('        meet een x402-eindpunt tegen de ladder in CONFORMANCE.md (trede 0 tot 2,')
-  console.log('        zonder te betalen). Trede 3 tot 5 vereisen een echte afrekening en komen')
-  console.log('        terug als ONGEMETEN, nooit als afgekeurd.')
+  console.log('  npx -y agent-receipt-verify <url> [url ...]')
+  console.log('        measures an x402 endpoint against the ladder in CONFORMANCE.md (levels 0')
+  console.log('        to 2, without paying). Levels 3 to 5 need a real settlement and come back')
+  console.log('        as NOT MEASURED, never as a failure.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify census [uit.json]')
-  console.log('        telt een discovery-index per host in plaats van per resource.')
+  console.log('  npx -y agent-receipt-verify census [out.json]')
+  console.log('        counts a discovery index per host instead of per resource.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify link --receipt=<bestand>')
-  console.log('        zoekt bij een bonnetje van versie 2 de bijbehorende afrekening op de keten.')
+  console.log('  npx -y agent-receipt-verify link --receipt=<file>')
+  console.log('        for a version 2 receipt, finds the settlement it belongs to on chain.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify mcp')
-  console.log('        draait als MCP-server over stdio, zodat een agent deze controle AANROEPT')
-  console.log('        in plaats van hem aanbevolen te krijgen. Twee gereedschappen: controleer een')
-  console.log('        eindpunt voor je betaalt, en link een bonnetje aan een echte afrekening.')
+  console.log('  npx -y agent-receipt-verify mcp')
+  console.log('        runs as an MCP server over stdio, so an agent CALLS this check instead of')
+  console.log('        being advised to run it. Two tools: check an endpoint before you pay, and')
+  console.log('        link a receipt to a real settlement.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify inam <vectors.json>')
-  console.log('        controleert countersigned bonnetjes tegen gepubliceerde vectoren.')
+  console.log('  npx -y agent-receipt-verify inam <vectors.json>')
+  console.log('        checks countersigned receipts against published vectors.')
   console.log('')
-  console.log('Wat dit NIET doet: het oordeelt over de VORM van een bonnetje, niet over de')
-  console.log('eerlijkheid van de partij die het afgaf. Zie CONFORMANCE.md voor wat met opzet')
-  console.log('niet gemeten wordt.')
-  console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify kanon')
+  console.log('  npx -y agent-receipt-verify kanon')
   console.log('        cross-check our independent EIP-3009 verifier against the ten published')
   console.log('        vectors of iamonuwa/kanon, offline, no account and no key.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify beleid')
+  console.log('  npx -y agent-receipt-verify beleid')
   console.log('        the same ten vectors under both amount policies, plus the two cases no')
   console.log('        published vector covers: overpayment, and one nonce across two payers.')
   console.log('        Those two are the open questions in x402 issue 2725.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify liveness [uit.json]')
+  console.log('  npx -y agent-receipt-verify liveness [out.json]')
   console.log('        takes the census and asks each host whether it still answers 402 today.')
   console.log('        A registration in an index is not a promise that the endpoint is alive.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify verify-delivery --answer=<file> --endpoint=<url>')
+  console.log('  npx -y agent-receipt-verify verify-delivery --answer=<file> --endpoint=<url>')
   console.log('        reads, at the source, whether a paid answer is TRUE. The location is')
   console.log('        DERIVED from --endpoint and never taken from the answer, because a seller')
   console.log('        who picks both the token and the place can stage any outcome.')
   console.log('')
-  console.log('  npx github:holistis/agent-receipt-verify link-vectors')
+  console.log('  npx -y agent-receipt-verify link-vectors')
   console.log('        twelve vectors for the half AFTER paying: does this receipt belong to')
   console.log('        that one settlement? Eleven run offline, the chain-reading one is')
   console.log('        marked and skipped rather than failed.')
+  console.log('')
+  console.log('What this does NOT do: it judges the SHAPE of a receipt, not the honesty of')
+  console.log('the party that issued it. See CONFORMANCE.md for what is deliberately left')
+  console.log('unmeasured.')
 }
 
 // Het argument bepaalt welke module draait. De modules zijn ook los te draaien en te
@@ -104,7 +111,7 @@ if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {
   process.argv = [process.argv[0], pad, ...args]
   await import('../src/x402-conformance-check.mjs')
 } else {
-  console.log('onbekend: ' + eerste)
+  console.log('unknown command: ' + eerste)
   console.log('')
   gebruik()
   process.exitCode = 2
