@@ -145,8 +145,15 @@ export function beoordeelVector(v) {
           identifier: k.nonce,
           salt: r.authorizationSalt,
         }, p.authorizationCommitment))
-      if (passend.length !== 1) {
-        return { outcome: 'NOT_LINKED', reden: `receipt ${i} opened on ${passend.length} candidates, expected exactly one` }
+      // Gemeten 19 oktober: deze tak behandelde "meer dan een" en "nul" allebei als
+      // NOT_LINKED, terwijl de eenling-tak verderop in dit bestand ze al apart hield als
+      // AMBIGUOUS. Zelfde methode, twee uitkomsten op hetzelfde geval, gevonden tijdens het
+      // bouwen van de mapping naar de zes namen van x402#3827 en niet door een melding.
+      if (passend.length === 0) {
+        return { outcome: 'NOT_LINKED', reden: `receipt ${i} opened on 0 candidates, expected exactly one` }
+      }
+      if (passend.length > 1) {
+        return { outcome: 'AMBIGUOUS', reden: `receipt ${i} opened on ${passend.length} candidates, expected exactly one` }
       }
       mapping.push({ receipt_index: i, identifier: passend[0].nonce })
     }
