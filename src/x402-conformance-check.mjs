@@ -180,7 +180,11 @@ export async function meetEindpunt(url, { fetchImpl = fetch, methode = 'POST', l
     r.bewijs.t2 = 'declares the extension but carries no signed offer'
     return r
   }
-  const controle = await verifyOfferSignature(aanbiedingen[0])
+  // DE INGESTOKEN fetchImpl MOET OOK HIER MEE. Zonder dat viel haalDidDocument terug op de
+  // globale fetch, en een aanbieder kon via een did:web-kid een verzoek laten doen dat langs
+  // elke afscherming rond de eerste aanvraag liep (gemeten 2026-10-24 bij het bouwen van de
+  // gratis web-checker, vooraf als gat benoemd en met test/injected-fetch.mjs dichtgezet).
+  const controle = await verifyOfferSignature(aanbiedingen[0], { fetchImpl })
   // ONGEMETEN, niet HAALT_NIET, als de controle niet KON draaien: een onbekend
   // algoritme of een sleutel die niet op te halen is, zegt niets over de partij.
   // Dit bestand beweert dat beginsel in zijn eigen kop al en volgde het hier niet.
