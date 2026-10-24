@@ -216,13 +216,24 @@ receipts could not be told apart. Each one still resolves to its own settlement:
 npm run link-example
 ```
 
-Public Base Sepolia nodes keep only recent history, and these receipts are older than that, so a
-plain node answers "pruned history". The command says so, then asks a keyless explorer
-(Blockscout) for the same logs, and the output names which reader answered (`reader :`). An
+The default window is 800 seconds either side of the receipt's `issuedAt`, translated to blocks with
+the pace measured around that spot; `--window=<blocks>` sets it in blocks instead. If a public node
+has pruned the block, the command says so, then asks a keyless explorer (Blockscout) for the same
+logs, and the output names which reader answered (`reader :`). An
 explorer is a third party between you and the chain, not a node: it reads the same chain but can
 behave differently, so the node stays the first choice and the explorer is a second opinion. Use
 `--no-explorer` to forbid the fallback, or `--explorer=<url>` for another Etherscan-compatible
 API. If both fail you get `LINKED : unknown`, which is an incomplete check and never a verdict.
+
+**Erratum, found 24 October 2026 (versions up to and including 0.2.11).** The command placed the receipt's
+time on a block by assuming the pace at the chain tip held for the whole way back. Base Sepolia made a block
+every 2 seconds on 16 October and one every 0.2 seconds a week later, so the estimate landed 1.9 million
+blocks too early. On a node with full history that searched a window where the settlement was not and
+answered `LINKED : no`, which is a wrong answer; on public nodes it failed with "pruned history". A stranger
+ran the command six times and never got a verdict, which is how we found it. 0.2.12 searches for the block
+instead of computing it, measures the pace around the block it finds, and uses a window in seconds. If an
+earlier version told you `LINKED : no` for a receipt that is older than a change in a chain's pace, run it
+again: that `no` was about the wrong window.
 
 ```
 commitment  : 0x5c35a61a09a566a9c284fad18a70ac2ddfff34d01d2a3ce776ce94e8d5b38ff8
