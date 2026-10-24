@@ -29,7 +29,7 @@
 //  7. Het resultaat is per feit, in de woorden van AgenticFinanceGraph, en daarna pas een
 //     eindoordeel. Geen eigen ladder met eigen namen.
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { maakRpc, linkBonnetje } from './x402-link-onchain.mjs'
 
@@ -243,6 +243,44 @@ const TEKST = {
   paymentBeforeFeedback: 'the payment lands before the feedback',
   raterNotOwnerOrOperator: 'the rater is neither owner nor approved operator',
   feedbackHashOpensReceipt: 'the feedbackHash opens through the receipt (extra)',
+}
+
+/**
+ * De opgenomen controles nadraaien zonder netwerk en vergelijken met het oordeel van een ander.
+ * Geeft per vector terug welke feiten afwijken, zodat een afwijking de bevinding is en niets wordt bijgeschaafd.
+ */
+export async function draaiVectoren(map = fileURLToPath(new URL('../vectors/grounding/', import.meta.url))) {
+  const uit = []
+  for (const f of readdirSync(map).filter((x) => x.endsWith('.json')).sort()) {
+    const v = JSON.parse(readFileSync(map + f, 'utf8'))
+    const opname = new Map(v.opname)
+    const rpc = async (method, params) => {
+      const a = opname.get(JSON.stringify([method, params]))
+      if (!a) throw new Error('call not in the recording: ' + method)
+      if (a.fout) throw new Error(a.fout)
+      return a.resultaat
+    }
+    const u = await beoordeelGrounding({ rpc, network: v.network, feedbackTx: v.feedbackTx, paymentTx: v.paymentTx })
+    const afwijkend = Object.entries(v.oordeelVanEenAnder.verwacht).filter(([n, s]) => u.feiten[n].status !== s).map(([n]) => n)
+    if (v.oordeelVanEenAnder.eindoordeel && u.grounded !== v.oordeelVanEenAnder.eindoordeel) afwijkend.push('eindoordeel')
+    uit.push({ naam: v.naam, bron: v.oordeelVanEenAnder.bron, afwijkend })
+  }
+  return uit
+}
+
+if (process.argv[1]?.endsWith('x402-grounding.mjs') && process.argv.includes('--vectors')) {
+  const rijen = await draaiVectoren()
+  console.log('Recorded Base mainnet controls, replayed offline, against the verdicts someone else wrote down first.')
+  console.log('')
+  for (const r of rijen) {
+    console.log(`  ${r.afwijkend.length === 0 ? 'agree   ' : 'DISAGREE'}  ${r.naam}${r.afwijkend.length ? '  (differs on: ' + r.afwijkend.join(', ') + ')' : ''}`)
+    console.log(`            verdict by: ${r.bron}`)
+  }
+  const eens = rijen.filter((r) => r.afwijkend.length === 0).length
+  console.log('')
+  console.log(`${eens} of ${rijen.length} recorded controls agree with the other party's verdict.`)
+  console.log('A disagreement is the finding. It is not tuned away.')
+  process.exit(eens === rijen.length ? 0 : 1)
 }
 
 if (process.argv[1]?.endsWith('x402-grounding.mjs')) {
