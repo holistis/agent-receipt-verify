@@ -282,6 +282,28 @@ inside a real settlement envelope; only a paid call can.
 Buyer and seller are both us, so this shows the chain closes end to end. It does
 not show that anyone else is using it.
 
+## Is an ERC-8004 feedback grounded in a payment?
+
+```sh
+npx -y agent-receipt-verify ground --feedback=0xa661b2ffd344926ddd5e31dc0c481212ba2d973fdb0c08a461d4c903f15d3936
+```
+
+Four facts, read from the chain and reported one by one: the rater is the payer, the paid address is the
+agent's bound wallet, the payment lands before the feedback, and the rater is neither owner nor approved
+operator. They are the definition AgenticFinanceGraph uses in
+[erc-8004/erc-8004-contracts#99](https://github.com/erc-8004/erc-8004-contracts/issues/99), rebuilt here from
+their description and not from their code, the way the Kanon vectors were. A fifth fact stands apart: given the
+receipt and its salt (`--receipt= --salt=`), does the feedbackHash open, through the receipt, on exactly that
+settlement, so that a reader does not have to believe the hash points at the right transfer.
+
+Checked against two verdicts someone else wrote down before this existed, both recorded from Base mainnet in
+`vectors/grounding` and replayed offline by `test/grounding.mjs`: agent 1085288, where all four facts hold, and
+agent 524087, where the rater is the payee and the payment did not go to the agent's bound wallet. Payer and
+payee come from the USDC transfer log and not from the transaction, because a facilitator sends the settlement.
+The binding is read at the block of the feedback; a node that cannot do that gets a read at the latest block and the
+output says so. A fact that could not be measured is `not_measured` and never `false`. The verdict is about the chain
+facts, not about whether the rating is fair.
+
 ## Honest limits
 
 The format checks test the form of a receipt: signatures, content addressing,

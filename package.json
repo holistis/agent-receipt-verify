@@ -1,6 +1,6 @@
 {
   "name": "agent-receipt-verify",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "Checks x402 endpoint conformance before an agent pays, and links the receipt to its settlement.",
   "license": "Apache-2.0",
   "type": "module",
@@ -8,7 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/profiel.mjs && node test/eip3009.mjs && node test/conformance.mjs && node test/injected-fetch.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/poortwachters.mjs && node test/metingen-bundel.mjs && node test/mcp-server.mjs && node test/cli.mjs && node test/bundel.mjs && node test/settlement-link-vectors.mjs && node test/naar-kanon-vorm.mjs && node test/verify-delivery.mjs && node test/acceptance-binding.mjs && node test/methodefout-bench.mjs && node test/attempt-identity.mjs && node test/drie-identiteiten.mjs && node test/naar-zes-namen.mjs",
+    "test": "node test/interop.mjs && node test/canonical.mjs && node test/link-onchain.mjs && node test/profiel.mjs && node test/eip3009.mjs && node test/conformance.mjs && node test/injected-fetch.mjs && node test/grounding.mjs && node test/jws-offer.mjs && node test/census.mjs && node test/poortwachters.mjs && node test/metingen-bundel.mjs && node test/mcp-server.mjs && node test/cli.mjs && node test/bundel.mjs && node test/settlement-link-vectors.mjs && node test/naar-kanon-vorm.mjs && node test/verify-delivery.mjs && node test/acceptance-binding.mjs && node test/methodefout-bench.mjs && node test/attempt-identity.mjs && node test/drie-identiteiten.mjs && node test/naar-zes-namen.mjs",
+    "ground": "node src/x402-grounding.mjs",
     "link-example": "node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-2.json && node src/x402-link-onchain.mjs --receipt=examples/receipt-live-base-sepolia-3.json",
     "conformance": "node src/x402-conformance-check.mjs",
     "bench": "node bench/robustness.mjs",
