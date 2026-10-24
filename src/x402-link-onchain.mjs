@@ -68,35 +68,96 @@ export function maakRpc(url, fetchImpl = fetch) {
 }
 
 /**
- * Zoek het blok dat bij een tijdstip hoort, door te meten in plaats van te rekenen.
+ * Zoek het laatste blok op of voor een tijdstip, door te zoeken en niet door te rekenen met een bloktijd.
  *
- * Een vaste bloktijd aannemen is precies het soort gok dat later stil misgaat:
- * ketens veranderen hun tempo. Daarom eerst twee echte blokken meten voor een
- * eerste schatting, en die daarna corrigeren tot het verschil klein genoeg is.
+ * DE OUDE VERSIE NAM DE BLOKTIJD AAN DE KOP ALS GEMIDDELDE VOOR DE HELE TERUGWEG, en dat is stil misgegaan. Base
+ * Sepolia maakte op 16 oktober 2026 nog een blok per 2 seconden en een week later een per 0,2 seconde. De schatting
+ * kwam 1,9 miljoen blokken te vroeg uit, de correctie met dezelfde verkeerde bloktijd haalde dat niet meer in, en
+ * de tool zocht in een venster waar de afrekening niet lag. Op een knooppunt met alle geschiedenis gaf dat
+ * "LINKED: no", een onwaar antwoord. Een vreemde die het commando draaide zag het als "pruned history".
+ *
+ * Nu: een haakje om het tijdstip (een blok erna, en een blok erop of eraf), steeds verkleind door te meten wat
+ * het knooppunt zelf zegt, met een interpolatie die de tijden van de uiteinden gebruikt en elke derde stap
+ * halveert, zodat het altijd convergeert. De bloktijd die we teruggeven is die RONDOM het gevonden blok.
+ * Lukt het niet binnen maxRondes, dan is dat een fout en geen gok.
  */
-export async function blokBijTijd(rpc, doelTijd, maxRondes = 6) {
-  const laatsteNr = getal(await rpc('eth_blockNumber', []))
-  const laatste = await rpc('eth_getBlockByNumber', [hex(laatsteNr), false])
-  const eerder = await rpc('eth_getBlockByNumber', [hex(laatsteNr - 1000), false])
-  if (!laatste || !eerder) throw new Error('the node does not return recent blocks')
-  const blokTijd = (getal(laatste.timestamp) - getal(eerder.timestamp)) / 1000
-  if (!(blokTijd > 0)) throw new Error('kon de bloktijd niet meten')
-
-  let kandidaat = laatsteNr - Math.round((getal(laatste.timestamp) - doelTijd) / blokTijd)
-  kandidaat = Math.max(1, Math.min(kandidaat, laatsteNr))
-  for (let i = 0; i < maxRondes; i++) {
-    const b = await rpc('eth_getBlockByNumber', [hex(kandidaat), false])
-    // Een publiek knooppunt bewaart maar een deel van de geschiedenis. Dat is een antwoord op zich: er is geen
-    // blok, dus er is niets te meten, en dat mag niet lezen als een stacktrace over een leeg object.
-    if (!b) throw new Error(`this node no longer has block ${kandidaat}: public nodes keep only recent history`)
-    const verschil = getal(b.timestamp) - doelTijd
-    if (Math.abs(verschil) <= blokTijd * 2) break
-    const stap = Math.round(verschil / blokTijd)
-    const volgende = Math.max(1, Math.min(kandidaat - stap, laatsteNr))
-    if (volgende === kandidaat) break
-    kandidaat = volgende
+export async function blokBijTijd(rpc, doelTijd, maxRondes = 60) {
+  const tip = getal(await rpc('eth_blockNumber', []))
+  const gewist = (bericht) => Object.assign(new Error(bericht), { gewist: true })
+  const tijd = async (n) => {
+    let b
+    try {
+      b = await rpc('eth_getBlockByNumber', [hex(n), false])
+    } catch (e) {
+      // Een publiek knooppunt bewaart maar een deel van de geschiedenis en zegt dat in zijn eigen woorden.
+      if (/pruned|missing trie|historical|no longer has|not available/i.test(String(e.message))) throw gewist(e.message)
+      throw e
+    }
+    // Geen blok is een antwoord op zich: er is niets te meten, en dat mag niet lezen als een stacktrace over een leeg object.
+    if (!b) throw gewist(`this node no longer has block ${n}: public nodes keep only recent history`)
+    return getal(b.timestamp)
   }
-  return { blok: kandidaat, blokTijd, laatsteBlok: laatsteNr }
+  let vloer = 1  // het laagste blok dat dit knooppunt nog kan geven, voor zover bekend
+  const tipTijd = await tijd(tip)
+
+  // De bloktijd rond een blok, gemeten over een stuk aan beide kanten, en niet de bloktijd aan de kop.
+  const lokaleBloktijd = async (blok) => {
+    const van = Math.max(vloer, blok - 100)
+    const tot = Math.min(tip, blok + 100)
+    if (tot <= van) throw new Error('kon de bloktijd niet meten')
+    const verschil = (await tijd(tot)) - (await tijd(van))
+    if (!(verschil > 0)) throw new Error('kon de bloktijd niet meten')
+    return verschil / (tot - van)
+  }
+
+  if (!(tipTijd > doelTijd)) return { blok: tip, blokTijd: await lokaleBloktijd(tip), laatsteBlok: tip }
+
+  let hi = tip, tHi = tipTijd           // tijd boven het doel
+  let lo = null, tLo = null             // tijd op of onder het doel
+  // Een eerste gok met de bloktijd aan de kop, alleen om te beginnen. Elke meting daarna corrigeert hem.
+  let bt = 2
+  try {
+    const t1 = await tijd(Math.max(1, tip - 1000))
+    if (tipTijd > t1) bt = (tipTijd - t1) / Math.min(1000, tip - 1)
+  } catch { /* het knooppunt heeft zelfs de laatste duizend blokken niet; de zoektocht zegt het zo meteen */ }
+  let n = tip - Math.ceil((tipTijd - doelTijd) / bt)
+
+  for (let ronde = 0; ronde < maxRondes; ronde++) {
+    n = Math.max(vloer, Math.min(n, hi - 1))
+    if (lo !== null) n = Math.max(n, lo + 1)
+    let t
+    try {
+      t = await tijd(n)
+    } catch (e) {
+      if (!e.gewist) throw e
+      // De schatting viel onder wat het knooppunt nog heeft. Dat is geen reden om op te geven: het doel kan nog
+      // binnen zijn geheugen liggen. Noemt het knooppunt zijn vroegste blok, ga daar naartoe, anders halveren.
+      const genoemd = Number(/earliest available (\d+)/.exec(e.message)?.[1])
+      vloer = Math.max(vloer, Number.isFinite(genoemd) && genoemd > n ? genoemd : n + 1)
+      if (vloer >= hi) throw new Error(`pruned history: this node no longer has the block for that time, only blocks from about ${vloer}; public nodes keep only recent history`)
+      n = Number.isFinite(genoemd) && genoemd > n ? genoemd : Math.floor((vloer + hi) / 2)
+      continue
+    }
+    if (t <= doelTijd) { lo = n; tLo = t } else {
+      hi = n; tHi = t
+      // Het vroegste blok dat het knooppunt nog heeft ligt al na het doel: dan is het doel gewist.
+      if (n <= vloer && lo === null) throw new Error(`pruned history: this node's earliest block ${n} is already after that time; public nodes keep only recent history`)
+    }
+    if (lo !== null && hi - lo <= 1) return { blok: lo, blokTijd: await lokaleBloktijd(lo), laatsteBlok: tip }
+
+    if (lo === null) {
+      // Nog alleen een bovengrens. De gemiddelde snelheid tussen de kop en dit blok is de beste gok, en we gaan
+      // minstens een stuk terug zodat er altijd voortgang is.
+      const gemiddeld = (tipTijd - tHi) / Math.max(1, tip - hi)
+      if (gemiddeld > 0) bt = gemiddeld
+      n = hi - Math.max(1, Math.ceil((tHi - doelTijd) / bt))
+    } else if (ronde % 3 === 2 || tHi <= tLo) {
+      n = Math.floor((lo + hi) / 2)
+    } else {
+      n = Math.round(lo + ((doelTijd - tLo) * (hi - lo)) / (tHi - tLo))
+    }
+  }
+  throw new Error('could not place that time on a block within ' + maxRondes + ' reads')
 }
 
 /**
@@ -207,13 +268,16 @@ export function maakVerkenner(basisUrl, fetchImpl = fetch, { wacht = (ms) => new
 }
 
 /** Hetzelfde pad als linkBonnetje, met de verkenner als lezer. De uitslag draagt de bron. */
-export async function linkBonnetjeViaVerkenner(verkenner, { payload, salt, asset, venster = 400 }) {
+export async function linkBonnetjeViaVerkenner(verkenner, { payload, salt, asset, venster = null }) {
   if (!payload?.payer) throw new Error('het bonnetje heeft geen payer, dus er is geen autorisator')
   const issuedAt = Number(payload.issuedAt)
   if (!Number.isFinite(issuedAt) || issuedAt <= 0) throw new Error('het bonnetje heeft geen bruikbare issuedAt')
   const blok = await verkenner.blokBijTijd(issuedAt)
-  const vanBlok = Math.max(1, blok - venster)
-  const totBlok = blok + venster
+  // Een verkenner begrenst het aantal AANVRAGEN en niet het bereik, dus een ruim venster in blokken kost niets extra.
+  // Tienduizend blokken is ruim een uur bij 0,2 seconde per blok en ruim vijf uur bij 2 seconden.
+  const halfVenster = venster ?? 10_000
+  const vanBlok = Math.max(1, blok - halfVenster)
+  const totBlok = blok + halfVenster
   const { nonces, aanroepen } = await verkenner.haalKandidaten({ asset, authorizer: payload.payer, vanBlok, totBlok })
   const uitslag = opentCommitment({ receipt: { payload }, salt, asset, kandidaatIdentifiers: nonces.map((n) => n.nonce) })
   const treffer = uitslag.linked ? nonces.find((n) => n.nonce.toLowerCase() === uitslag.identifier.toLowerCase()) : null
@@ -225,15 +289,22 @@ export async function linkBonnetjeViaVerkenner(verkenner, { payload, salt, asset
   }
 }
 
-/** Het volledige 5.6.4-pad: van bonnetje plus zout naar precies een afrekening. */
-export async function linkBonnetje(rpc, { payload, salt, asset, venster = 400 }) {
+/**
+ * Het volledige 5.6.4-pad: van bonnetje plus zout naar precies een afrekening.
+ *
+ * HET VENSTER IS STANDAARD IN SECONDEN, niet in blokken. Een venster van 400 blokken is 800 seconden op een keten met
+ * 2 seconden per blok en 80 seconden bij 0,2 seconde per blok, en de afrekening kan best een paar minuten voor of na
+ * het bonnetje liggen. Wie zelf blokken kiest (venster) krijgt precies dat, zoals voorheen.
+ */
+export async function linkBonnetje(rpc, { payload, salt, asset, venster = null, vensterSeconden = 800 }) {
   if (!payload?.payer) throw new Error('het bonnetje heeft geen payer, dus er is geen autorisator')
   const issuedAt = Number(payload.issuedAt)
   if (!Number.isFinite(issuedAt) || issuedAt <= 0) throw new Error('het bonnetje heeft geen bruikbare issuedAt')
 
   const { blok, blokTijd, laatsteBlok } = await blokBijTijd(rpc, issuedAt)
-  const vanBlok = Math.max(1, blok - venster)
-  const totBlok = Math.min(laatsteBlok, blok + venster)
+  const halfVenster = venster ?? Math.ceil(vensterSeconden / blokTijd)
+  const vanBlok = Math.max(1, blok - halfVenster)
+  const totBlok = Math.min(laatsteBlok, blok + halfVenster)
 
   const { nonces, aanroepen } = await haalKandidaten(rpc, {
     asset,
@@ -255,7 +326,7 @@ export async function linkBonnetje(rpc, { payload, salt, asset, venster = 400 })
 
   return {
     ...uitslag,
-    venster: { vanBlok, totBlok, blokTijd, aanroepen, kandidaten: nonces.length },
+    venster: { vanBlok, totBlok, blokTijd, aanroepen, kandidaten: nonces.length, seconden: Math.round((totBlok - vanBlok) * blokTijd) },
     afrekening: treffer ?? null,
   }
 }
@@ -324,7 +395,8 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
   const asset = vlag('asset', bestand.asset)
   const rpcUrl = vlag('rpc', 'https://sepolia.base.org')
   const verkennerUrl = process.argv.includes('--no-explorer') ? null : vlag('explorer', VERKENNER_STANDAARD[String(payload?.network)] ?? null)
-  const venster = Number(vlag(['window', 'venster'], '400'))
+  const vensterVlag = vlag(['window', 'venster'], null)
+  const venster = vensterVlag === null ? null : Number(vensterVlag)
 
   const ontbreekt = [
     !payload?.payer && 'payer inside the receipt',
@@ -373,7 +445,7 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
   }
 
   console.log(`reader      : ${r.bron === 'explorer' ? 'explorer (a third party, not a node)' : 'rpc node'}`)
-  console.log(`searched    : blocks ${r.venster.vanBlok} to ${r.venster.totBlok} (${r.venster.aanroepen} calls${r.venster.blokTijd ? `, measured block time ${r.venster.blokTijd.toFixed(2)}s` : ''})`)
+  console.log(`searched    : blocks ${r.venster.vanBlok} to ${r.venster.totBlok} (${r.venster.aanroepen} calls${r.venster.blokTijd ? `, measured block time ${r.venster.blokTijd.toFixed(2)}s, about ${r.venster.seconden} seconds` : ''})`)
   console.log(`candidates  : ${r.venster.kandidaten} nonce(s) consumed by this payer in that window`)
   if (r.linked) {
     console.log('LINKED      : yes, to exactly one settlement')

@@ -28,8 +28,8 @@ const COMMITMENT = berekenCommitment({
 })
 
 /** Een nagemaakte keten. `logsPerBlok` bepaalt wat eth_getLogs teruggeeft. */
-function nepRpc({ laatsteBlok = 48209388, bloktijdS = 2, logs = [], logFout = null } = {}) {
-  const tijdVanBlok = n => ISSUED + (n - 48209372) * bloktijdS
+function nepRpc({ laatsteBlok = 48209388, bloktijdS = 2, logs = [], logFout = null, tijdVan = null, vroegsteBlok = 0 } = {}) {
+  const tijdVanBlok = tijdVan ?? (n => ISSUED + (n - 48209372) * bloktijdS)
   const aanroepen = []
   return {
     aanroepen,
@@ -38,6 +38,8 @@ function nepRpc({ laatsteBlok = 48209388, bloktijdS = 2, logs = [], logFout = nu
       if (method === 'eth_blockNumber') return '0x' + laatsteBlok.toString(16)
       if (method === 'eth_getBlockByNumber') {
         const n = parseInt(params[0], 16)
+        // Een publiek knooppunt dat zijn oude blokken heeft weggegooid antwoordt met een fout, zoals het echte doet.
+        if (n < vroegsteBlok) throw new Error(`eth_getBlockByNumber: pruned history unavailable: requested ${n}, earliest available ${vroegsteBlok}`)
         return { number: params[0], timestamp: '0x' + tijdVanBlok(n).toString(16) }
       }
       if (method === 'eth_getLogs') {
@@ -86,6 +88,53 @@ console.log('block time is measured, not assumed')
   const { rpc } = nepRpc({ bloktijdS: 12 })
   const r = await blokBijTijd(rpc, ISSUED)
   toets('still lands when blocks take 12 seconds', Math.abs(r.blokTijd - 12) < 0.01 && Math.abs(r.blok - 48209372) <= 2)
+}
+
+// ── de bloktijd is niet constant ──────────────────────────────────────────────────────────────────
+//
+// GEMETEN OP 24 OKTOBER 2026, en het was een fout van ons gereedschap en niet alleen van de knooppunten. Base
+// Sepolia maakte op 16 oktober nog een blok per 2 seconden en een week later een per 0,2 seconde. De oude schatting
+// nam de bloktijd aan de kop als gemiddelde voor de hele terugweg en kwam 1,9 miljoen blokken te vroeg uit. Op een
+// knooppunt met alle geschiedenis (Tenderly) zocht de tool daardoor in een venster waar de afrekening niet lag en
+// meldde "LINKED: no", een onwaar antwoord; op de publieke knooppunten gaf het "pruned history", dezelfde fout vanuit een
+// andere hoek. Een venster dat naast de afrekening ligt mag nooit als een uitspraak over het bonnetje lezen.
+const B0 = 48209372
+const BC = B0 + 100_000
+const TIP = BC + 1_500_000
+const wisselendeTijd = (n) => (n <= BC ? ISSUED + (n - B0) * 2 : ISSUED + 200_000 + Math.floor((n - BC) * 0.2))
+
+console.log('a chain that changed its pace between the receipt and now')
+{
+  const { rpc } = nepRpc({ laatsteBlok: TIP, tijdVan: wisselendeTijd })
+  const r = await blokBijTijd(rpc, ISSUED)
+  toets('still lands on the right block when the pace changed tenfold', Math.abs(r.blok - B0) <= 2, 'kreeg ' + r.blok + ' terwijl het ' + B0 + ' is')
+  toets('reports the pace around THAT block, not the pace at the tip', Math.abs(r.blokTijd - 2) < 0.05, 'kreeg ' + r.blokTijd)
+}
+{
+  const { rpc, aanroepen } = nepRpc({ laatsteBlok: TIP, tijdVan: wisselendeTijd })
+  await blokBijTijd(rpc, ISSUED)
+  toets('needs a small number of node calls', aanroepen.length < 60, 'aanroepen ' + aanroepen.length)
+}
+{
+  const { rpc } = nepRpc({ laatsteBlok: TIP, tijdVan: wisselendeTijd, vroegsteBlok: B0 - 5_000 })
+  const r = await blokBijTijd(rpc, ISSUED)
+  toets('works on a node that keeps only recent history, as long as the block is still there', Math.abs(r.blok - B0) <= 2)
+}
+{
+  const { rpc } = nepRpc({ laatsteBlok: TIP, tijdVan: wisselendeTijd, vroegsteBlok: TIP - 10_000 })
+  let boodschap = ''
+  try { await blokBijTijd(rpc, ISSUED) } catch (e) { boodschap = e.message }
+  toets('a block that is really gone is reported as pruned, never answered with a guess', /pruned history|no longer has block/.test(boodschap), boodschap)
+}
+{
+  // het bonnetje ligt in het snelle deel van de keten en de afrekening 700 seconden later: 3500 blokken verder
+  const uitgifte = ISSUED + 250_000
+  const eigenBonnetje = { ...bonnetje, issuedAt: uitgifte }
+  const nulBlok = BC + (uitgifte - (ISSUED + 200_000)) * 5
+  const { rpc } = nepRpc({ laatsteBlok: TIP, tijdVan: wisselendeTijd, logs: [{ blok: nulBlok + 3_500, nonce: NONCE }] })
+  const r = await linkBonnetje(rpc, { payload: eigenBonnetje, salt: ZOUT, asset: ASSET })
+  toets('finds a settlement 700 seconds after the receipt on a fast chain (a window in seconds, not in blocks)', r.linked === true, 'venster ' + JSON.stringify(r.venster))
+  toets('says which window it searched in seconds as well', typeof r.venster.seconden === 'number' && r.venster.seconden > 0)
 }
 
 console.log('fetching candidates')
@@ -235,7 +284,7 @@ console.log('a node that no longer has the block says so in plain words')
   }
   let boodschap = ''
   try { await blokBijTijd(rpc, ISSUED - 4_000_000) } catch (e) { boodschap = e.message }
-  toets('names the pruned history instead of crashing on a null block', /no longer has block/.test(boodschap), boodschap)
+  toets('names the pruned history instead of crashing on a null block', /pruned history/.test(boodschap), boodschap)
 }
 
 /** Een nagemaakte verkenner. Elke aanvraag wordt bewaard, zodat de test kan zien wat er gevraagd is. */
