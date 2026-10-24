@@ -169,5 +169,55 @@ console.log('\nde losse stukken')
   t('een lege betaling valt niet om maar geeft een redencode', leeg.reason_code === 'NETWORK_MISMATCH')
 }
 
+// WIE HEEFT CODE. Aangewezen door robertolocatelli81-dev op x402#3925 en juist: USDC kiest de controle naar de code
+// van de betaler. Zonder code ecrecover (en dan weigert het een hoge s), met code ERC-1271. Een slimme portemonnee
+// of een gewoon adres met een EIP-7702-delegatie hoort dus niet afgekeurd te worden om de vorm van zijn handtekening,
+// en kan zonder ketenaanroep ook niet VALID worden: dan is de uitslag ONGEMETEN.
+console.log('\nde scope van de betaler: wie heeft code')
+{
+  const basis = lees('valid-baseline-001.json')
+  const hoog = lees('sig-malleable-high-s-001.json')
+  const draai = (v, extra) => beoordeelAutorisatie(v.input, { ...(v.context ?? {}), doelNetwerk: v.network, ...extra })
+  const kopie = (v) => JSON.parse(JSON.stringify(v))
+  const ethersAanwezig = !(await beoordeelVector(basis)).ongemeten
+
+  const onbekend = await draai(hoog, {})
+  t('zonder opgave gedraagt hij zich als voorheen en zegt dat de scope onbekend is', onbekend.reason_code === 'SIG_MALLEABLE' && onbekend.payerScope === 'unknown')
+
+  const zonderCode = await draai(hoog, { payerHasCode: false })
+  t('een betaler zonder code met een hoge s wordt afgekeurd', zonderCode.reason_code === 'SIG_MALLEABLE' && zonderCode.payerScope === 'no-code')
+
+  const metCode = await draai(hoog, { payerHasCode: true })
+  t('een betaler met code wordt niet afgekeurd om de vorm van de handtekening', metCode.reason_code !== 'SIG_MALLEABLE')
+  t('en komt nooit als geldig terug, want de handtekening is niet gecontroleerd', metCode.valid === false && metCode.ongemeten === true && metCode.payerScope === 'code')
+
+  const schoon = await draai(basis, { payerHasCode: true })
+  t('ook een verder volledig geldige betaling van een betaler met code is ONGEMETEN en niet VALID', schoon.valid === false && schoon.ongemeten === true && schoon.reason_code === null)
+
+  const verlopen = kopie(basis)
+  verlopen.context = { ...(verlopen.context ?? {}), verification_time: 9999999999 }
+  const u1 = await draai(verlopen, { payerHasCode: true })
+  t('de andere regels gelden gewoon voor een betaler met code: een verlopen venster', u1.reason_code === 'EXPIRED' && u1.valid === false)
+
+  const duur = kopie(basis)
+  duur.input.accepted.amount = '20000'
+  const u2 = await draai(duur, { payerHasCode: true })
+  t('en een bedrag dat niet klopt', u2.reason_code === 'AMOUNT_INSUFFICIENT' && u2.valid === false)
+
+  const herhaald = kopie(basis)
+  herhaald.context = { ...(herhaald.context ?? {}), seen_nonces: [herhaald.input.payload.authorization.nonce] }
+  const u3 = await draai(herhaald, { payerHasCode: true })
+  t('en een nonce die al is gebruikt', u3.reason_code === 'NONCE_REPLAY' && u3.valid === false)
+
+  if (ethersAanwezig) {
+    const gewijzigd = kopie(basis)
+    gewijzigd.input.payload.authorization.to = '0x0000000000000000000000000000000000000002'
+    const u4 = await draai(gewijzigd, { payerHasCode: true })
+    t('een betaler met code wordt niet op herstellen beoordeeld, dus een andere ontvanger geeft hier geen SIGNER_MISMATCH', u4.reason_code !== 'SIGNER_MISMATCH')
+    const u5 = await draai(gewijzigd, { payerHasCode: false })
+    t('terwijl dezelfde wijziging voor een betaler zonder code wel SIGNER_MISMATCH geeft', u5.reason_code === 'SIGNER_MISMATCH')
+  }
+}
+
 console.log('\neip3009: ' + groen + ' pass, ' + rood + ' fail')
 process.exitCode = rood === 0 ? 0 : 1

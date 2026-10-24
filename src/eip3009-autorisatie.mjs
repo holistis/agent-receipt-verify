@@ -100,11 +100,20 @@ export function isKneedbaar(signature) {
  * anders dan een afgekeurde betaling.
  */
 export async function beoordeelAutorisatie(input, context = {}) {
+  const uitslag = await beoordeelBinnen(input, context)
+  const payerScope = context.payerHasCode === true ? 'code' : context.payerHasCode === false ? 'no-code' : 'unknown'
+  return { ...uitslag, payerScope }
+}
+
+async function beoordeelBinnen(input, context = {}) {
   const doelNetwerk = context.doelNetwerk ?? input?.accepted?.network
   const accepted = input?.accepted ?? {}
   const auth = input?.payload?.authorization ?? {}
   const signature = input?.payload?.signature
   const nu = Number(context.verification_time ?? Math.floor(Date.now() / 1000))
+  // WELKE BETALER. true: heeft code, false: heeft geen code, niet opgegeven: onbekend (dan gedragen wij ons als voor een
+  // betaler zonder code en zeggen dat in de uitslag). Zie het commentaar bij stap 2 en 4, en x402#2725 en x402#3925.
+  const payerScope = context.payerHasCode === true ? 'code' : context.payerHasCode === false ? 'no-code' : 'unknown'
 
   // 1. Netwerk, in platte tekst, voor er iets met de handtekening gebeurt.
   if (String(doelNetwerk) !== String(accepted.network)) {
@@ -113,7 +122,11 @@ export async function beoordeelAutorisatie(input, context = {}) {
 
   // 2. Kneedbaarheid, voor het herstellen. Een hoge s is een tweede geldige vorm van
   // dezelfde handtekening, en wie eerst herstelt accepteert die vorm stilletjes.
-  if (isKneedbaar(signature)) {
+  // De regel geldt voor een betaler ZONDER code. USDC kiest de controle naar de code van de betaler en niet naar de vorm
+  // van de handtekening: zonder code ecrecover (en dan weigert het een hoge s), met code ERC-1271. Een slimme portemonnee
+  // met een handtekening die niet naar zichzelf terug te herstellen is, hoort dus NIET afgekeurd te worden. Aangewezen
+  // door robertolocatelli81-dev op x402#3925 en daarmee ook een gebrek van onze eerste versie.
+  if (payerScope !== 'code' && isKneedbaar(signature)) {
     return { valid: false, reason_code: 'SIG_MALLEABLE' }
   }
 
@@ -121,24 +134,16 @@ export async function beoordeelAutorisatie(input, context = {}) {
   if (nu < Number(auth.validAfter)) return { valid: false, reason_code: 'NOT_YET_VALID' }
   if (nu > Number(auth.validBefore)) return { valid: false, reason_code: 'EXPIRED' }
 
-  // 4. Herstellen en de ondertekenaar vergelijken. Zonder ethers kan dit niet, en dan
-  // is de eerlijke uitslag ONGEMETEN.
-  const ethers = await laadEthers()
-  if (!ethers) {
-    return { valid: false, reason_code: null, ongemeten: true, reden: 'ethers ontbreekt, dus de handtekening is niet te herstellen' }
-  }
-  let hersteld
-  try {
-    hersteld = ethers.verifyTypedData(domeinUit(accepted), TRANSFER_TYPES, {
-      from: auth.from, to: auth.to, value: auth.value,
-      validAfter: auth.validAfter, validBefore: auth.validBefore, nonce: auth.nonce,
-    }, signature)
-  } catch (e) {
-    // Een handtekening die niet eens te herstellen is, is geen geldige ondertekenaar.
-    return { valid: false, reason_code: 'SIGNER_MISMATCH', detail: String(e?.message ?? e).slice(0, 120) }
-  }
-  if (String(hersteld).toLowerCase() !== String(auth.from).toLowerCase()) {
-    return { valid: false, reason_code: 'SIGNER_MISMATCH', hersteld }
+  // 4. Herstellen en de ondertekenaar vergelijken, ALLEEN voor een betaler zonder code. Heeft de
+  // betaler code (een slimme portemonnee, of een gewoon adres met een EIP-7702-delegatie), dan
+  // vraagt het token zelf isValidSignature (ERC-1271) aan dat contract. Herstellen geeft dan een
+  // ander adres dan de betaler en dat is geen gebrek van de betaling. Zonder ethers kan stap 4 niet
+  // en is de eerlijke uitslag ONGEMETEN.
+  let hersteld = null
+  if (payerScope !== 'code') {
+    const g = await controleerOndertekenaar({ auth, accepted, signature })
+    if (g.uitslag) return g.uitslag
+    hersteld = g.hersteld
   }
 
   // 5. Het bedrag, pas NA de handtekening: een authentiek ondertekende afwijking.
@@ -186,7 +191,32 @@ export async function beoordeelAutorisatie(input, context = {}) {
     return { valid: false, reason_code: 'NONCE_REPLAY' }
   }
 
+  if (payerScope === 'code') {
+    return { valid: false, reason_code: null, ongemeten: true, reden: 'the payer has code, so the token checks the signature with ERC-1271 on chain; every other rule passed here but the signature itself was not checked' }
+  }
   return { valid: true, reason_code: 'VALID', ondertekenaar: hersteld, amountPolicy: beleid }
+}
+
+/** Stap 4: herstel de ondertekenaar en vergelijk. Geeft { hersteld } of { uitslag } als de beoordeling hier stopt. */
+async function controleerOndertekenaar({ auth, accepted, signature }) {
+  const ethers = await laadEthers()
+  if (!ethers) {
+    return { uitslag: { valid: false, reason_code: null, ongemeten: true, reden: 'ethers ontbreekt, dus de handtekening is niet te herstellen' } }
+  }
+  let hersteld
+  try {
+    hersteld = ethers.verifyTypedData(domeinUit(accepted), TRANSFER_TYPES, {
+      from: auth.from, to: auth.to, value: auth.value,
+      validAfter: auth.validAfter, validBefore: auth.validBefore, nonce: auth.nonce,
+    }, signature)
+  } catch (e) {
+    // Een handtekening die niet eens te herstellen is, is geen geldige ondertekenaar.
+    return { uitslag: { valid: false, reason_code: 'SIGNER_MISMATCH', detail: String(e?.message ?? e).slice(0, 120) } }
+  }
+  if (String(hersteld).toLowerCase() !== String(auth.from).toLowerCase()) {
+    return { uitslag: { valid: false, reason_code: 'SIGNER_MISMATCH', hersteld } }
+  }
+  return { hersteld }
 }
 
 /** Een hele vector beoordelen, met zijn eigen context en doelnetwerk. */
