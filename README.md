@@ -304,6 +304,21 @@ The binding is read at the block of the feedback; a node that cannot do that get
 output says so. A fact that could not be measured is `not_measured` and never `false`. The verdict is about the chain
 facts, not about whether the rating is fair.
 
+## One suite
+
+```sh
+npx -y agent-receipt-verify suite
+```
+
+Four checks in the order of the chain, one table, exit code 1 if any of them fails: the attempt identity of x402
+section 5.5, the payment authorization against the published EIP-3009 vectors, the receipt that must open on exactly
+one settlement, and the feedback that must be grounded in a payment (the two recorded verdicts of
+AgenticFinanceGraph, replayed offline with `ground --vectors`). It was asked for in
+[erc-8004/erc-8004-contracts#99](https://github.com/erc-8004/erc-8004-contracts/issues/99), and it adds no second
+implementation of anything: it calls the commands above and puts their answers side by side. It checks that this
+implementation behaves like the published vectors and the recorded verdicts of others. It is not a certification of
+anyone else's endpoint, receipt or feedback.
+
 ## Honest limits
 
 The format checks test the form of a receipt: signatures, content addressing,
