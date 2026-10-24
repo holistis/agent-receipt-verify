@@ -6,7 +6,7 @@
 // fout teruggeeft. Dat laatste is de belangrijkste: een geweigerde zoekopdracht
 // mag NOOIT als "niets gevonden" doorsijpelen.
 
-import { AUTHORIZATION_USED_TOPIC, adresAlsTopic, blokBijTijd, haalKandidaten, linkBonnetje, kiesBonnetjePad } from '../src/x402-link-onchain.mjs'
+import { AUTHORIZATION_USED_TOPIC, adresAlsTopic, blokBijTijd, haalKandidaten, linkBonnetje, kiesBonnetjePad, maakVerkenner, linkBonnetjeViaVerkenner, VERKENNER_STANDAARD } from '../src/x402-link-onchain.mjs'
 import { berekenCommitment } from '../src/x402-offer-receipt.mjs'
 import { fileURLToPath } from 'node:url'
 
@@ -215,6 +215,92 @@ console.log('waar een bonnetje gezocht wordt')
     return r !== null
   }))
 }
+
+// ── de uitwijkbron ───────────────────────────────────────────────────────────────────────────────
+//
+// Gemeten door een vreemde op 24 oktober 2026: zes keer ons commando op drie publieke knooppunten, nul keer een
+// uitslag, want ze bewaren alleen recente blokken en onze live voorbeelden zijn ouder. Een verkenner met een
+// Etherscan-compatibele API bewaart alles. Hij is een derde partij en geen knooppunt, dus de uitslag zegt wie
+// antwoordde, en een weigering van hem leest nooit als een leeg venster.
+
+console.log('a node that no longer has the block says so in plain words')
+{
+  const rpc = async (method, params) => {
+    if (method === 'eth_blockNumber') return '0x' + (48209388).toString(16)
+    if (method === 'eth_getBlockByNumber') {
+      const n = parseInt(params[0], 16)
+      return n > 48000000 ? { number: params[0], timestamp: '0x' + (ISSUED + (n - 48209372) * 2).toString(16) } : null
+    }
+    throw new Error('onverwachte methode ' + method)
+  }
+  let boodschap = ''
+  try { await blokBijTijd(rpc, ISSUED - 4_000_000) } catch (e) { boodschap = e.message }
+  toets('names the pruned history instead of crashing on a null block', /no longer has block/.test(boodschap), boodschap)
+}
+
+/** Een nagemaakte verkenner. Elke aanvraag wordt bewaard, zodat de test kan zien wat er gevraagd is. */
+function nepVerkenner({ blok = 48209372, logs = [], logsAntwoord = null, httpStatus = 200 } = {}) {
+  const urls = []
+  const fetchImpl = async (url) => {
+    urls.push(String(url))
+    if (httpStatus !== 200) return { ok: false, status: httpStatus, json: async () => ({}) }
+    const q = new URL(String(url)).searchParams
+    if (q.get('module') === 'block') return { ok: true, status: 200, json: async () => ({ status: '1', message: 'OK', result: { blockNumber: String(blok) } }) }
+    if (logsAntwoord) return { ok: true, status: 200, json: async () => logsAntwoord }
+    return {
+      ok: true, status: 200,
+      json: async () => ({
+        status: logs.length ? '1' : '0', message: logs.length ? 'OK' : 'No logs found',
+        result: logs.map((l) => ({
+          address: ASSET.toLowerCase(), blockNumber: '0x' + l.blok.toString(16), transactionHash: l.tx ?? '0x' + 'ee'.repeat(32),
+          topics: [AUTHORIZATION_USED_TOPIC, adresAlsTopic(PAYER), l.nonce, null],
+        })),
+      }),
+    }
+  }
+  return { urls, verkenner: maakVerkenner('https://explorer.example/api', fetchImpl) }
+}
+
+console.log('the explorer as a second reader of the same chain')
+{
+  const { verkenner, urls } = nepVerkenner({ logs: [{ blok: 48209372, nonce: NONCE }, { blok: 48209300, nonce: ANDERE }] })
+  const r = await linkBonnetjeViaVerkenner(verkenner, { payload: bonnetje, salt: ZOUT, asset: ASSET })
+  toets('links to exactly one settlement, like the node does', r.linked === true && r.identifier === NONCE)
+  toets('says that it was the explorer who answered', r.bron === 'explorer')
+  toets('reads the unused fourth topic as nothing and still sees the nonce', r.venster.kandidaten === 2)
+  toets('names the transaction', !!r.afrekening?.tx)
+  toets('asks for this payer and this token only, and never sends a key', urls.some((u) => u.includes(adresAlsTopic(PAYER).slice(2))) && urls.some((u) => u.includes(ASSET)) && !urls.some((u) => /apikey|api_key|key=/i.test(u)))
+}
+{
+  const { verkenner } = nepVerkenner({ logs: [{ blok: 48209372, nonce: ANDERE }] })
+  const r = await linkBonnetjeViaVerkenner(verkenner, { payload: bonnetje, salt: ZOUT, asset: ASSET })
+  toets('a window without our nonce is not linked, and says it came from the explorer', r.linked === false && r.bron === 'explorer')
+}
+{
+  const { verkenner } = nepVerkenner({ logs: [] })
+  const r = await linkBonnetjeViaVerkenner(verkenner, { payload: bonnetje, salt: ZOUT, asset: ASSET })
+  toets('"No logs found" is a real empty window', r.linked === false && r.venster.kandidaten === 0)
+}
+{
+  const { verkenner } = nepVerkenner({ logsAntwoord: { status: '0', message: 'Rate limit exceeded', result: null } })
+  let gooide = ''
+  try { await linkBonnetjeViaVerkenner(verkenner, { payload: bonnetje, salt: ZOUT, asset: ASSET }) } catch (e) { gooide = e.message }
+  toets('any other refusal stops the check and never reads as an empty window', /refused the log query/.test(gooide), gooide)
+}
+{
+  const { verkenner } = nepVerkenner({ httpStatus: 503 })
+  let gooide = ''
+  try { await linkBonnetjeViaVerkenner(verkenner, { payload: bonnetje, salt: ZOUT, asset: ASSET }) } catch (e) { gooide = e.message }
+  toets('an HTTP error stops the check', /HTTP 503/.test(gooide), gooide)
+}
+{
+  const volle = Array.from({ length: 1000 }, (_, i) => ({ blok: 48209000 + i, nonce: '0x' + String(i).padStart(64, '0') }))
+  const { verkenner } = nepVerkenner({ logs: volle })
+  let gooide = ''
+  try { await linkBonnetjeViaVerkenner(verkenner, { payload: bonnetje, salt: ZOUT, asset: ASSET }) } catch (e) { gooide = e.message }
+  toets('a list cut off at the cap is refused instead of being trusted', /may be cut off/.test(gooide), gooide)
+}
+toets('the default explorers cover the two networks the examples use', Object.keys(VERKENNER_STANDAARD).sort().join() === 'eip155:8453,eip155:84532')
 
 console.log(`\n${goed} passed, ${fout} failed`)
 process.exit(fout === 0 ? 0 : 1)

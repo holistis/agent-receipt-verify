@@ -78,6 +78,7 @@ export async function blokBijTijd(rpc, doelTijd, maxRondes = 6) {
   const laatsteNr = getal(await rpc('eth_blockNumber', []))
   const laatste = await rpc('eth_getBlockByNumber', [hex(laatsteNr), false])
   const eerder = await rpc('eth_getBlockByNumber', [hex(laatsteNr - 1000), false])
+  if (!laatste || !eerder) throw new Error('the node does not return recent blocks')
   const blokTijd = (getal(laatste.timestamp) - getal(eerder.timestamp)) / 1000
   if (!(blokTijd > 0)) throw new Error('kon de bloktijd niet meten')
 
@@ -85,6 +86,9 @@ export async function blokBijTijd(rpc, doelTijd, maxRondes = 6) {
   kandidaat = Math.max(1, Math.min(kandidaat, laatsteNr))
   for (let i = 0; i < maxRondes; i++) {
     const b = await rpc('eth_getBlockByNumber', [hex(kandidaat), false])
+    // Een publiek knooppunt bewaart maar een deel van de geschiedenis. Dat is een antwoord op zich: er is geen
+    // blok, dus er is niets te meten, en dat mag niet lezen als een stacktrace over een leeg object.
+    if (!b) throw new Error(`this node no longer has block ${kandidaat}: public nodes keep only recent history`)
     const verschil = getal(b.timestamp) - doelTijd
     if (Math.abs(verschil) <= blokTijd * 2) break
     const stap = Math.round(verschil / blokTijd)
@@ -130,6 +134,86 @@ export async function haalKandidaten(rpc, { asset, authorizer, vanBlok, totBlok,
     }
   }
   return { nonces, aanroepen }
+}
+
+/**
+ * Een tweede lezer van dezelfde keten, voor als het publieke knooppunt het blok niet meer heeft.
+ *
+ * WAAROM DIT BESTAAT. Gemeten door een vreemde op 24 oktober 2026: zes keer ons commando gedraaid op drie
+ * publieke Base Sepolia-knooppunten, nul keer een uitslag, want ze houden alleen recente blokken en onze live
+ * voorbeelden zijn ouder. De tool zei eerlijk "onbekend", maar een demo die een vreemde geen uitslag geeft is
+ * geen demo. Een verkenner met een Etherscan-compatibele API (Blockscout, zonder sleutel) bewaart de hele
+ * geschiedenis.
+ *
+ * WAT DIT NIET IS. Een verkenner is een derde partij tussen jou en de keten, geen knooppunt. Hij leest
+ * dezelfde keten maar kan zich anders gedragen, dus de uitslag zegt altijd welke lezer hem gaf, en het
+ * knooppunt blijft de eerste keus. De uitwijk is een tweede mening en nooit een stille vervanging.
+ */
+export const VERKENNER_STANDAARD = {
+  'eip155:84532': 'https://base-sepolia.blockscout.com/api',
+  'eip155:8453': 'https://base.blockscout.com/api',
+}
+
+export function maakVerkenner(basisUrl, fetchImpl = fetch) {
+  const vraag = async (params) => {
+    const r = await fetchImpl(basisUrl + '?' + new URLSearchParams(params), {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(25000),
+    })
+    if (!r.ok) throw new Error(`the explorer answered HTTP ${r.status}`)
+    try {
+      return await r.json()
+    } catch {
+      throw new Error('the explorer did not answer with JSON')
+    }
+  }
+  return {
+    basisUrl,
+    async blokBijTijd(doelTijd) {
+      const j = await vraag({ module: 'block', action: 'getblocknobytime', timestamp: String(Math.floor(doelTijd)), closest: 'before' })
+      const nr = Number(j?.result?.blockNumber)
+      if (j?.status !== '1' || !Number.isFinite(nr)) throw new Error(`the explorer could not place that time on a block (${String(j?.message ?? 'no message').slice(0, 80)})`)
+      return nr
+    },
+    async haalKandidaten({ asset, authorizer, vanBlok, totBlok }) {
+      const j = await vraag({
+        module: 'logs', action: 'getLogs', fromBlock: String(vanBlok), toBlock: String(totBlok), address: asset,
+        topic0: AUTHORIZATION_USED_TOPIC, topic1: adresAlsTopic(authorizer), topic0_1_opr: 'and',
+      })
+      // "No logs found" is een echt leeg antwoord. Elke andere status 0 is een weigering en NOOIT een leeg venster.
+      if (j?.status === '0' && /no logs found/i.test(String(j.message ?? ''))) return { nonces: [], aanroepen: 1 }
+      if (j?.status !== '1' || !Array.isArray(j.result)) throw new Error(`the explorer refused the log query (${String(j?.message ?? 'no message').slice(0, 80)})`)
+      // Een verkenner kapt een antwoord af op een vast aantal logs. Een afgekapt antwoord is geen volledige lijst.
+      if (j.result.length >= 1000) throw new Error('the explorer returned 1000 logs, its cap, so the list may be cut off; narrow --window')
+      const nonces = []
+      for (const l of j.result) {
+        // De verkenner vult het ongebruikte vierde topic met null. Dezelfde vorm als het knooppunt: drie topics.
+        const topics = (l.topics ?? []).filter((t) => t !== null)
+        if (topics.length !== 3) continue
+        nonces.push({ nonce: topics[2], blok: getal(l.blockNumber), tx: l.transactionHash })
+      }
+      return { nonces, aanroepen: 1 }
+    },
+  }
+}
+
+/** Hetzelfde pad als linkBonnetje, met de verkenner als lezer. De uitslag draagt de bron. */
+export async function linkBonnetjeViaVerkenner(verkenner, { payload, salt, asset, venster = 400 }) {
+  if (!payload?.payer) throw new Error('het bonnetje heeft geen payer, dus er is geen autorisator')
+  const issuedAt = Number(payload.issuedAt)
+  if (!Number.isFinite(issuedAt) || issuedAt <= 0) throw new Error('het bonnetje heeft geen bruikbare issuedAt')
+  const blok = await verkenner.blokBijTijd(issuedAt)
+  const vanBlok = Math.max(1, blok - venster)
+  const totBlok = blok + venster
+  const { nonces, aanroepen } = await verkenner.haalKandidaten({ asset, authorizer: payload.payer, vanBlok, totBlok })
+  const uitslag = opentCommitment({ receipt: { payload }, salt, asset, kandidaatIdentifiers: nonces.map((n) => n.nonce) })
+  const treffer = uitslag.linked ? nonces.find((n) => n.nonce.toLowerCase() === uitslag.identifier.toLowerCase()) : null
+  return {
+    ...uitslag,
+    venster: { vanBlok, totBlok, blokTijd: null, aanroepen, kandidaten: nonces.length },
+    afrekening: treffer ?? null,
+    bron: 'explorer',
+  }
 }
 
 /** Het volledige 5.6.4-pad: van bonnetje plus zout naar precies een afrekening. */
@@ -230,6 +314,7 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
   const salt = vlag(['salt', 'zout'], bestand.authorizationSalt ?? bestand.salt)
   const asset = vlag('asset', bestand.asset)
   const rpcUrl = vlag('rpc', 'https://sepolia.base.org')
+  const verkennerUrl = process.argv.includes('--no-explorer') ? null : vlag('explorer', VERKENNER_STANDAARD[String(payload?.network)] ?? null)
   const venster = Number(vlag(['window', 'venster'], '400'))
 
   const ontbreekt = [
@@ -259,13 +344,27 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
   try {
     r = await linkBonnetje(rpc, { payload, salt, asset, venster })
   } catch (e) {
-    console.log('LINKED      : unknown, the check could not be completed')
-    console.log(`  reason    : ${e.message}`)
-    console.log('  note: this is an incomplete check, not a receipt that fails to link.')
-    process.exit(2)
+    console.log(`rpc failed  : ${e.message}`)
+    if (verkennerUrl) {
+      console.log(`fallback    : asking the explorer ${new URL(verkennerUrl).host}, a third party reading the same chain (use --no-explorer to forbid this)`)
+      try {
+        r = await linkBonnetjeViaVerkenner(maakVerkenner(verkennerUrl), { payload, salt, asset, venster })
+      } catch (e2) {
+        console.log('LINKED      : unknown, the check could not be completed')
+        console.log(`  reason    : the rpc said "${e.message}" and the explorer said "${e2.message}"`)
+        console.log('  note: this is an incomplete check, not a receipt that fails to link.')
+        process.exit(2)
+      }
+    } else {
+      console.log('LINKED      : unknown, the check could not be completed')
+      console.log(`  reason    : ${e.message}`)
+      console.log('  note: this is an incomplete check, not a receipt that fails to link.')
+      process.exit(2)
+    }
   }
 
-  console.log(`searched    : blocks ${r.venster.vanBlok} to ${r.venster.totBlok} (${r.venster.aanroepen} calls, measured block time ${r.venster.blokTijd.toFixed(2)}s)`)
+  console.log(`reader      : ${r.bron === 'explorer' ? 'explorer (a third party, not a node)' : 'rpc node'}`)
+  console.log(`searched    : blocks ${r.venster.vanBlok} to ${r.venster.totBlok} (${r.venster.aanroepen} calls${r.venster.blokTijd ? `, measured block time ${r.venster.blokTijd.toFixed(2)}s` : ''})`)
   console.log(`candidates  : ${r.venster.kandidaten} nonce(s) consumed by this payer in that window`)
   if (r.linked) {
     console.log('LINKED      : yes, to exactly one settlement')

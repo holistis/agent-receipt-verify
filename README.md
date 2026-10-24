@@ -216,6 +216,14 @@ receipts could not be told apart. Each one still resolves to its own settlement:
 npm run link-example
 ```
 
+Public Base Sepolia nodes keep only recent history, and these receipts are older than that, so a
+plain node answers "pruned history". The command says so, then asks a keyless explorer
+(Blockscout) for the same logs, and the output names which reader answered (`reader :`). An
+explorer is a third party between you and the chain, not a node: it reads the same chain but can
+behave differently, so the node stays the first choice and the explorer is a second opinion. Use
+`--no-explorer` to forbid the fallback, or `--explorer=<url>` for another Etherscan-compatible
+API. If both fail you get `LINKED : unknown`, which is an incomplete check and never a verdict.
+
 ```
 commitment  : 0x5c35a61a09a566a9c284fad18a70ac2ddfff34d01d2a3ce776ce94e8d5b38ff8
 candidates  : 2 nonce(s) consumed by this payer in that window
