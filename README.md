@@ -152,6 +152,17 @@ about one nonce reused across two payers. Those are the two open questions in
 [x402#2725](https://github.com/x402-foundation/x402/issues/2725), and the command
 prints exactly where the two possible answers diverge and where they do not.
 
+One scope to know about. The high-s rule and the signer recovery apply to a payer WITHOUT
+code. USDC picks the check by the payer's code: no code, ecrecover (and a high-s signature
+reverts); code, ERC-1271 `isValidSignature` on the payer's contract. So a smart wallet, or an
+ordinary address with an EIP-7702 delegation, must not be rejected for the shape of its
+signature. Pass `payerHasCode: true` in the context and the verifier skips both rules, still
+applies the window, the amount and the nonce, and never answers VALID: it answers
+`ongemeten`, because the signature itself is only checked by a call to the chain. Every
+answer now carries `payerScope` (`code`, `no-code` or `unknown`; unknown behaves as no-code
+and says so). Pointed out on [x402#3925](https://github.com/x402-foundation/x402/pull/3925)
+by robertolocatelli81-dev, and it applied to our first version too.
+
 The third runs twelve vectors for the half AFTER paying: does this receipt belong to
 that one settlement. Eleven of them need no network at all; the twelfth reads the chain
 and is marked and skipped rather than reported as a failure, because a check that could
