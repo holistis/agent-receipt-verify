@@ -46,6 +46,10 @@ function gebruik() {
   console.log('        public node no longer has the block it asks a keyless explorer and says so')
   console.log('        (--no-explorer forbids that).')
   console.log('')
+  console.log('  npx -y agent-receipt-verify ground --feedback=<tx hash>')
+  console.log('        is an ERC-8004 feedback grounded in a payment? Four facts read from the chain, the ones')
+  console.log('        AgenticFinanceGraph uses, plus one: does the feedbackHash open through the receipt.')
+  console.log('')
   console.log('  npx -y agent-receipt-verify mcp')
   console.log('        runs as an MCP server over stdio, so an agent CALLS this check instead of')
   console.log('        being advised to run it. Two tools: check an endpoint before you pay, and')
@@ -94,6 +98,7 @@ const onderdelen = {
   mcp: '../src/mcp-server.mjs',
   census: '../src/x402-discovery-census.mjs',
   link: '../src/x402-link-onchain.mjs',
+  ground: '../src/x402-grounding.mjs',
   inam: '../src/inam-countersigned.mjs',
   liveness: '../src/x402-index-liveness.mjs',
   kanon: '../src/eip3009-autorisatie.mjs',
