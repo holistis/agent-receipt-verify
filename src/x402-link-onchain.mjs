@@ -154,13 +154,22 @@ export const VERKENNER_STANDAARD = {
   'eip155:8453': 'https://base.blockscout.com/api',
 }
 
-export function maakVerkenner(basisUrl, fetchImpl = fetch) {
+export function maakVerkenner(basisUrl, fetchImpl = fetch, { wacht = (ms) => new Promise((r) => setTimeout(r, ms)), pogingen = 3 } = {}) {
   const vraag = async (params) => {
-    const r = await fetchImpl(basisUrl + '?' + new URLSearchParams(params), {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(25000),
-    })
-    if (!r.ok) throw new Error(`the explorer answered HTTP ${r.status}`)
+    // Een sleutelloze verkenner begrenst per adres, en een 429 is een verzoek om even te wachten en geen
+    // antwoord op de vraag. Tot drie pogingen, met de wachttijd die hij zelf noemt (hooguit 15 seconden) en
+    // anders 2 en 4 seconden. Daarna stopt de controle met die reden: ONBEKEND, nooit een leeg venster.
+    let r
+    for (let poging = 1; poging <= pogingen; poging++) {
+      r = await fetchImpl(basisUrl + '?' + new URLSearchParams(params), {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(25000),
+      })
+      if (r.status !== 429 || poging === pogingen) break
+      const genoemd = Number(r.headers?.get?.('retry-after'))
+      await wacht(Math.min(15000, Number.isFinite(genoemd) && genoemd > 0 ? genoemd * 1000 : 2000 * poging))
+    }
+    if (!r.ok) throw new Error(`the explorer answered HTTP ${r.status}${r.status === 429 ? ' (rate limited, try again in a minute)' : ''}`)
     try {
       return await r.json()
     } catch {

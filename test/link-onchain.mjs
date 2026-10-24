@@ -261,6 +261,29 @@ function nepVerkenner({ blok = 48209372, logs = [], logsAntwoord = null, httpSta
   return { urls, verkenner: maakVerkenner('https://explorer.example/api', fetchImpl) }
 }
 
+console.log('a rate-limited explorer is asked again, and then reported, never read as an empty window')
+{
+  let aanroepen = 0
+  const wachttijden = []
+  const fetchImpl = async () => {
+    aanroepen++
+    if (aanroepen <= 2) return { ok: false, status: 429, headers: { get: () => (aanroepen === 1 ? '3' : null) }, json: async () => ({}) }
+    return { ok: true, status: 200, json: async () => ({ status: '1', message: 'OK', result: { blockNumber: '48209372' } }) }
+  }
+  const v = maakVerkenner('https://explorer.example/api', fetchImpl, { wacht: async (ms) => { wachttijden.push(ms) }, pogingen: 3 })
+  const blok = await v.blokBijTijd(ISSUED)
+  toets('succeeds on the third try after two 429s', blok === 48209372 && aanroepen === 3)
+  toets('waits what the explorer asks for, and 4 seconds when it names nothing', wachttijden[0] === 3000 && wachttijden[1] === 4000, JSON.stringify(wachttijden))
+}
+{
+  let aanroepen = 0
+  const fetchImpl = async () => { aanroepen++; return { ok: false, status: 429, headers: { get: () => null }, json: async () => ({}) } }
+  const v = maakVerkenner('https://explorer.example/api', fetchImpl, { wacht: async () => {}, pogingen: 3 })
+  let gooide = ''
+  try { await v.blokBijTijd(ISSUED) } catch (e) { gooide = e.message }
+  toets('keeps being limited: stops after three tries with that reason', aanroepen === 3 && /HTTP 429.*rate limited/.test(gooide), gooide)
+}
+
 console.log('the explorer as a second reader of the same chain')
 {
   const { verkenner, urls } = nepVerkenner({ logs: [{ blok: 48209372, nonce: NONCE }, { blok: 48209300, nonce: ANDERE }] })

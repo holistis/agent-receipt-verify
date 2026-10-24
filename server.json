@@ -3,7 +3,7 @@
   "name": "io.github.holistis/agent-receipt-verify",
   "title": "Agent Receipt Verify",
   "description": "Checks x402 endpoint conformance before an agent pays, and links the receipt to its settlement.",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "repository": {
     "url": "https://github.com/holistis/agent-receipt-verify",
     "source": "github"
