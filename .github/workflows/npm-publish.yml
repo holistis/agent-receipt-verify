@@ -148,5 +148,17 @@ jobs:
           done
           npm view "$N@$V" version dist.tarball
           cd "$(mktemp -d)"
+          # npm view and npx do not see a new version at the same moment. On 24 October 2026 the 0.2.10
+          # run saw the version through npm view after 70 seconds, and npx answered ETARGET (no matching
+          # version) a fraction of a second later, so a published package made the run look failed.
+          # npx gets the same patience: it is tried again for up to three minutes, and only a version
+          # that npx never resolves fails the run.
+          opgelost=0
+          for i in $(seq 1 18); do
+            if npx -y "$N@$V" kanon > /dev/null 2>&1; then opgelost=1; break; fi
+            echo "npx cannot resolve $N@$V yet (attempt $i), waiting 10s"
+            sleep 10
+          done
+          if [ "$opgelost" != 1 ]; then echo "npx never resolved $N@$V within three minutes"; exit 1; fi
           npx -y "$N@$V" kanon
           npx -y "$N@$V" beleid
