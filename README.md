@@ -319,6 +319,12 @@ reader can apply either rule and keep counts comparable:
 
 Only stablecoins identified by the network's USDC contract address are read; other tokens are not.
 
+Since 0.2.16 there is a third reading of the binding, `paidIsBoundWalletAtPayment` with `binding.agentWalletBijBetaling`: which
+wallet was bound to the agent at the block of the payment. It answers whether the payment went to the agent's registered wallet
+when it was made, and it covers the pre-registration case without a separate rule, because before the mint there is no binding to
+read. The tool now shows the reading at the payment block, at the feedback block and as it stands now, and does not pick one for
+the reader. Which one a grounding rule should require is a spec question; this only makes the three answers visible.
+
 ## One suite
 
 ```sh

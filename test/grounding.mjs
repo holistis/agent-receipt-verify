@@ -73,7 +73,7 @@ const transferLog = ({ from = RATER, to = AGENT_WALLET, value = 1000, blok = 990
 const autorisatieLog = ({ door = RATER }) => ({ address: CFG.usdc, topics: [AUTHORIZATION_USED_TOPIC, adresWoord(door), '0x' + 'cc'.repeat(32)], data: '0x', blockNumber: '0x3de', logIndex: '0x15', transactionHash: PAY_TX })
 
 /** Een nagemaakte keten. historischWeigert: een eth_call op een bepaald blok geeft een fout, zoals een publiek knooppunt. */
-function nepKeten({ txs = {}, wallet = AGENT_WALLET, operator = false, historischWeigert = false, mintBlok = null, walletNu = null }) {
+function nepKeten({ txs = {}, wallet = AGENT_WALLET, operator = false, historischWeigert = false, mintBlok = null, walletNu = null, walletVoorBlok = null }) {
   const aanroepen = []
   const rpc = async (method, params) => {
     aanroepen.push([method, params])
@@ -86,7 +86,10 @@ function nepKeten({ txs = {}, wallet = AGENT_WALLET, operator = false, historisc
         if (mintBlok !== null && blok >= mintBlok) return adresWoord(wallet)
         throw new Error('execution reverted: ERC721NonexistentToken')
       }
-      if (data.startsWith('0x00339509')) return adresWoord(params[1] === 'latest' && walletNu ? walletNu : wallet)
+      if (data.startsWith('0x00339509')) {
+        if (walletVoorBlok) { const nr = params[1] === 'latest' ? Infinity : parseInt(params[1], 16); return adresWoord(walletVoorBlok(nr) ?? '0x' + '0'.repeat(40)) }
+        return adresWoord(params[1] === 'latest' && walletNu ? walletNu : wallet)
+      }
       if (data.startsWith('0xd95e72be')) return '0x' + w(operator ? 1 : 0)
     }
     throw new Error('unexpected ' + method)
@@ -225,6 +228,22 @@ console.log('extra facts asked for by AgenticFinanceGraph: registration order, b
   k = keten({ mintBlok: 700 }, [transferLog({ value: 1000 }), transferLog({ from: FACILITATOR, to: RATER, value: 100, logIndex: 22 })])
   u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
   toets('a small refund is not a routing hop', u.feiten.noReturnTransfer.status === 'true')
+}
+
+console.log('the third reading: the binding at the block of the payment')
+{
+  const keten = (opties) => nepKeten({ ...opties, txs: { [FB_TX]: ontvangst([feedbackLog({ data: feedbackData({ hash: standaardHash }) })]), [PAY_TX]: ontvangst([transferLog({})]) } })
+  const ANDER_WALLET = '0x5555555555555555555555555555555555555555'
+  let u = await beoordeelGrounding({ rpc: keten({ mintBlok: 700, walletVoorBlok: (nr) => (nr >= 500 ? AGENT_WALLET : null) }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('a wallet bound before the payment and unchanged: true', u.feiten.paidIsBoundWalletAtPayment.status === 'true' && u.binding.agentWalletBijBetaling === AGENT_WALLET)
+  u = await beoordeelGrounding({ rpc: keten({ mintBlok: 995, walletVoorBlok: (nr) => (nr >= 995 ? AGENT_WALLET : null) }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('an agent that did not exist at the payment block: false, with the reason', u.feiten.paidIsBoundWalletAtPayment.status === 'false' && /no wallet was bound/.test(u.feiten.paidIsBoundWalletAtPayment.bewijs) && u.grounded === 'yes')
+  u = await beoordeelGrounding({ rpc: keten({ mintBlok: 700, walletVoorBlok: (nr) => (nr >= 995 ? ANDER_WALLET : nr >= 500 ? AGENT_WALLET : null) }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('a wallet that changed between payment and feedback: true at the payment block, false at the feedback block', u.feiten.paidIsBoundWalletAtPayment.status === 'true' && u.feiten.paidIsBoundWallet.status === 'false')
+  u = await beoordeelGrounding({ rpc: keten({ mintBlok: 700, historischWeigert: true }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('a node without historical state: not measured, never guessed', u.feiten.paidIsBoundWalletAtPayment.status === 'not_measured')
+  u = await beoordeelGrounding({ rpc: nepKeten({ txs: { [FB_TX]: ontvangst([feedbackLog({ data: feedbackData({ hash: '0x' + '07'.repeat(32) }) })]) } }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('without a payment transaction the reading is not measured', u.feiten.paidIsBoundWalletAtPayment.status === 'not_measured')
 }
 
 console.log('the command line')
