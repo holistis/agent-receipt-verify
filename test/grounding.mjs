@@ -73,7 +73,7 @@ const transferLog = ({ from = RATER, to = AGENT_WALLET, value = 1000, blok = 990
 const autorisatieLog = ({ door = RATER }) => ({ address: CFG.usdc, topics: [AUTHORIZATION_USED_TOPIC, adresWoord(door), '0x' + 'cc'.repeat(32)], data: '0x', blockNumber: '0x3de', logIndex: '0x15', transactionHash: PAY_TX })
 
 /** Een nagemaakte keten. historischWeigert: een eth_call op een bepaald blok geeft een fout, zoals een publiek knooppunt. */
-function nepKeten({ txs = {}, wallet = AGENT_WALLET, operator = false, historischWeigert = false }) {
+function nepKeten({ txs = {}, wallet = AGENT_WALLET, operator = false, historischWeigert = false, mintBlok = null, walletNu = null }) {
   const aanroepen = []
   const rpc = async (method, params) => {
     aanroepen.push([method, params])
@@ -81,7 +81,12 @@ function nepKeten({ txs = {}, wallet = AGENT_WALLET, operator = false, historisc
     if (method === 'eth_call') {
       if (historischWeigert && params[1] !== 'latest') throw new Error('missing trie node: historical state is not available')
       const data = params[0].data
-      if (data.startsWith('0x00339509')) return adresWoord(wallet)
+      if (data.startsWith('0x6352211e')) {
+        const blok = params[1] === 'latest' ? Infinity : parseInt(params[1], 16)
+        if (mintBlok !== null && blok >= mintBlok) return adresWoord(wallet)
+        throw new Error('execution reverted: ERC721NonexistentToken')
+      }
+      if (data.startsWith('0x00339509')) return adresWoord(params[1] === 'latest' && walletNu ? walletNu : wallet)
       if (data.startsWith('0xd95e72be')) return '0x' + w(operator ? 1 : 0)
     }
     throw new Error('unexpected ' + method)
@@ -175,6 +180,51 @@ console.log('the fifth fact: the feedbackHash opens through the receipt')
   toets('a chain read that fails while opening is not measured, never false', u.feiten.feedbackHashOpensReceipt.status === 'not_measured')
   u = await beoordeelGrounding({ rpc: ketenMet(COMMIT), network: NET, feedbackTx: FB_TX, paymentTx: PAY_TX, receipt: bonnetje, salt: '0x' + 'ab'.repeat(32), linkFn: linkOp('0x' + 'b2'.repeat(32)) })
   toets('a commitment that opens a different settlement than the payment: false', u.feiten.feedbackHashOpensReceipt.status === 'false')
+}
+
+console.log('extra facts asked for by AgenticFinanceGraph: registration order, binding now, routing hops')
+{
+  const keten = (opties, betalingLogs = [transferLog({})]) => nepKeten({ ...opties, txs: { [FB_TX]: ontvangst([feedbackLog({ data: feedbackData({ hash: standaardHash }) })]), [PAY_TX]: ontvangst(betalingLogs) } })
+  let k = keten({ mintBlok: 700 })
+  let u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('the registration block is found by bisection, in few calls', u.registration.blok === 700 && k.aanroepen.filter((a) => a[0] === 'eth_call' && a[1][0].data.startsWith('0x6352211e')).length <= 14)
+  toets('a payment after the registration: paymentBeforeRegistration is false', u.feiten.paymentAfterRegistration.status === 'true' && u.paymentBeforeRegistration === false)
+  toets('and it changes neither the four facts nor the verdict', u.grounded === 'yes')
+
+  k = keten({ mintBlok: 995 })
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('a payment before the registration is reported as such (their pre_registration)', u.feiten.paymentAfterRegistration.status === 'false' && u.paymentBeforeRegistration === true && u.registration.blok === 995)
+  toets('but the four facts still hold, so a reader can apply either rule', u.grounded === 'yes')
+
+  k = keten({ mintBlok: 990 })
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('a payment in the very block of the registration is not after it', u.feiten.paymentAfterRegistration.status === 'false')
+
+  k = keten({ mintBlok: 700, historischWeigert: true })
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('a node without historical state: registration not measured, never guessed, verdict unchanged', u.feiten.paymentAfterRegistration.status === 'not_measured' && u.paymentBeforeRegistration === null && u.grounded === 'yes')
+
+  k = keten({})
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('an agent that does not exist at the feedback block: registration not measured', u.feiten.paymentAfterRegistration.status === 'not_measured')
+
+  const ANDER_WALLET = '0x5555555555555555555555555555555555555555'
+  k = keten({ mintBlok: 700, walletNu: ANDER_WALLET })
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('a binding that changed since the feedback is reported, with both addresses', u.binding.koppelingVeranderd === true && u.binding.agentWalletNu === ANDER_WALLET && u.binding.agentWallet === AGENT_WALLET)
+  k = keten({ mintBlok: 700 })
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('an unchanged binding says so', u.binding.koppelingVeranderd === false)
+  k = keten({ mintBlok: 700, historischWeigert: true, walletNu: ANDER_WALLET })
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('when the feedback block could not be read the change is not claimed', u.binding.koppelingVeranderd === null)
+
+  k = keten({ mintBlok: 700 }, [transferLog({ value: 1000 }), transferLog({ from: FACILITATOR, to: RATER, value: 950, logIndex: 22 })])
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('about the same amount back to the payer in the same transaction is flagged as a routing hop', u.feiten.noReturnTransfer.status === 'false' && u.grounded === 'yes')
+  k = keten({ mintBlok: 700 }, [transferLog({ value: 1000 }), transferLog({ from: FACILITATOR, to: RATER, value: 100, logIndex: 22 })])
+  u = await beoordeelGrounding({ rpc: k.rpc, network: NET, feedbackTx: FB_TX })
+  toets('a small refund is not a routing hop', u.feiten.noReturnTransfer.status === 'true')
 }
 
 console.log('the command line')

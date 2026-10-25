@@ -40,6 +40,7 @@ export const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11
 export const AUTHORIZATION_USED_TOPIC = '0x98de503528ee59b575ef0c0a2576a82497bfc029a5685b209e9ec333479b10a5'
 const SEL_GET_AGENT_WALLET = '0x00339509'
 const SEL_IS_AUTHORIZED_OR_OWNER = '0xd95e72be'
+const SEL_OWNER_OF = '0x6352211e'
 
 /** De registers en het USDC-adres per keten. Bron: de README van erc-8004/erc-8004-contracts en de USDC-uitgifte. */
 export const NETWERKEN = {
@@ -128,7 +129,10 @@ export async function leesBetaling(rpc, txHash, { usdc, rater = null }) {
   const autorisaties = logs
     .filter((l) => laag(l.address) === laag(usdc) && laag(l.topics?.[0]) === AUTHORIZATION_USED_TOPIC)
     .map((l) => adresUitTopic(l.topics[1]))
-  return { gevonden: true, ...gekozen, aantalOverdrachten: overdrachten.length, autorisatieDoor: autorisaties, tx: ontvangst.transactionHash ?? txHash }
+  // Een routeringshop: ongeveer hetzelfde bedrag (minstens 90 procent) gaat in dezelfde transactie naar de betaler terug.
+  const terug = overdrachten.filter((o) => o !== gekozen && o.to === gekozen.from).reduce((a, o) => a + BigInt(o.value), 0n)
+  const terugstroom = BigInt(gekozen.value) > 0n && terug * 10n >= BigInt(gekozen.value) * 9n
+  return { gevonden: true, ...gekozen, aantalOverdrachten: overdrachten.length, autorisatieDoor: autorisaties, tx: ontvangst.transactionHash ?? txHash, terugstroom, terugstroomWaarde: terug.toString() }
 }
 
 async function aanroep(rpc, naar, data, blok) {
@@ -145,12 +149,45 @@ export async function leesBinding(rpc, { agentId, rater, identity, blok }) {
   const idWoord = BigInt(agentId).toString(16).padStart(64, '0')
   const wallet = await aanroep(rpc, identity, SEL_GET_AGENT_WALLET + idWoord, blok)
   const rol = await aanroep(rpc, identity, SEL_IS_AUTHORIZED_OR_OWNER + adresAlsWoord(rater) + idWoord, blok)
+  // Ook de koppeling zoals ze NU is, want een indexer die later telt leest die, en ze kan tussen betaling en beoordeling veranderd zijn.
+  let walletNu = null
+  try { walletNu = '0x' + String(await rpc('eth_call', [{ to: identity, data: SEL_GET_AGENT_WALLET + idWoord }, 'latest'])).slice(-40).toLowerCase() } catch { walletNu = null }
+  const gebonden = '0x' + String(wallet.uit).slice(-40).toLowerCase()
   return {
+    agentWalletNu: walletNu,
+    koppelingVeranderd: walletNu !== null && wallet.leesOp !== 'latest' ? walletNu !== gebonden : null,
     agentWallet: '0x' + String(wallet.uit).slice(-40).toLowerCase(),
     walletGelezenOp: wallet.leesOp,
     raterIsEigenaarOfOperator: BigInt(rol.uit) !== 0n,
     rolGelezenOp: rol.leesOp,
   }
+}
+
+/**
+ * Het blok waarop de agent geregistreerd (geminted) is: het eerste blok waarop ownerOf(agentId) antwoordt.
+ * Bisectie over historische eth_call-aanroepen. Een knooppunt dat oude toestand niet bewaart geeft een fout die niet op
+ * een revert lijkt; dan is het blok niet te meten, en dat zeggen we, in plaats van te raden.
+ */
+export async function leesRegistratie(rpc, { agentId, identity, totBlok }) {
+  const idWoord = BigInt(agentId).toString(16).padStart(64, '0')
+  let aantal = 0
+  const bestaat = async (blok) => {
+    aantal++
+    try {
+      const uit = await rpc('eth_call', [{ to: identity, data: SEL_OWNER_OF + idWoord }, hex(blok)])
+      return typeof uit === 'string' && uit.length >= 66 && BigInt(uit) !== 0n
+    } catch (e) {
+      if (/revert|nonexistent|invalid token/i.test(String(e.message))) return false
+      throw e
+    }
+  }
+  if (!(await bestaat(totBlok))) throw new Error('the agent does not exist at the feedback block according to ownerOf')
+  let lo = 0, hi = totBlok
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (await bestaat(mid)) hi = mid; else lo = mid
+  }
+  return { blok: hi, aantalAanroepen: aantal }
 }
 
 const voor = (a, b) => a.blok < b.blok || (a.blok === b.blok && a.logIndex < b.logIndex)
@@ -189,6 +226,10 @@ export async function beoordeelGrounding({ rpc, network, feedbackTx, paymentTx =
   const binding = await leesBinding(rpc, { agentId: fb.agentId, rater: fb.rater, identity: cfg.identity, blok: fb.blok })
   const betaling = betalingTx ? await leesBetaling(rpc, betalingTx, { usdc: cfg.usdc, rater: fb.rater }) : { gevonden: false, reden: 'no payment transaction was given and the feedbackHash is not a transaction' }
 
+  // Extra, informatief: het registratieblok van de agent. Faalt dit, dan is het niet gemeten en verandert er niets aan de vier feiten.
+  let registratie
+  try { registratie = await leesRegistratie(rpc, { agentId: fb.agentId, identity: cfg.identity, totBlok: fb.blok }) } catch (e) { registratie = { fout: String(e.message).slice(0, 140) } }
+
   const feiten = {}
   if (betaling.gevonden) {
     feiten.raterIsPayer = betaling.from === laag(fb.rater)
@@ -203,6 +244,19 @@ export async function beoordeelGrounding({ rpc, network, feedbackTx, paymentTx =
       : feit('false', `payment at block ${betaling.blok} (log ${betaling.logIndex}) is not before the feedback at block ${fb.blok} (log ${fb.logIndex})`)
   } else {
     for (const naam of ['raterIsPayer', 'paidIsBoundWallet', 'paymentBeforeFeedback']) feiten[naam] = feit('not_measured', betaling.reden)
+  }
+  if (!betaling.gevonden) {
+    feiten.paymentAfterRegistration = feit('not_measured', betaling.reden)
+    feiten.noReturnTransfer = feit('not_measured', betaling.reden)
+  } else {
+    feiten.paymentAfterRegistration = registratie.fout
+      ? feit('not_measured', 'the registration block could not be read: ' + registratie.fout)
+      : betaling.blok > registratie.blok
+        ? feit('true', `the payment at block ${betaling.blok} is after the registration of agent ${fb.agentId} at block ${registratie.blok}`)
+        : feit('false', `the payment at block ${betaling.blok} is not after the registration of agent ${fb.agentId} at block ${registratie.blok}: before the mint the payee was an address, not the agent`)
+    feiten.noReturnTransfer = betaling.terugstroom
+      ? feit('false', `about the same amount returns to the payer in the same transaction (${betaling.terugstroomWaarde} units back of ${betaling.value}): a routing hop, not a payment to the agent`)
+      : feit('true', 'no transfer of about the same amount returns to the payer in that transaction')
   }
   feiten.raterNotOwnerOrOperator = binding.raterIsEigenaarOfOperator
     ? feit('false', `the rater is the owner or an approved operator of agent ${fb.agentId}`, { gelezenOp: binding.rolGelezenOp })
@@ -227,6 +281,8 @@ export async function beoordeelGrounding({ rpc, network, feedbackTx, paymentTx =
     network, feedback: fb,
     payment: betaling.gevonden ? { tx: betalingTx, bron: bronBetaling, from: betaling.from, to: betaling.to, value: betaling.value, blok: betaling.blok, logIndex: betaling.logIndex, aantalOverdrachten: betaling.aantalOverdrachten } : { tx: betalingTx, reden: betaling.reden },
     binding, feiten, grounded,
+    registration: registratie.fout ? { reden: registratie.fout } : { blok: registratie.blok },
+    paymentBeforeRegistration: feiten.paymentAfterRegistration.status === 'true' ? false : feiten.paymentAfterRegistration.status === 'false' ? true : null,
     groundedWithCommitment: grounded === 'yes' && feiten.feedbackHashOpensReceipt.status === 'true',
   }
 }
@@ -243,6 +299,8 @@ const TEKST = {
   paymentBeforeFeedback: 'the payment lands before the feedback',
   raterNotOwnerOrOperator: 'the rater is neither owner nor approved operator',
   feedbackHashOpensReceipt: 'the feedbackHash opens through the receipt (extra)',
+  paymentAfterRegistration: 'the payment lands after the agent was registered (extra: the rule AgenticFinanceGraph applies in its count)',
+  noReturnTransfer: 'no transfer of about the same amount returns to the payer in the same transaction (extra: AgenticFinanceGraph drops routing hops)',
 }
 
 /**
@@ -325,6 +383,8 @@ Without --payment the feedbackHash is tried as a transaction hash.`)
     if (u.payment.aantalOverdrachten > 1) console.log(`  note: that transaction holds ${u.payment.aantalOverdrachten} USDC transfers, the rater's was used`)
   } else console.log(`payment      : not found (${u.payment.reden})`)
   console.log(`binding      : agent wallet ${u.binding.agentWallet}, read at ${u.binding.walletGelezenOp === 'latest' ? 'the latest block (the node could not read the feedback block)' : 'block ' + u.binding.walletGelezenOp}`)
+  if (u.binding.koppelingVeranderd) console.log(`  note: the wallet bound to the agent has changed since the feedback: it was ${u.binding.agentWallet} then and is ${u.binding.agentWalletNu} now. An indexer that counts later reads the later one.`)
+  console.log(`registration : ${u.registration.blok ? 'agent ' + f.agentId + ' registered at block ' + u.registration.blok : 'not measured (' + u.registration.reden + ')'}${u.paymentBeforeRegistration === true ? '; the payment is BEFORE the registration' : u.paymentBeforeRegistration === false ? '; the payment is after the registration' : ''}`)
   console.log('')
   for (const [naam, tekst] of Object.entries(TEKST)) {
     const x = u.feiten[naam]
