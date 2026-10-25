@@ -190,6 +190,25 @@ export async function leesRegistratie(rpc, { agentId, identity, totBlok }) {
   return { blok: hi, aantalAanroepen: aantal }
 }
 
+const NUL_ADRES = '0x' + '0'.repeat(40)
+
+/**
+ * Het adres dat aan de agent gebonden was op het blok van de BETALING. Geen adres (of een fout die op een revert lijkt)
+ * betekent dat er toen niets gebonden was, bijvoorbeeld omdat de agent nog niet bestond. Een knooppunt dat oude toestand
+ * niet bewaart geeft een andere fout; dan is het niet gemeten en dat zeggen we.
+ */
+export async function leesBindingBijBetaling(rpc, { agentId, identity, blok }) {
+  const idWoord = BigInt(agentId).toString(16).padStart(64, '0')
+  try {
+    const uit = await rpc('eth_call', [{ to: identity, data: SEL_GET_AGENT_WALLET + idWoord }, hex(blok)])
+    const wallet = '0x' + String(uit).slice(-40).toLowerCase()
+    return wallet === NUL_ADRES || String(uit) === '0x' ? { gebonden: false } : { gebonden: true, wallet }
+  } catch (e) {
+    if (/revert|nonexistent|invalid token/i.test(String(e.message))) return { gebonden: false }
+    return { fout: String(e.message).slice(0, 120) }
+  }
+}
+
 const voor = (a, b) => a.blok < b.blok || (a.blok === b.blok && a.logIndex < b.logIndex)
 const feit = (status, bewijs, extra = {}) => ({ status, bewijs, ...extra })
 
@@ -258,6 +277,21 @@ export async function beoordeelGrounding({ rpc, network, feedbackTx, paymentTx =
       ? feit('false', `about the same amount returns to the payer in the same transaction (${betaling.terugstroomWaarde} units back of ${betaling.value}): a routing hop, not a payment to the agent`)
       : feit('true', 'no transfer of about the same amount returns to the payer in that transaction')
   }
+  // Derde lezing van de koppeling: op het blok van de betaling.
+  if (!betaling.gevonden) {
+    feiten.paidIsBoundWalletAtPayment = feit('not_measured', betaling.reden)
+  } else {
+    const bijBetaling = await leesBindingBijBetaling(rpc, { agentId: fb.agentId, identity: cfg.identity, blok: betaling.blok })
+    binding.agentWalletBijBetaling = bijBetaling.gebonden ? bijBetaling.wallet : null
+    binding.bijBetalingGemeten = !bijBetaling.fout
+    feiten.paidIsBoundWalletAtPayment = bijBetaling.fout
+      ? feit('not_measured', 'the binding at the payment block could not be read: ' + bijBetaling.fout)
+      : !bijBetaling.gebonden
+        ? feit('false', `no wallet was bound to agent ${fb.agentId} at the payment block ${betaling.blok}: the agent did not exist yet or had no wallet`)
+        : bijBetaling.wallet === betaling.to
+          ? feit('true', `at the payment block ${betaling.blok} ${kort(betaling.to)} was the wallet bound to agent ${fb.agentId}`)
+          : feit('false', `at the payment block ${betaling.blok} agent ${fb.agentId} was bound to ${kort(bijBetaling.wallet)}, the payment went to ${kort(betaling.to)}`)
+  }
   feiten.raterNotOwnerOrOperator = binding.raterIsEigenaarOfOperator
     ? feit('false', `the rater is the owner or an approved operator of agent ${fb.agentId}`, { gelezenOp: binding.rolGelezenOp })
     : feit('true', `the rater is neither owner nor approved operator of agent ${fb.agentId}`, { gelezenOp: binding.rolGelezenOp })
@@ -299,6 +333,7 @@ const TEKST = {
   paymentBeforeFeedback: 'the payment lands before the feedback',
   raterNotOwnerOrOperator: 'the rater is neither owner nor approved operator',
   feedbackHashOpensReceipt: 'the feedbackHash opens through the receipt (extra)',
+  paidIsBoundWalletAtPayment: "the paid address was the agent's bound wallet when the payment was made (extra: the third reading)",
   paymentAfterRegistration: 'the payment lands after the agent was registered (extra: the rule AgenticFinanceGraph applies in its count)',
   noReturnTransfer: 'no transfer of about the same amount returns to the payer in the same transaction (extra: AgenticFinanceGraph drops routing hops)',
 }
