@@ -325,6 +325,12 @@ when it was made, and it covers the pre-registration case without a separate rul
 read. The tool now shows the reading at the payment block, at the feedback block and as it stands now, and does not pick one for
 the reader. Which one a grounding rule should require is a spec question; this only makes the three answers visible.
 
+The three readings have vectors in `vectors/grounding-readings/erc8004-grounding-readings.json`, replayed offline by
+`test/grounding.mjs`: three cases with the expected verdict per reading. The expected verdicts and the first two cases were
+written first by predge-ai (erc-8004/erc-8004-contracts#99); the third case, where the binding changes only after the feedback,
+is ours. Case 1 is also recorded live on Base Sepolia (agent 10402) and the file lists its four transactions, so anyone can run
+`ground` on them.
+
 ## One suite
 
 ```sh
