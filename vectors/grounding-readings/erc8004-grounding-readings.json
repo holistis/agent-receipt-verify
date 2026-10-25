@@ -1,0 +1,40 @@
+{
+  "about": "Vectors for the three readings of the wallet binding in an ERC-8004 feedback grounding (erc-8004/erc-8004-contracts#99). Expected verdicts per reading were written first by predge-ai (comment 6397094496); case 1 is also recorded live on Base Sepolia. Run: npx -y agent-receipt-verify ground --feedback=<tx> --network=eip155:84532",
+  "credit": ["predge-ai (expected verdicts and the two original cases)", "holistis (verifier, case 3, live recording)"],
+  "readings": {
+    "payment_block": "fact 2 read at the block of the payment (paidIsBoundWalletAtPayment)",
+    "feedback_block": "fact 2 read at the block of the feedback (paidIsBoundWallet)",
+    "now": "the binding as it stands at the latest block (binding.agentWalletNu), with koppelingVeranderd when it differs from the feedback block"
+  },
+  "cases": [
+    {
+      "id": "case-1-wallet-changed-before-feedback",
+      "timeline": ["B1 agent minted, agentWallet = W1", "B2 payer P pays W1 (USDC transfer)", "B3 agentWallet changed to W2", "B4 P calls giveFeedback, feedbackHash = payment transaction"],
+      "expected": { "payment_block": "grounded", "feedback_block": "not grounded", "now": "not grounded" },
+      "live": {
+        "network": "eip155:84532",
+        "agentId": "10402",
+        "W1": "0xd8e0255e9fdEA05b27641CC0cc6e69592CB50c83",
+        "W2": "0x42F79850339055277652B4E6c8590B8d2bA234E8",
+        "payer": "0x87f344b6Ec48A936373d774D3De8649DEEB66Ee1",
+        "B1": { "tx": "0xc713721186d9d912f77730002e7e9f83f5353bdbd7beb694d8966f4a924e5a73", "block": 50053079 },
+        "B2": { "tx": "0x6f6fb918fb1eec9e735ada7c171034f7654f393d473f971c3aa3f25e4ec7519b", "block": 50053105 },
+        "B3": { "tx": "0x715f8406c76fb5b3aa2b5254d85b3603bed4b6669256de4fb66595f6558de20e", "block": 50053130 },
+        "B4": { "tx": "0x0e6fd183266ac1e43a88b68708899b9fef3daa25fd3b35a29baf94a1feab7d9f", "block": 50053155 },
+        "measured_with": "agent-receipt-verify 0.2.16 from a clean directory (npx)"
+      }
+    },
+    {
+      "id": "case-2-payment-before-registration",
+      "timeline": ["B0 payer P pays W1", "B1 agent minted, agentWallet = W1", "B4 P calls giveFeedback"],
+      "expected": { "payment_block": "not grounded (no binding yet, reported as payment before registration)", "feedback_block": "grounded", "now": "grounded" },
+      "live": null
+    },
+    {
+      "id": "case-3-wallet-changed-after-feedback",
+      "timeline": ["B1 agent minted, agentWallet = W1", "B2 payer P pays W1", "B4 P calls giveFeedback", "B5 agentWallet changed to W2"],
+      "expected": { "payment_block": "grounded", "feedback_block": "grounded", "now": "differs, change reported" },
+      "live": null
+    }
+  ]
+}
