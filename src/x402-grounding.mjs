@@ -363,7 +363,7 @@ export async function draaiVectoren(map = fileURLToPath(new URL('../vectors/grou
 
 if (process.argv[1]?.endsWith('x402-grounding.mjs') && process.argv.includes('--vectors')) {
   const rijen = await draaiVectoren()
-  console.log('Recorded Base mainnet controls, replayed offline, against the verdicts someone else wrote down first.')
+  console.log('Recorded controls (Base mainnet and Base Sepolia), replayed offline, against the verdicts someone else wrote down first.')
   console.log('')
   for (const r of rijen) {
     console.log(`  ${r.afwijkend.length === 0 ? 'agree   ' : 'DISAGREE'}  ${r.naam}${r.afwijkend.length ? '  (differs on: ' + r.afwijkend.join(', ') + ')' : ''}`)
