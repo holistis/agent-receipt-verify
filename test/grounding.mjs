@@ -246,6 +246,26 @@ console.log('the third reading: the binding at the block of the payment')
   toets('without a payment transaction the reading is not measured', u.feiten.paidIsBoundWalletAtPayment.status === 'not_measured')
 }
 
+console.log('the two cases written first by predge-ai (erc-8004-contracts#99, comment 6397094496), expected verdicts per reading')
+{
+  const W1 = AGENT_WALLET, W2 = '0x6666666666666666666666666666666666666666'
+  const keten = (opties) => nepKeten({ ...opties, txs: { [FB_TX]: ontvangst([feedbackLog({ blok: 1000, data: feedbackData({ hash: standaardHash }) })]), [PAY_TX]: ontvangst([transferLog({ blok: 990 })]) } })
+  // Case 1: B1 mint with W1 (500), B2 payment to W1 (990), B3 wallet changed to W2 (995), B4 feedback with the receipt commitment (1000)
+  let u = await beoordeelGrounding({ rpc: keten({ mintBlok: 500, walletVoorBlok: (nr) => (nr >= 995 ? W2 : nr >= 500 ? W1 : null) }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('case 1, reading at the payment block: W1 is the payee, fact 2 holds, grounded', u.feiten.paidIsBoundWalletAtPayment.status === 'true' && u.binding.agentWalletBijBetaling === W1)
+  toets('case 1, reading at the feedback block: W2 is not the payee, fact 2 fails, not grounded', u.feiten.paidIsBoundWallet.status === 'false')
+  toets('case 1, reading as it stands now: W2 is not the payee (here now equals the feedback block, so no later change is reported)', u.binding.agentWalletNu === W2 && u.binding.agentWalletNu !== W1 && u.binding.koppelingVeranderd === false)
+  // Case 3 (added by us): the wallet changes only AFTER the feedback block (B5). The feedback-block reading holds, "now" differs and the change is reported.
+  const u3 = await beoordeelGrounding({ rpc: keten({ mintBlok: 500, walletVoorBlok: (nr) => (nr === Infinity ? W2 : nr >= 500 ? W1 : null), walletNu: W2 }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('case 3, wallet changed after the feedback: payment-block and feedback-block readings hold, "now" differs and is reported', u3.feiten.paidIsBoundWalletAtPayment.status === 'true' && u3.feiten.paidIsBoundWallet.status === 'true' && u3.binding.agentWalletNu === W2 && u3.binding.koppelingVeranderd === true)
+  toets('case 1: the other facts hold in every reading, only the read time moves the verdict', u.feiten.raterIsPayer.status === 'true')
+  // Case 2: same shape, payment (990) before the mint (995): no binding at the payment block
+  u = await beoordeelGrounding({ rpc: keten({ mintBlok: 995, walletVoorBlok: (nr) => (nr >= 995 ? W1 : null) }).rpc, network: NET, feedbackTx: FB_TX })
+  toets('case 2, reading at the payment block: no binding yet, fact 2 fails, not grounded', u.feiten.paidIsBoundWalletAtPayment.status === 'false' && /no wallet was bound/.test(u.feiten.paidIsBoundWalletAtPayment.bewijs))
+  toets('case 2 covers pre_registration without a separate rule', u.paymentBeforeRegistration === true && u.registration.blok === 995)
+  toets('case 2, reading at the feedback block: W1 is the payee, fact 2 holds', u.feiten.paidIsBoundWallet.status === 'true' && u.feiten.raterIsPayer.status === 'true')
+}
+
 console.log('the command line')
 {
   const r = spawnSync(process.execPath, [fileURLToPath(new URL('../src/x402-grounding.mjs', import.meta.url))], { encoding: 'utf8' })
