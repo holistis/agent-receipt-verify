@@ -44,8 +44,8 @@ console.log('a failing check turns the suite red, at the right place')
 console.log('the recorded grounding controls, and a disagreement being found')
 {
   const r = spawnSync(process.execPath, [bestand('../src/x402-grounding.mjs'), '--vectors'], { encoding: 'utf8' })
-  toets('ground --vectors replays the recordings offline and exits 0', r.status === 0 && /2 of 2 recorded controls agree/.test(r.stdout), r.stdout.slice(-200))
-  toets('each line names who gave the verdict', (r.stdout.match(/verdict by: https:\/\/github\.com\//g) ?? []).length === 2)
+  toets('ground --vectors replays the recordings offline and exits 0', r.status === 0 && /3 of 3 recorded controls agree/.test(r.stdout), r.stdout.slice(-200))
+  toets('each line names who gave the verdict', (r.stdout.match(/verdict by: https:\/\/github\.com\//g) ?? []).length === 3)
 
   // een opname waarvan het verwachte oordeel is omgedraaid: de controle moet het zien
   const bron = bestand('../vectors/grounding/')

@@ -296,9 +296,11 @@ their description and not from their code, the way the Kanon vectors were. A fif
 receipt and its salt (`--receipt= --salt=`), does the feedbackHash open, through the receipt, on exactly that
 settlement, so that a reader does not have to believe the hash points at the right transfer.
 
-Checked against two verdicts someone else wrote down before this existed, both recorded from Base mainnet in
-`vectors/grounding` and replayed offline by `test/grounding.mjs`: agent 1085288, where all four facts hold, and
-agent 524087, where the rater is the payee and the payment did not go to the agent's bound wallet. Payer and
+Checked against three verdicts someone else wrote down before this existed, recorded from the real chain in
+`vectors/grounding` and replayed offline by `test/grounding.mjs` and by `ground --vectors`: agent 1085288, where all
+four facts hold, agent 524087, where the rater is the payee and the payment did not go to the agent's bound wallet, and
+agent 10402 on Base Sepolia (case 1 of predge-ai), where the bound address changed between the payment and the feedback,
+so the payment-block reading holds and the feedback-block reading fails. Payer and
 payee come from the USDC transfer log and not from the transaction, because a facilitator sends the settlement.
 The binding is read at the block of the feedback; a node that cannot do that gets a read at the latest block and the
 output says so. A fact that could not be measured is `not_measured` and never `false`. The verdict is about the chain
