@@ -304,6 +304,21 @@ The binding is read at the block of the feedback; a node that cannot do that get
 output says so. A fact that could not be measured is `not_measured` and never `false`. The verdict is about the chain
 facts, not about whether the rating is fair.
 
+Since 0.2.15 three more facts are shown next to the four, and they never change the verdict. They exist because
+AgenticFinanceGraph named two conditions in its count that its description had left out
+([#99, 25 Oct 2026](https://github.com/erc-8004/erc-8004-contracts/issues/99#issuecomment-6391279767)), so that a
+reader can apply either rule and keep counts comparable:
+
+- `paymentAfterRegistration`, with `registration.blok` and `paymentBeforeRegistration` in the JSON: was the payment made
+  after the rated agent was minted? Before the mint the payee was an address, not the agent. The block is found by
+  bisection on `ownerOf` and needs a node that serves historical state; otherwise it is `not_measured`.
+- `noReturnTransfer`: no transfer of about the same amount (at least 90 percent) comes back to the payer in the same
+  transaction, which would make the payment a routing hop.
+- `binding.agentWalletNu` and `binding.koppelingVeranderd`: the bound wallet at the feedback block and as it stands now,
+  and whether it changed. We read the binding at the feedback block; an indexer that counts later reads the later one.
+
+Only stablecoins identified by the network's USDC contract address are read; other tokens are not.
+
 ## One suite
 
 ```sh
