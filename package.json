@@ -1,6 +1,6 @@
 {
   "name": "agent-receipt-verify",
-  "version": "0.2.16",
+  "version": "0.2.17",
   "description": "Checks x402 endpoint conformance before an agent pays, and links the receipt to its settlement.",
   "license": "Apache-2.0",
   "type": "module",
