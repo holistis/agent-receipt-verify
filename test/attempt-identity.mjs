@@ -72,7 +72,31 @@ console.log('DEKKINGSMETING over paragraaf 5.5')
   t('elke clausule heeft minstens een GOEDKEURING', zonderGoedkeuring.length === 0, zonderGoedkeuring.join(', '))
   t('elke clausule heeft minstens een AFKEURING', zonderAfkeuring.length === 0, zonderAfkeuring.join(', '))
   t('elke clausule draagt het letterlijke citaat uit de spec', CLAUSULES.every((c) => String(c.citaat).length > 40))
-  t('er zijn acht normatieve clausules benoemd', CLAUSULES.length === 8, String(CLAUSULES.length))
+  t('er zijn twaalf normatieve clausules benoemd', CLAUSULES.length === 12, String(CLAUSULES.length))
+}
+
+console.log('')
+console.log('de kanonieke leden (query, lichaam, JSON) volgens de huidige tekst van 5.5')
+{
+  const { canonicalQuery, jcs, bodyDigest, decodeBody } = await import('../src/canonical-request.mjs')
+  const zlib = await import('node:zlib')
+  t('volgorde en hoofdletters van het procentteken veranderen de query niet', canonicalQuery('b=2&a=%2f') === canonicalQuery('a=%2F&b=2'))
+  t('de canonieke query is gesorteerd op naam en dan op waarde, herhaalde sleutels blijven', canonicalQuery('b=1&a=2&a=1') === 'a=1&a=2&b=1')
+  t('een naam zonder gelijkteken is een paar met een lege waarde', canonicalQuery('a') === 'a=')
+  t('hoofdletter-hex over de niet-gereserveerde set', canonicalQuery('q=caf%c3%a9 x') === 'q=caf%C3%A9%20x')
+  t('een plusteken blijft een letterlijk plusteken (RFC 3986), geen spatie', canonicalQuery('a=b+c') === 'a=b%2Bc')
+  t('een lege query en geen query zijn gelijk', canonicalQuery('') === canonicalQuery(undefined) && canonicalQuery('?') === '')
+  t('RFC 8785: sleutels gesorteerd, geen witruimte', jcs({ b: [1, { z: 1, a: 2 }], a: 'x' }) === '{"a":"x","b":[1,{"a":2,"z":1}]}')
+  const j1 = { bodyBase64: Buffer.from('{"a":1,"b":2}').toString('base64'), contentType: 'application/json' }
+  const j2 = { bodyBase64: Buffer.from('{ "b": 2,\n "a": 1 }').toString('base64'), contentType: 'application/json; charset=utf-8' }
+  t('dezelfde JSON in een andere volgorde geeft dezelfde digest', bodyDigest(j1) === bodyDigest(j2))
+  const gz = { bodyBase64: zlib.gzipSync(Buffer.from('{"a":1,"b":2}')).toString('base64'), contentEncoding: 'gzip', contentType: 'application/json' }
+  t('een gzip-lichaam geeft dezelfde digest als het ongecomprimeerde', bodyDigest(gz) === bodyDigest(j1))
+  const latin = decodeBody({ bodyBase64: Buffer.from([0x63, 0x61, 0x66, 0xe9]).toString('base64'), contentType: 'text/plain; charset=iso-8859-1' })
+  t('het lichaam wordt uit het opgegeven tekenstelsel gedecodeerd', latin === 'café')
+  const dubbel = { bodyBase64: Buffer.from('{"a":1,"a":2}').toString('base64'), contentType: 'application/json' }
+  const enkel = { bodyBase64: Buffer.from('{"a":2}').toString('base64'), contentType: 'application/json' }
+  t('JSON met een dubbele sleutel wordt niet als gewone JSON gecanonicaliseerd (parser-verschil)', bodyDigest(dubbel) !== bodyDigest(enkel))
 }
 
 console.log('')
@@ -88,7 +112,7 @@ console.log('de vierde uitkomst, en waarom hij er is')
 console.log('')
 console.log('een enkele overtreding weegt zwaarder dan elke goedkeuring ernaast')
 {
-  const SNAP = { method: 'POST', path: '/x', amount: '1000' }
+  const SNAP = { method: 'POST', path: '/x', query: '', body: {}, payTo: '0x1', asset: '0x2', network: 'eip155:8453', amount: '1000', scheme: 'exact' }
   const id = velddigest(SNAP)
   const gemengd = toetsPogingIdentiteit({
     ingress: { snapshot: SNAP, identity: id },
@@ -110,15 +134,15 @@ console.log('')
 console.log('de twee omgekeerde vallen, want een implementatie doet er bijna zeker een verkeerd')
 {
   const stuk = '{"b":2,"a":1}'
-  const overBytes = { signed_artifact_reference: { transmitted: stuk, reference_hash: bytedigest(stuk) } }
-  const overVelden = { signed_artifact_reference: { transmitted: stuk, reference_hash: velddigest(JSON.parse(stuk)) } }
+  const overBytes = { signed_artifact_reference: { scheme_signs: 'bytes', declared: 'transmitted-bytes', variants: [{ transmitted: stuk, reference_hash: bytedigest(stuk) }] } }
+  const overVelden = { signed_artifact_reference: { scheme_signs: 'bytes', declared: 'transmitted-bytes', variants: [{ transmitted: stuk, reference_hash: velddigest(JSON.parse(stuk)) }] } }
   t('een verwijzing over de verzonden bytes is goed', toetsPogingIdentiteit(overBytes).outcome === 'PASS')
   t(
     'dezelfde verwijzing over een gecanonicaliseerde vorm is fout',
     toetsPogingIdentiteit(overVelden).reason_code === 'REFERENCE_CANONICALIZED_BEFORE_HASHING',
   )
   t('en de controleur rekent beide kandidaten ZELF uit, dus een verkeerd label haalt het niet',
-    toetsPogingIdentiteit({ signed_artifact_reference: { transmitted: stuk, reference_hash: 'f'.repeat(64) } }).reason_code === 'REFERENCE_HASH_UNEXPLAINED')
+    toetsPogingIdentiteit({ signed_artifact_reference: { scheme_signs: 'bytes', declared: 'transmitted-bytes', variants: [{ transmitted: stuk, reference_hash: 'f'.repeat(64) }] } }).reason_code === 'REFERENCE_HASH_UNEXPLAINED')
 
   // En het omgekeerde: bij de EIGEN identiteit moet de sleutelvolgorde juist niets doen.
   const velden = { a: 1, b: 2 }

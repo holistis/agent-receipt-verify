@@ -3,14 +3,14 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
-    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
-  "id": "attempt-identity-changed-amount-no-event",
+  "id": "attempt-identity-changed-amount-established-at-ingress",
   "clause": "changed-request-different-artifact",
-  "encodes": "A changed request that correctly gets a new identity but surfaces nowhere, which the clause calls a silent divergence.",
-  "description": "The amount changed, the identity changed with it, and no settlement or announcement event names the new identity. Half the clause is satisfied and the half that makes it observable is not, so a reader sees two unrelated attempts instead of one attempt that changed.",
+  "encodes": "The positive control for the changed-request half under the current text: a different amount gives a different artifact, established at ingress by comparing snapshots.",
+  "description": "A changed amount gets its own identity, and the difference is established at ingress.",
   "input": {
     "ingress": {
       "snapshot": {
@@ -48,7 +48,8 @@
           "amount": "1000",
           "scheme": "exact"
         },
-        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196",
+        "established_at": "ingress"
       },
       {
         "path": "settle",
@@ -67,16 +68,15 @@
           "amount": "2000",
           "scheme": "exact"
         },
-        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb"
+        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb",
+        "established_at": "ingress"
       }
-    ],
-    "events": []
+    ]
   },
   "expected": {
-    "outcome": "FAIL",
-    "reason_code": "CHANGED_REQUEST_NO_EVENT"
+    "outcome": "PASS"
   },
   "limits": [
-    "An empty event list is taken at face value. A checker cannot tell a missing event from an event it was not shown."
+    "This says the difference is established at ingress. It does not say the comparison covered every member of the snapshot."
   ]
 }

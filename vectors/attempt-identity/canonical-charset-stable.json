@@ -1,0 +1,44 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-canonical-charset-stable",
+  "clause": "canonical-members",
+  "encodes": "The same text as UTF-8 and as ISO-8859-1 is the same code points, so the same attempt. Positive control.",
+  "description": "The body is decoded from the declared charset to code points before hashing.",
+  "input": {
+    "canonical_variants": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "text/plain; charset=utf-8",
+          "query": "",
+          "bodyBase64": "Y2Fmw6k="
+        },
+        "identity": "da10a50341a404a9d4d58258168eb15283905c7644439249517c335d140b1235"
+      },
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "text/plain; charset=iso-8859-1",
+          "query": "",
+          "bodyBase64": "Y2Fm6Q=="
+        },
+        "identity": "da10a50341a404a9d4d58258168eb15283905c7644439249517c335d140b1235"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This covers UTF-8 and ISO-8859-1. Other declared charsets are not exercised."
+  ]
+}

@@ -3,14 +3,14 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
-    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
-  "id": "attempt-identity-changed-amount-announced",
+  "id": "attempt-identity-changed-amount-discovered-downstream",
   "clause": "changed-request-different-artifact",
-  "encodes": "The positive control for the changed-request half: new identity, and an event that names it.",
-  "description": "The amount changed, the identity changed, and an announcement event carries the new identity. This is what the clause asks for, and it is here so the two refusals above cannot be mistaken for \"any change fails\".",
+  "encodes": "A changed request whose difference is only discovered later by comparing two downstream resolutions, with an event that surfaces it. The current text calls that evidence of a violation, not a permitted mode.",
+  "description": "A downstream divergence is not an acceptable observable.",
   "input": {
     "ingress": {
       "snapshot": {
@@ -48,7 +48,8 @@
           "amount": "1000",
           "scheme": "exact"
         },
-        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196",
+        "established_at": "downstream-comparison"
       },
       {
         "path": "settle",
@@ -67,20 +68,16 @@
           "amount": "2000",
           "scheme": "exact"
         },
-        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb"
-      }
-    ],
-    "events": [
-      {
-        "type": "announcement",
-        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb"
+        "identity": "b1b9009e0c9e7d66fc4e47a66303e8ccdddce8cc3462bc9de007abf524855bcb",
+        "established_at": "downstream-comparison"
       }
     ]
   },
   "expected": {
-    "outcome": "PASS"
+    "outcome": "FAIL",
+    "reason_code": "DIVERGENCE_DISCOVERED_DOWNSTREAM"
   },
   "limits": [
-    "The event is taken as recorded. Whether it was actually emitted to anyone is outside this layer."
+    "This shows a difference found by comparing two downstream resolutions. It does not say whether the divergence was exploitable."
   ]
 }

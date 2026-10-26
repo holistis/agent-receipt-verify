@@ -1,0 +1,44 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-canonical-repeated-keys-distinct",
+  "clause": "canonical-members",
+  "encodes": "A repeated key is part of the request: a=1&a=2 and a=1 are different attempts. Positive control.",
+  "description": "Repeated keys are preserved in the canonical query, so the identities differ.",
+  "input": {
+    "canonical_variants": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "a=1&a=2",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "23838426f2d07208db12373496bdda6c4a0133a6f95d86e7adf37d325e56dfcb"
+      },
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "a=1",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "57e97eaef8f7bd8281fe3c65537c632a77ad981ddeee72764728014ddb0a6318"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This covers one repeated key. It does not cover keys that differ only in percent-encoding."
+  ]
+}
