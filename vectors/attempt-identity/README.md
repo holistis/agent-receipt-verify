@@ -23,7 +23,7 @@ Each clause carries at least one acceptance and at least one rejection:
 
 The sixty-second file, `nothing-recorded-not-measured`, carries `clause: "all"`: a vector with no observations is neither conformant nor failing, it is unmeasured.
 
-Two kinds of vector sit side by side. Most record what an implementation did (identities, paths, a counterparty's answer) and say what a checker must conclude. The `known-answer-` vectors in `canonical-members` are different: they pin the canonical query string and the SHA-256 of a request body, for a raw request, and any implementation in any language can reproduce them without our checker. Their expected values were computed twice, by the JavaScript checker and by an independent Python implementation that uses only its standard library, and the two agree on all seven inputs.
+Two kinds of vector sit side by side. Most record what an implementation did (identities, paths, a counterparty's answer) and say what a checker must conclude. The `known-answer-` vectors in `canonical-members` are different: they pin the canonical query string and the SHA-256 of a request body, for a raw request, and any implementation in any language can reproduce them without our checker. Their expected values were computed twice, by the JavaScript checker and by a Python implementation that uses only its standard library. The two share no code and agree on all seven inputs, but we wrote both, so a check by someone else is still to come.
 
 Every vector states its provenance and a `limits` line saying what it does not show.
 
@@ -40,7 +40,7 @@ From the root of this repository: `npm run attempt-identity`. It prints the reco
 
 ## Audit, 26 October 2026
 
-An independent reviewer read these vectors against the section and the checker, and found defects: a collapsed identity could still pass overall, missing data counted as compliance, the three-identifiers check demanded a canonicalized form that the text says a reference must not be required to take, address lowercasing applied to every address, ISO-8859-1 was decoded as windows-1252, duplicate JSON keys escaped detection, and an implementation that replaced every identity by another hash still passed all vectors. Each of these now has a regression test in `test/attempt-identity.mjs`, and the last one is why the known-answer vectors exist.
+A review pass that we ran ourselves, with AI reviewers that did not write the vectors, read them against the section and the checker. It is our own check and not an outside audit. It found defects: a collapsed identity could still pass overall, missing data counted as compliance, the three-identifiers check demanded a canonicalized form that the text says a reference must not be required to take, address lowercasing applied to every address, ISO-8859-1 was decoded as windows-1252, duplicate JSON keys escaped detection, and an implementation that replaced every identity by another hash still passed all vectors. Each of these now has a regression test in `test/attempt-identity.mjs`, and the last one is why the known-answer vectors exist.
 
 ## Cite
 
