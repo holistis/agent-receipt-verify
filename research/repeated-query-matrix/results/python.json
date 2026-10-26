@@ -1,0 +1,515 @@
+[
+  {
+    "lib": "Python urllib.parse.parse_qs",
+    "version": "stdlib 3.12.10",
+    "transport": "in-process",
+    "single_accessor": "n/a (values are always lists)",
+    "all_accessor": "parse_qs(qs)['q']",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "n/a",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "n/a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Python urllib.parse.parse_qsl",
+    "version": "stdlib 3.12.10",
+    "transport": "in-process",
+    "single_accessor": "dict(parse_qsl(qs))['q'] (common idiom, not a parse_qsl accessor)",
+    "all_accessor": "[v for k,v in parse_qsl(qs) if k=='q']",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q",
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q",
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Django QueryDict (in-process)",
+    "version": "6.1.2",
+    "transport": "in-process",
+    "single_accessor": ".get('q')",
+    "all_accessor": ".getlist('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Django request.GET (real HTTP, wsgiref)",
+    "version": "6.1.2",
+    "transport": "real-http",
+    "single_accessor": "request.GET.get('q')",
+    "all_accessor": "request.GET.getlist('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Flask/Werkzeug request.args",
+    "version": "Flask 3.1.3 / Werkzeug 3.1.9",
+    "transport": "real-http",
+    "single_accessor": "request.args.get('q')",
+    "all_accessor": "request.args.getlist('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ],
+        "single": "a"
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ],
+        "single": "b"
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Starlette request.query_params",
+    "version": "Starlette 1.10.0",
+    "transport": "real-http",
+    "single_accessor": "query_params.get('q')",
+    "all_accessor": "query_params.getlist('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "FastAPI scalar param `q: str`",
+    "version": "FastAPI 0.162.0",
+    "transport": "real-http",
+    "single_accessor": "function arg q: str",
+    "all_accessor": "n/a (see next row)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": "n/a",
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": "n/a",
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "FastAPI list param `q: List[str]`",
+    "version": "FastAPI 0.162.0",
+    "transport": "real-http",
+    "single_accessor": "n/a (see previous row)",
+    "all_accessor": "function arg q: List[str]",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "n/a",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "n/a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "aiohttp request.query",
+    "version": "aiohttp 3.14.5",
+    "transport": "real-http",
+    "single_accessor": "query.get('q')",
+    "all_accessor": "query.getall('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "a",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "b",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Tornado",
+    "version": "Tornado 6.6",
+    "transport": "real-http",
+    "single_accessor": "get_query_argument('q')",
+    "all_accessor": "get_query_arguments('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Bottle request.query",
+    "version": "Bottle 0.13.4",
+    "transport": "real-http",
+    "single_accessor": "request.query.get('q')",
+    "all_accessor": "request.query.getall('q')",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  }
+]

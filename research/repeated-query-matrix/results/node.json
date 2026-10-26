@@ -1,0 +1,474 @@
+[
+  {
+    "lib": "Node URLSearchParams",
+    "version": "v24.14.1",
+    "transport": "in-process",
+    "single_accessor": ".get(\"q\")",
+    "all_accessor": ".getAll(\"q\")",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "a",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q",
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "b",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q",
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Node URL.searchParams -> Object.fromEntries (idiom)",
+    "version": "v24.14.1",
+    "transport": "in-process",
+    "single_accessor": "Object.fromEntries(sp).q",
+    "all_accessor": "n/a (no list)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": "n/a",
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": "n/a",
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Node querystring.parse",
+    "version": "v24.14.1",
+    "transport": "in-process",
+    "single_accessor": ".q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "qs (qs.parse)",
+    "version": "6.16.1",
+    "transport": "in-process",
+    "single_accessor": ".q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Express 5.3.0 default parser (req.query)",
+    "version": "5.3.0",
+    "transport": "real-http",
+    "single_accessor": "req.query.q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ],
+        "ctor": "array"
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ],
+        "ctor": "array"
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Express 5.3.0 \"extended\" (qs)",
+    "version": "5.3.0",
+    "transport": "real-http",
+    "single_accessor": "req.query.q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ],
+        "ctor": "array"
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ],
+        "ctor": "array"
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Express 5.3.0 \"simple\" (querystring)",
+    "version": "5.3.0",
+    "transport": "real-http",
+    "single_accessor": "req.query.q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ],
+        "ctor": "array"
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ],
+        "ctor": "array"
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Fastify",
+    "version": "5.12.7",
+    "transport": "real-http",
+    "single_accessor": "request.query.q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Koa",
+    "version": "3.2.1",
+    "transport": "real-http",
+    "single_accessor": "ctx.query.q (raw property)",
+    "all_accessor": "same property (array when repeated)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": [
+          "a",
+          "b"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": [
+          "b",
+          "a"
+        ],
+        "all": "same-as-single",
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  },
+  {
+    "lib": "Hono (node-server)",
+    "version": "4.13.14",
+    "transport": "real-http",
+    "single_accessor": "c.req.query(\"q\")",
+    "all_accessor": "c.req.queries(\"q\")",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "a",
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ]
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "b",
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ]
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    }
+  }
+]

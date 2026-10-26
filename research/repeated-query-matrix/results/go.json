@@ -1,0 +1,202 @@
+[
+  {
+    "lib": "Go net/url ParseQuery",
+    "version": "go1.27.0",
+    "transport": "in-process",
+    "single_accessor": "Values.Get(\"q\")",
+    "all_accessor": "Values[\"q\"]",
+    "rep": {
+      "ab": {
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=a\u0026q=b",
+        "single": "a"
+      },
+      "ba": {
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=b\u0026q=a",
+        "single": "b"
+      }
+    },
+    "cross": {
+      "ab": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "a",
+          "b"
+        ],
+        "qs": "?a=1\u0026b=2"
+      },
+      "ba": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "b",
+          "a"
+        ],
+        "qs": "?b=2\u0026a=1"
+      }
+    },
+    "extra": {
+      "Values.Encode() for a=1\u0026b=2": "a=1\u0026b=2",
+      "Values.Encode() for b=2\u0026a=1": "a=1\u0026b=2"
+    }
+  },
+  {
+    "lib": "Go net/http r.URL.Query()",
+    "version": "go1.27.0",
+    "transport": "real-http",
+    "single_accessor": "r.URL.Query().Get(\"q\")",
+    "all_accessor": "r.URL.Query()[\"q\"]",
+    "rep": {
+      "ab": {
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=a\u0026q=b",
+        "single": "a"
+      },
+      "ba": {
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=b\u0026q=a",
+        "single": "b"
+      }
+    },
+    "cross": {
+      "ab": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "a",
+          "b"
+        ],
+        "qs": "?a=1\u0026b=2"
+      },
+      "ba": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "b",
+          "a"
+        ],
+        "qs": "?b=2\u0026a=1"
+      }
+    }
+  },
+  {
+    "lib": "Go net/http r.FormValue / r.Form",
+    "version": "go1.27.0",
+    "transport": "real-http",
+    "single_accessor": "r.FormValue(\"q\")",
+    "all_accessor": "r.Form[\"q\"]",
+    "rep": {
+      "ab": {
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=a\u0026q=b",
+        "single": "a"
+      },
+      "ba": {
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=b\u0026q=a",
+        "single": "b"
+      }
+    },
+    "cross": {
+      "ab": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "a",
+          "b"
+        ],
+        "qs": "?a=1\u0026b=2"
+      },
+      "ba": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "b",
+          "a"
+        ],
+        "qs": "?b=2\u0026a=1"
+      }
+    }
+  },
+  {
+    "lib": "Gin c.Query / c.QueryArray",
+    "version": "gin v1.12.0",
+    "transport": "real-http",
+    "single_accessor": "c.GetQuery(\"q\")",
+    "all_accessor": "c.QueryArray(\"q\")",
+    "rep": {
+      "ab": {
+        "all": [
+          "a",
+          "b"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=a\u0026q=b",
+        "single": "a"
+      },
+      "ba": {
+        "all": [
+          "b",
+          "a"
+        ],
+        "keys": [
+          "q"
+        ],
+        "qs": "?q=b\u0026q=a",
+        "single": "b"
+      }
+    },
+    "cross": {
+      "ab": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "a",
+          "b"
+        ],
+        "qs": "?a=1\u0026b=2"
+      },
+      "ba": {
+        "distinct_key_orders_over_300_iterations": 2,
+        "keys": [
+          "b",
+          "a"
+        ],
+        "qs": "?b=2\u0026a=1"
+      }
+    }
+  }
+]
