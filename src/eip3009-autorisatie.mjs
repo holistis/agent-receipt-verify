@@ -156,13 +156,17 @@ async function beoordeelBinnen(input, context = {}) {
   // te controleren, ook niet als er geen deployment-gegevens in zitten. Dus: geen pad is een afwijzing, een factory die niet op
   // de lijst staat is een afwijzing, en een volledige omhulling met een toegestane factory kunnen wij zonder simulatie niet beoordelen.
   // Wat wij hier eerder deden (de omhulling niet herkennen) gaf SIGNER_MISMATCH, een afwijzing om een verkeerde reden.
+  // Een volledige omhulling met een toegestane factory blokkeert de rest niet: het venster, het bedrag en de nonce worden gewoon
+  // nog gecontroleerd (een betaling die we zeker kunnen weigeren blijft geweigerd), alleen de stappen die de handtekening zelf
+  // lezen (kneedbaarheid en herstellen) slaan we over, en aan het eind is de uitslag NIET TE BEOORDELEN.
+  let ingepaktMetToegestaneFactory = false
   if (payerScope !== 'code') {
     const omhulling = leesErc6492(signature)
     if (omhulling) {
       if (omhulling.geenPad) return { valid: false, reason_code: 'ERC6492_NO_DEPLOYMENT_PATH' }
-      const lijst = (context.erc6492Factories ?? []).map((a) => String(a).toLowerCase())
+      const lijst = (Array.isArray(context.erc6492Factories) ? context.erc6492Factories : []).map((a) => String(a).toLowerCase())
       if (!lijst.includes(omhulling.factory)) return { valid: false, reason_code: 'ERC6492_FACTORY_NOT_ALLOWED' }
-      return { valid: false, reason_code: null, ongemeten: true, reden: 'the signature is an ERC-6492 wrapper with an allowlisted factory; it can only be accepted through a simulation that deploys the wallet and makes the transfer together, which this offline check does not run' }
+      ingepaktMetToegestaneFactory = true
     }
   }
 
@@ -172,7 +176,7 @@ async function beoordeelBinnen(input, context = {}) {
   // van de handtekening: zonder code ecrecover (en dan weigert het een hoge s), met code ERC-1271. Een slimme portemonnee
   // met een handtekening die niet naar zichzelf terug te herstellen is, hoort dus NIET afgekeurd te worden. Aangewezen
   // door robertolocatelli81-dev op x402#3925 en daarmee ook een gebrek van onze eerste versie.
-  if (payerScope !== 'code' && isKneedbaar(signature)) {
+  if (payerScope !== 'code' && !ingepaktMetToegestaneFactory && isKneedbaar(signature)) {
     return { valid: false, reason_code: 'SIG_MALLEABLE' }
   }
 
@@ -186,7 +190,7 @@ async function beoordeelBinnen(input, context = {}) {
   // ander adres dan de betaler en dat is geen gebrek van de betaling. Zonder ethers kan stap 4 niet
   // en is de eerlijke uitslag ONGEMETEN.
   let hersteld = null
-  if (payerScope !== 'code') {
+  if (payerScope !== 'code' && !ingepaktMetToegestaneFactory) {
     const g = await controleerOndertekenaar({ auth, accepted, signature })
     if (g.uitslag) return g.uitslag
     hersteld = g.hersteld
@@ -237,6 +241,9 @@ async function beoordeelBinnen(input, context = {}) {
     return { valid: false, reason_code: 'NONCE_REPLAY' }
   }
 
+  if (ingepaktMetToegestaneFactory) {
+    return { valid: false, reason_code: null, ongemeten: true, reden: 'the signature is an ERC-6492 wrapper with an allowlisted factory; every other rule passed here, but it can only be accepted through a simulation that deploys the account and makes the transfer together, which this offline check does not run' }
+  }
   if (payerScope === 'code') {
     return { valid: false, reason_code: null, ongemeten: true, reden: 'the payer has code, so the token checks the signature with ERC-1271 on chain; every other rule passed here but the signature itself was not checked' }
   }

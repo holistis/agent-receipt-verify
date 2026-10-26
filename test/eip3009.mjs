@@ -240,6 +240,16 @@ console.log('\nERC-6492: de omhulling gaat via het deployment-pad of nergens (x4
   t('volledige omhulling, factory niet op de lijst: afgewezen', (await geef(wikkel(inner, FACTORY, '0xdeadbeef'))).reason_code === 'ERC6492_FACTORY_NOT_ALLOWED')
   const toegestaan = await geef(wikkel(inner, FACTORY, '0xdeadbeef'), { erc6492Factories: [FACTORY.toUpperCase().replace('0X', '0x')] })
   t('volledige omhulling, factory op de lijst: niet te beoordelen zonder simulatie, geen afwijzing', toegestaan.ongemeten === true && toegestaan.valid === false && toegestaan.reason_code === null)
+  {
+    const wikkelToegestaan = wikkel(inner, FACTORY, '0xdeadbeef')
+    const lijst = { erc6492Factories: [FACTORY] }
+    const verlopen = await geef(wikkelToegestaan, { ...lijst, verification_time: 9999999999 })
+    t('toegestane factory, maar het venster is verlopen: nog steeds EXPIRED, niet "niet te beoordelen"', verlopen.reason_code === 'EXPIRED')
+    const input = structuredClone(basis.input); input.payload.signature = wikkelToegestaan; input.payload.authorization.value = '1'
+    const bedrag = await beoordeelAutorisatie(input, { ...basis.context, payerHasCode: false, ...lijst })
+    t('toegestane factory, maar het bedrag klopt niet: nog steeds AMOUNT_INSUFFICIENT', bedrag.reason_code === 'AMOUNT_INSUFFICIENT')
+    t('een lijst die geen lijst is wordt behandeld als een lege lijst', (await geef(wikkelToegestaan, { erc6492Factories: FACTORY })).reason_code === 'ERC6492_FACTORY_NOT_ALLOWED')
+  }
   t('een omhulling die niet te lezen is: geen pad, afgewezen', (await geef('0x' + 'ab'.repeat(40) + MAGIC)).reason_code === 'ERC6492_NO_DEPLOYMENT_PATH')
   t('een betaler MET code: de omhulling-regel geldt niet, de ERC-1271-weg blijft', (await geef(wikkel(inner, '0', ''), { payerHasCode: true })).reason_code !== 'ERC6492_NO_DEPLOYMENT_PATH')
   t('de kale handtekening blijft geldig', (await geef(inner)).valid === true)
