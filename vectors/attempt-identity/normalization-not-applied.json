@@ -1,0 +1,41 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-normalization-not-applied",
+  "clause": "normalization-applied",
+  "encodes": "The same two requests with identities over the members as received: case and offset change the identity.",
+  "description": "The normalization the text requires was not applied.",
+  "input": {
+    "normalization_variants": [
+      {
+        "raw": {
+          "address": "0x2888F36548a900B9b08d584524e1f73BC563eC26",
+          "network": "eip155:8453",
+          "timestamp": "2026-10-26T12:00:00+01:00"
+        },
+        "identity": "40f90f1c7b09f26546ab27e88f12a1a1401d6d0d448c410569c7ac160ede3b66"
+      },
+      {
+        "raw": {
+          "address": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "network": "eip155:8453",
+          "timestamp": "2026-10-26T11:00:00Z"
+        },
+        "identity": "7276f1686c9d39d3e531784e81c553c99b33430de3a1d06c2617e3c4c02f4da7"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "NORMALIZATION_NOT_APPLIED"
+  },
+  "limits": [
+    "This shows normalization missing for address case and timestamps. It does not cover a missing CAIP-2 conversion."
+  ]
+}

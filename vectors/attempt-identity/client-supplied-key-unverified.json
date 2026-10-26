@@ -3,9 +3,9 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
-    "section 5.5 closes by referring to \"the normative conformance tests in the specification repository for the required negative cases\"; at the time of writing those did not exist"
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
   "id": "attempt-identity-client-supplied-key-unverified",
   "clause": "name-independent-but-bound",

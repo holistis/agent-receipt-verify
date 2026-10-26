@@ -1,0 +1,45 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-canonical-repeated-keys-collapse",
+  "clause": "canonical-members",
+  "encodes": "An implementation that keeps one value per key gives a=1&a=2 and a=1 the same identity.",
+  "description": "Two different requests share one identity.",
+  "input": {
+    "canonical_variants": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "a=1&a=2",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "57e97eaef8f7bd8281fe3c65537c632a77ad981ddeee72764728014ddb0a6318"
+      },
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "a=1",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "57e97eaef8f7bd8281fe3c65537c632a77ad981ddeee72764728014ddb0a6318"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "DIFFERENT_REQUEST_SAME_IDENTITY"
+  },
+  "limits": [
+    "This shows one collapsing implementation (one value per key). Other ways to collapse are not covered."
+  ]
+}

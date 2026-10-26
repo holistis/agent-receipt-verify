@@ -1,0 +1,44 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-canonical-json-key-order-stable",
+  "clause": "canonical-members",
+  "encodes": "The same JSON body with a different key order and whitespace is the same attempt, which is what RFC 8785 canonicalization gives. Positive control.",
+  "description": "JSON bodies are canonicalized with RFC 8785 before the SHA-256 is taken.",
+  "input": {
+    "canonical_variants": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "3ef00d849afbc532536e389034ec218f72ce80f0ca1074344002b17b3d7265f1"
+      },
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "",
+          "bodyBase64": "ewogICJvd25lckFkZHJlc3MiOiAiMHgxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwKICAiZW5kcG9pbnQiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9hcGkvaGVhbHRoIgp9"
+        },
+        "identity": "3ef00d849afbc532536e389034ec218f72ce80f0ca1074344002b17b3d7265f1"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This covers strings and integers. RFC 8785 number serialization of other values is not exercised."
+  ]
+}

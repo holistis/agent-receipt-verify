@@ -1,0 +1,33 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-bytes-scheme-reference-canonicalized-first",
+  "clause": "three-identifiers-not-collapsed",
+  "encodes": "A scheme that signs bytes whose reference was taken over a canonicalized form: it verifies a different object than the one that was signed.",
+  "description": "The reference is the digest of a key-sorted rewrite, not of what was signed.",
+  "input": {
+    "signed_artifact_reference": {
+      "scheme_signs": "bytes",
+      "declared": "transmitted-bytes",
+      "variants": [
+        {
+          "transmitted": "{\"version\":1,\"amount\":\"1000\",\"payTo\":\"0x2888F36548a900B9b08d584524e1f73BC563eC26\"}",
+          "reference_hash": "96ea208143f35d56469ee10bc81467bdcfccc19eecea0e9754f861f2de68fe27"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "REFERENCE_CANONICALIZED_BEFORE_HASHING"
+  },
+  "limits": [
+    "This shows one canonicalization (key-sorted JSON). Other rewrites of signed bytes are not covered."
+  ]
+}

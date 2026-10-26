@@ -24,6 +24,7 @@
 // zijn eigen controleur, en de spec-auteur een dag later voor de zijne.
 
 import { createHash } from 'node:crypto'
+import { canonicalMembers } from './canonical-request.mjs'
 
 /**
  * De normatieve clausules van paragraaf 5.5, met het letterlijke citaat erbij.
@@ -36,37 +37,64 @@ export const CLAUSULES = [
   {
     id: 'derive-once-at-ingress',
     citaat:
-      'MUST be derived once, at ingress, from the complete request snapshot as received by the facilitator, ' +
-      'and MUST NOT be re-derived or partially re-derived downstream',
+      'MUST be derived once, at ingress, from a single immutable snapshot of the request as received by the ' +
+      'facilitator, and MUST NOT be re-derived or partially re-derived downstream',
+  },
+  {
+    id: 'ingress-snapshot-complete',
+    citaat:
+      'The ingress snapshot ... MUST contain at least the decoded method, path, the canonical query, the decoded body ' +
+      '(or a digest of it computed after decoding), and the resolved payTo, asset, network, amount, and scheme',
   },
   {
     id: 'all-paths-same-artifact',
     citaat:
-      '/settle, refusal handling, replay-lookup, and challenge-quote responses all resolve the same artifact value',
+      '/settle, refusal handling, replay-lookup, and challenge-quote responses all resolve the same artifact value. ' +
+      'None of them re-reads the request or recomputes the digest from request content that was not part of the ingress snapshot',
   },
   {
     id: 'changed-request-different-artifact',
     citaat:
-      'A request whose amount, query, or body changes between paths MUST produce a different artifact, and that ' +
-      'change MUST surface as a settlement or announcement event, never as a silent divergence',
-  },
-  {
-    id: 'countersignature-recompute-or-refuse',
-    citaat:
-      'that counterparty MUST independently recompute the fingerprint from the bytes it observed, and MUST refuse ' +
-      'to sign if the recomputed value differs ... on mismatch the interaction MUST NOT settle',
+      'A request whose amount, query, or body differs MUST produce a different artifact, established at ingress by ' +
+      'comparing snapshots, not discovered later by comparing two downstream resolutions',
   },
   {
     id: 'own-identity-from-decoded-fields',
     citaat:
-      "an attempt's own identity ... MUST be derived from named decoded fields and MUST NOT be derived from wire " +
-      'bytes, an attempt is the same attempt whether it arrived with a different key order or different whitespace',
+      'Identity MUST be derived over these named decoded fields, and MUST NOT be derived over the transmitted bytes of ' +
+      'the request or any encoding that varies between representations of the same request',
   },
   {
-    id: 'reference-over-transmitted-bytes',
+    id: 'normalization-applied',
     citaat:
-      'that reference is taken over the artifact as transmitted, because the signature covers those bytes, ' +
-      'canonicalizing them first would verify a different object than the one that was signed',
+      'Normalization MUST be applied to each of these members as specified: network in CAIP-2 canonical form, EVM ' +
+      'addresses lowercased, timestamps in RFC 3339 Z form, version as decoded, and URLs not normalized',
+  },
+  {
+    id: 'canonical-members',
+    citaat:
+      'the members entering the hash are canonicalized before hashing, never hashed as transmitted: query parsed to ' +
+      'sorted, uppercase-hex percent-encoded pairs; body decoded (content-encoding, then charset); SHA-256, with RFC 8785 ' +
+      'for JSON bodies',
+  },
+  {
+    id: 'absent-member-omitted',
+    citaat:
+      'An absent member MUST be omitted from the hashed set entirely and MUST NOT be emitted as null, empty string, or zero',
+  },
+  {
+    id: 'countersignature-recompute-or-refuse',
+    citaat:
+      'that counterparty MUST independently recompute the fingerprint from the bytes it observed, and MUST refuse to sign ' +
+      'if the recomputed value differs ... Where the counterparty cannot perform the recomputation it MUST NOT sign either, ' +
+      'and MUST report which of the two it is: refused because the values differ, or refused because the comparison could ' +
+      'not be made',
+  },
+  {
+    id: 'three-identifiers-not-collapsed',
+    citaat:
+      'Three identifiers are therefore in play, and an implementation MUST NOT collapse them: operation identity, ' +
+      'captured-artifact digest, signed-content identifier. A format MUST declare which of these its reference covers',
   },
   {
     id: 'outcome-not-folded-into-identity',
@@ -145,6 +173,7 @@ function toetsClausule(id, inv) {
     return goed(`${gelijkVerzoek.length} paden eens, waarvan benoemd in de spec: ${gedekt.join(', ') || 'geen'}`)
   }
 
+
   if (id === 'changed-request-different-artifact') {
     const paden = Array.isArray(inv.paths) ? inv.paths : []
     const basis = inv.ingress?.snapshot
@@ -155,22 +184,38 @@ function toetsClausule(id, inv) {
       if (zelfde(p.identity, inv.ingress.identity)) {
         return faal('CHANGED_REQUEST_SAME_IDENTITY', `pad ${p.path} wijzigde het verzoek en hield dezelfde identiteit`)
       }
-      const events = Array.isArray(inv.events) ? inv.events : []
-      const erkend = events.some((e) => zelfde(e.identity, p.identity))
-      if (!erkend) {
-        return faal('CHANGED_REQUEST_NO_EVENT', `pad ${p.path} kreeg een andere identiteit zonder dat er een gebeurtenis bij hoort`)
+      if (p.established_at === undefined) return niet(`niet vastgelegd waar het verschil van pad ${p.path} werd vastgesteld`)
+      // De tekst: vastgesteld OP DE INGANG door momentopnames te vergelijken, niet later ontdekt door twee afleidingen
+      // downstream te vergelijken. Een gebeurtenis die zo'n afwijking meldt is geen toegestane werkwijze maar bewijs van de overtreding.
+      if (p.established_at !== 'ingress') {
+        return faal('DIVERGENCE_DISCOVERED_DOWNSTREAM', `pad ${p.path}: het verschil werd pas ${p.established_at} ontdekt, niet op de ingang`)
       }
     }
-    return goed(`${gewijzigd.length} gewijzigd(e) verzoek(en), elk met eigen identiteit en een gebeurtenis`)
+    return goed(`${gewijzigd.length} gewijzigd(e) verzoek(en), elk met eigen identiteit en op de ingang vastgesteld`)
   }
+
 
   if (id === 'countersignature-recompute-or-refuse') {
     const c = inv.countersignature
     if (!c) return niet('geen medeondertekening vastgelegd')
+    // Kan de tegenpartij niet vergelijken (bytes nooit waargenomen, of een lid dat de vergelijking leest ontbreekt),
+    // dan MOET zij ook niet tekenen en MOET zij melden WELKE van de twee het is. Afwezigheid is geen verschil.
+    if (c.comparable === false) {
+      if (c.signed === true) return faal('SIGNED_WITHOUT_COMPARISON', 'de vergelijking kon niet worden gemaakt en er is toch ondertekend')
+      if (c.settled === true) return faal('SETTLED_WITHOUT_COMPARISON', 'de vergelijking kon niet worden gemaakt en er is toch afgerekend')
+      if (c.reported_reason === undefined) return niet('niet vastgelegd welke reden is gemeld')
+      if (c.reported_reason !== 'comparison_not_possible') {
+        return faal('REFUSAL_REASONS_COLLAPSED', `de weigering omdat de vergelijking niet kon worden gemaakt is gemeld als ${c.reported_reason}`)
+      }
+      return goed('geweigerd, niet ondertekend, en gemeld dat de vergelijking niet kon worden gemaakt')
+    }
     if (c.recomputed === undefined || c.ingress_value === undefined) return niet('geen herberekende of ingress-waarde')
     const past = zelfde(c.recomputed, c.ingress_value)
     if (!past && c.signed === true) return faal('COUNTERSIGNED_DESPITE_MISMATCH', 'de herberekende waarde week af en er is toch ondertekend')
     if (!past && c.settled === true) return faal('SETTLED_DESPITE_MISMATCH', 'de herberekende waarde week af en er is toch afgerekend')
+    if (!past && c.reported_reason !== undefined && c.reported_reason !== 'values_differ') {
+      return faal('REFUSAL_REASONS_COLLAPSED', `de weigering omdat de waarden verschillen is gemeld als ${c.reported_reason}`)
+    }
     if (past && c.signed === false) return goed('de waarden kloppen en er is niet ondertekend, dat is toegestaan maar ongebruikelijk')
     return goed(past ? 'herberekend en gelijk, dus ondertekenen mag' : 'herberekend en afwijkend, dus geweigerd en niet afgerekend')
   }
@@ -189,23 +234,7 @@ function toetsClausule(id, inv) {
     return goed(`${v.length} draadvarianten, dezelfde identiteit`)
   }
 
-  if (id === 'reference-over-transmitted-bytes') {
-    const r = inv.signed_artifact_reference
-    if (!r || r.transmitted === undefined || r.reference_hash === undefined) return niet('geen verwijzing naar een ondertekend stuk')
-    // Wij rekenen beide kanten ZELF uit in plaats van een label te geloven.
-    const overBytes = bytedigest(r.transmitted)
-    let overVelden = null
-    try {
-      overVelden = velddigest(JSON.parse(r.transmitted))
-    } catch {
-      overVelden = null
-    }
-    if (zelfde(r.reference_hash, overBytes)) return goed('de verwijzing is over de verzonden bytes genomen')
-    if (overVelden && zelfde(r.reference_hash, overVelden)) {
-      return faal('REFERENCE_CANONICALIZED_BEFORE_HASHING', 'de verwijzing is over een gecanonicaliseerde vorm genomen, dus over een ander object dan er ondertekend is')
-    }
-    return faal('REFERENCE_HASH_UNEXPLAINED', 'de verwijzing komt noch met de verzonden bytes noch met een gecanonicaliseerde vorm overeen')
-  }
+
 
   if (id === 'outcome-not-folded-into-identity') {
     const o = inv.outcome_variants
@@ -227,6 +256,93 @@ function toetsClausule(id, inv) {
       return faal('CLIENT_SUPPLIED_IDENTITY_NOT_VERIFIED', 'de client levert de identiteit aan en die wordt niet tegen de momentopname getoetst')
     }
     return goed(`${k.name ?? 'het identiteitsveld'} is aan de ingress-momentopname gebonden`)
+  }
+
+  if (id === 'ingress-snapshot-complete') {
+    const snap = inv.ingress?.snapshot
+    if (!snap) return niet('geen ingress-momentopname vastgelegd')
+    const VERPLICHT = ['method', 'path', 'query', 'body', 'payTo', 'asset', 'network', 'amount', 'scheme']
+    const ontbreekt = VERPLICHT.filter((k) => !(k in snap))
+    if (ontbreekt.length) return faal('INGRESS_SNAPSHOT_INCOMPLETE', `de momentopname mist: ${ontbreekt.join(', ')}`)
+    return goed('alle negen verplichte leden staan in de momentopname')
+  }
+
+  if (id === 'normalization-applied') {
+    const v = inv.normalization_variants
+    if (!Array.isArray(v) || v.length < 2) return niet('minder dan twee varianten vastgelegd')
+    const norm = (r) => ({
+      network: /^[a-z0-9-]{3,8}:[A-Za-z0-9_-]{1,32}$/.test(String(r.network ?? '')) ? r.network : null,
+      address: typeof r.address === 'string' ? r.address.toLowerCase() : null,
+      timestamp: Number.isNaN(Date.parse(r.timestamp)) ? null : new Date(r.timestamp).toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    })
+    const genormaliseerd = v.map((x) => ({ n: norm(x.raw), id: kaal(x.identity) }))
+    if (genormaliseerd.some((x) => x.n.network === null)) return niet('een netwerk staat niet in CAIP-2-vorm, dus er valt niets te normaliseren')
+    const sleutels = genormaliseerd.map((x) => velddigest(x.n))
+    const sets = new Set(sleutels)
+    const ids = genormaliseerd.map((x) => x.id)
+    if (sets.size === 1 && new Set(ids).size !== 1) {
+      return faal('NORMALIZATION_NOT_APPLIED', 'dezelfde leden na normalisatie, maar de identiteiten verschillen')
+    }
+    if (sets.size > 1) {
+      const per = new Map()
+      sleutels.forEach((k, i) => { if (per.has(k) && per.get(k) !== ids[i]) return; per.set(k, ids[i]) })
+      const gebruikt = [...per.values()]
+      if (new Set(gebruikt).size !== gebruikt.length) return faal('DIFFERENT_REQUEST_SAME_IDENTITY', 'verschillende genormaliseerde leden kregen dezelfde identiteit')
+    }
+    return goed(`${v.length} varianten, identiteit volgt de genormaliseerde leden`)
+  }
+
+  if (id === 'canonical-members') {
+    const v = inv.canonical_variants
+    if (!Array.isArray(v) || v.length < 2) return niet('minder dan twee draadvarianten vastgelegd')
+    let leden
+    try { leden = v.map((x) => ({ k: velddigest(canonicalMembers(x.raw)), id: kaal(x.identity) })) } catch (e) { return niet('een draadvariant kon niet worden gedecodeerd: ' + e.message) }
+    const perCanoniek = new Map()
+    for (const l of leden) { const s2 = perCanoniek.get(l.k) ?? new Set(); s2.add(l.id); perCanoniek.set(l.k, s2) }
+    for (const s2 of perCanoniek.values()) if (s2.size > 1) return faal('IDENTITY_OVER_NON_CANONICAL_FORM', 'dezelfde canonieke leden kregen een andere identiteit, dus de identiteit is over de verzonden vorm genomen')
+    const identiteiten = [...perCanoniek.values()].map((s2) => [...s2][0])
+    if (new Set(identiteiten).size !== identiteiten.length) return faal('DIFFERENT_REQUEST_SAME_IDENTITY', 'verschillende canonieke leden kregen dezelfde identiteit')
+    return goed(`${v.length} draadvarianten, ${perCanoniek.size} canonieke vorm(en), identiteit volgt de canonieke leden`)
+  }
+
+  if (id === 'absent-member-omitted') {
+    const h = inv.hashed_set
+    if (!h || !h.members || !Array.isArray(h.absent)) return niet('geen gehashte verzameling met afwezige leden vastgelegd')
+    for (const naam of h.absent) {
+      if (naam in h.members) {
+        const w = h.members[naam]
+        if (w === null || w === '' || w === 0) return faal('ABSENT_MEMBER_EMITTED_AS_EMPTY', `het afwezige lid ${naam} staat in de verzameling als ${JSON.stringify(w)}`)
+        return niet(`het lid ${naam} is als afwezig opgegeven maar heeft een waarde`)
+      }
+    }
+    return goed(`${h.absent.length} afwezige leden, geen enkel in de gehashte verzameling`)
+  }
+
+  if (id === 'three-identifiers-not-collapsed') {
+    const r = inv.signed_artifact_reference
+    if (!r || !Array.isArray(r.variants) || r.variants.length === 0) return niet('geen verwijzing naar een ondertekend stuk vastgelegd')
+    if (!r.declared) return faal('REFERENCE_NOT_DECLARED', 'het formaat verklaart niet welke van de drie identificatoren zijn verwijzing dekt')
+    for (const x of r.variants) {
+      const overBytes = bytedigest(x.transmitted)
+      let overVelden = null
+      try { overVelden = velddigest(JSON.parse(x.transmitted)) } catch { overVelden = null }
+      if (r.scheme_signs === 'bytes') {
+        if (zelfde(x.reference_hash, overBytes)) continue
+        if (overVelden && zelfde(x.reference_hash, overVelden)) return faal('REFERENCE_CANONICALIZED_BEFORE_HASHING', 'een schema dat bytes ondertekent kreeg een verwijzing over een gecanonicaliseerde vorm, dus over een ander object dan er ondertekend is')
+        return faal('REFERENCE_HASH_UNEXPLAINED', 'de verwijzing komt met geen van beide kandidaten overeen')
+      }
+      if (r.scheme_signs === 'typed-fields') {
+        if (overVelden && zelfde(x.reference_hash, overVelden)) continue
+        if (zelfde(x.reference_hash, overBytes)) return faal('REFERENCE_OVER_WIRE_ENVELOPE', 'een schema dat getypeerde velden ondertekent kreeg een verwijzing over de verzonden envelop, dus over een ander object dan er ondertekend is')
+        return faal('REFERENCE_HASH_UNEXPLAINED', 'de verwijzing komt met geen van beide kandidaten overeen')
+      }
+      return niet('het schema ondertekent noch bytes noch getypeerde velden volgens de vector')
+    }
+    if (r.scheme_signs === 'typed-fields') {
+      const refs = new Set(r.variants.map((x) => kaal(x.reference_hash)))
+      if (r.variants.length >= 2 && refs.size !== 1) return faal('SIGNED_CONTENT_IDENTIFIER_UNSTABLE', 'twee serialisaties van dezelfde ondertekende inhoud gaven een andere verwijzing')
+    }
+    return goed(`de verwijzing dekt wat het schema ondertekent (${r.scheme_signs}) en het formaat verklaart het`)
   }
 
   return niet('onbekende clausule')
