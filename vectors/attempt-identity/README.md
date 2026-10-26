@@ -1,6 +1,6 @@
 # Test vectors for x402 specification v2, section 5.5
 
-Sixty-one vectors over the twelve clauses of section 5.5, the Settlement and Refusal Identity Invariant, plus one vector that states a property of the checker. They follow the text of the section as proposed in [x402-foundation/x402 pull request 3776](https://github.com/x402-foundation/x402/pull/3776), checked against commit `8494922` on 26 October 2026. The first set was written by Abdellah Ouadoudi ([github.com/holistis](https://github.com/holistis)) on 18 October 2026, before any test for this section existed. It was rebuilt on 26 October when the section was rewritten, and corrected the same day after an independent audit (see the end of this file).
+Sixty-one vectors over the twelve clauses of section 5.5, the Settlement and Refusal Identity Invariant, plus one vector that states a property of the checker. They follow the text of the section as proposed in [x402-foundation/x402 pull request 3776](https://github.com/x402-foundation/x402/pull/3776), checked against commit `8494922` on 26 October 2026. The first set was written by Abdellah Ouadoudi ([github.com/holistis](https://github.com/holistis)) on 18 October 2026, before any test for this section existed. It was rebuilt on 26 October when the section was rewritten, and corrected the same day after a review pass that we ran ourselves (see the end of this file).
 
 ## What is here
 
