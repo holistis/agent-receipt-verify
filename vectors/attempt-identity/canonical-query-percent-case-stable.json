@@ -3,13 +3,14 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 2819ed7 (arrival-order query canonicalization) on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
   "id": "attempt-identity-canonical-query-percent-case-stable",
   "clause": "canonical-members",
   "encodes": "Two requests that differ only in the case of the percent-encoding hex digits are the same attempt. Positive control.",
+  "equivalence_basis": "The case of the percent-encoding hex digits carries no meaning: RFC 3986 section 6.2.2.1 says that percent-encoded triplets are equivalent whatever the case of their hex digits. The order of the parameters is not an equivalence in this rule any more, see the repeated-keys vectors and research/repeated-query-matrix.",
   "description": "The identity follows the canonical query.",
   "input": {
     "canonical_variants": [

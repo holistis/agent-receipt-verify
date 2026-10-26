@@ -3,13 +3,14 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 2819ed7 (arrival-order query canonicalization) on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
   "id": "attempt-identity-canonical-empty-query-equals-absent",
   "clause": "canonical-members",
   "encodes": "An empty query string and an absent query are treated identically: both omit the query member from the hashed set. Positive control.",
+  "equivalence_basis": "The specification text of section 5.5 decides this (the absent-member rule). RFC 3986 section 6.2.3 does not license dropping an empty query by itself, and no handler has been measured, so this equivalence rests on the text alone and may be challenged.",
   "description": "One case covers both.",
   "input": {
     "canonical_variants": [
