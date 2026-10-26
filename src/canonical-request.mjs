@@ -1,5 +1,5 @@
 // Canonicalization of the request members that enter the attempt identity, as section 5.5 of the x402 specification
-// v2 defines them (pull request 3776, commit 8494922). Pure functions, no network, no account.
+// v2 defines them (pull request 3776, commit 2819ed7). Pure functions, no network, no account.
 //
 //   query  : split the raw query string on "&" only (";" is not a separator) into its ordered segments, split each at the
 //            first "=", percent-decode each name and value to octets per RFC 3986, re-encode with uppercase hex over the
