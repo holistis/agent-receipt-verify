@@ -219,5 +219,36 @@ console.log('\nde scope van de betaler: wie heeft code')
   }
 }
 
+console.log('\nERC-6492: de omhulling gaat via het deployment-pad of nergens (x402#3925)')
+{
+  const { leesErc6492, beoordeelAutorisatie } = await import('../src/eip3009-autorisatie.mjs')
+  const basis = JSON.parse(fs.readFileSync(new URL('../vectors/kanon/valid-baseline-001.json', import.meta.url), 'utf8'))
+  const MAGIC = '6492649264926492649264926492649264926492649264926492649264926492'
+  const w = (hex) => hex.replace(/^0x/, '').padStart(64, '0')
+  const pad = (h) => h + '0'.repeat((64 - (h.length % 64)) % 64)
+  const wikkel = (inner, factory, calldata) => {
+    const i = inner.replace(/^0x/, ''), c = calldata.replace(/^0x/, '')
+    return '0x' + w(factory) + w('60') + w((0x60 + 32 + pad(c).length / 2).toString(16)) + w((c.length / 2).toString(16)) + pad(c) + w((i.length / 2).toString(16)) + pad(i) + MAGIC
+  }
+  const FACTORY = '0x0000000000000000000000000000000000001234'
+  const inner = basis.input.payload.signature
+  const geef = async (sig, extra = {}) => { const input = structuredClone(basis.input); input.payload.signature = sig; return beoordeelAutorisatie(input, { ...basis.context, payerHasCode: false, ...extra }) }
+  t('een kale handtekening is geen omhulling', leesErc6492(inner) === null)
+  t('nul-factory en lege calldata: geen pad, afgewezen', (await geef(wikkel(inner, '0', ''))).reason_code === 'ERC6492_NO_DEPLOYMENT_PATH')
+  t('echte factory maar lege calldata: geen pad, afgewezen', (await geef(wikkel(inner, FACTORY, ''))).reason_code === 'ERC6492_NO_DEPLOYMENT_PATH')
+  t('nul-factory met calldata: geen pad, afgewezen', (await geef(wikkel(inner, '0', '0xdeadbeef'))).reason_code === 'ERC6492_NO_DEPLOYMENT_PATH')
+  t('volledige omhulling, factory niet op de lijst: afgewezen', (await geef(wikkel(inner, FACTORY, '0xdeadbeef'))).reason_code === 'ERC6492_FACTORY_NOT_ALLOWED')
+  const toegestaan = await geef(wikkel(inner, FACTORY, '0xdeadbeef'), { erc6492Factories: [FACTORY.toUpperCase().replace('0X', '0x')] })
+  t('volledige omhulling, factory op de lijst: niet te beoordelen zonder simulatie, geen afwijzing', toegestaan.ongemeten === true && toegestaan.valid === false && toegestaan.reason_code === null)
+  t('een omhulling die niet te lezen is: geen pad, afgewezen', (await geef('0x' + 'ab'.repeat(40) + MAGIC)).reason_code === 'ERC6492_NO_DEPLOYMENT_PATH')
+  t('een betaler MET code: de omhulling-regel geldt niet, de ERC-1271-weg blijft', (await geef(wikkel(inner, '0', ''), { payerHasCode: true })).reason_code !== 'ERC6492_NO_DEPLOYMENT_PATH')
+  t('de kale handtekening blijft geldig', (await geef(inner)).valid === true)
+  for (const f of fs.readdirSync(new URL('../vectors/kanon-voorstel/', import.meta.url)).filter((x) => x.includes('erc6492'))) {
+    const v = JSON.parse(fs.readFileSync(new URL('../vectors/kanon-voorstel/' + f, import.meta.url), 'utf8'))
+    const u = await beoordeelAutorisatie(v.input, v.context)
+    t('het voorstel-vector ' + f + ' wordt zo beoordeeld als ze zegt', u.valid === v.expected.valid && u.reason_code === v.expected.reason_code)
+  }
+}
+
 console.log('\neip3009: ' + groen + ' pass, ' + rood + ' fail')
 process.exitCode = rood === 0 ? 0 : 1

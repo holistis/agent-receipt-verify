@@ -46,3 +46,12 @@ would accept, which for a facilitator is a refused settlement and not a safety m
 
 Our runner returns valid under both policies, which matches the contract. The context shape
 keys `seen_nonces` by payer address; the published set has only the flat list form.
+
+## 3. Two ERC-6492 cases (x402#3925)
+
+Proposals, like the two above, and for the same reason they stay out of `vectors/kanon`. They follow the text of x402 pull request 3925 at commit d0dcbf42, which is not merged: a signature that ends with the ERC-6492 magic suffix, from a payer without code, is accepted only through the deployment path and never by removing the wrapper and checking the inner signature with `ecrecover`.
+
+- `x402-evm-eip3009-erc6492-incomplete-wrapper-001`: the baseline authorization and its valid low-s signature in a wrapper with a zero factory and empty calldata. There is no deployment path, so it must be refused. Reason code (ours, not published): `ERC6492_NO_DEPLOYMENT_PATH`.
+- `x402-evm-eip3009-erc6492-factory-not-allowed-001`: a complete wrapper (non-zero factory, non-empty calldata) whose factory is not allowlisted. Reason code (ours): `ERC6492_FACTORY_NOT_ALLOWED`.
+
+What was measured. robertolocatelli81-dev ran the three reference facilitators on 26 October 2026 (pull request 3925, comment 6425457514): for the incomplete wrapper TypeScript rejects and Go and Python verify it as valid. We ran our own verifier before the change: every wrapped form came back as `SIGNER_MISMATCH`, a refusal for the wrong reason, because the wrapper was not recognized. The verifier on this branch recognizes the wrapper. A complete wrapper with an allowlisted factory cannot be judged offline, it needs a simulation that deploys the account and makes the transfer together, so it is reported as not measured and there is no vector for it.
