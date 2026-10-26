@@ -1,6 +1,8 @@
 # Test vectors for x402 specification v2, section 5.5
 
-Sixty-one vectors over the twelve clauses of section 5.5, the Settlement and Refusal Identity Invariant, plus one vector that states a property of the checker. They follow the text of the section as proposed in [x402-foundation/x402 pull request 3776](https://github.com/x402-foundation/x402/pull/3776), checked against commit `8494922` on 26 October 2026. The first set was written by Abdellah Ouadoudi ([github.com/holistis](https://github.com/holistis)) on 18 October 2026, before any test for this section existed. It was rebuilt on 26 October when the section was rewritten, and corrected the same day after an independent audit (see the end of this file).
+DRAFT, NOT FOR MERGE INTO MAIN. This branch follows a proposed replacement of the query bullet of section 5.5: the canonical query keeps the pairs in the order they arrived instead of sorting them, because every library measured (24 of 24 rows, see research/repeated-query-matrix) answers differently for `?q=a&q=b` and `?q=b&q=a`. That is not the text of pull request 3776 at commit 8494922, which sorts. It becomes the text of this folder only if the section changes.
+
+Seventy-one vectors over the twelve clauses of section 5.5, the Settlement and Refusal Identity Invariant, plus one vector that states a property of the checker. They follow the text of the section as proposed in [x402-foundation/x402 pull request 3776](https://github.com/x402-foundation/x402/pull/3776), checked against commit `8494922` on 26 October 2026. The first set was written by Abdellah Ouadoudi ([github.com/holistis](https://github.com/holistis)) on 18 October 2026, before any test for this section existed. It was rebuilt on 26 October when the section was rewritten, and corrected the same day after an independent audit (see the end of this file).
 
 ## What is here
 
@@ -14,16 +16,16 @@ Each clause carries at least one acceptance and at least one rejection:
 | `changed-request-different-artifact` | 5 |
 | `own-identity-from-decoded-fields` | 2 |
 | `normalization-applied` | 2 |
-| `canonical-members` | 25 |
+| `canonical-members` | 35 |
 | `absent-member-omitted` | 2 |
 | `countersignature-recompute-or-refuse` | 8 |
 | `three-identifiers-not-collapsed` | 6 |
 | `outcome-not-folded-into-identity` | 2 |
 | `name-independent-but-bound` | 3 |
 
-The sixty-second file, `nothing-recorded-not-measured`, carries `clause: "all"`: a vector with no observations is neither conformant nor failing, it is unmeasured.
+The seventy-second file, `nothing-recorded-not-measured`, carries `clause: "all"`: a vector with no observations is neither conformant nor failing, it is unmeasured.
 
-Two kinds of vector sit side by side. Most record what an implementation did (identities, paths, a counterparty's answer) and say what a checker must conclude. The `known-answer-` vectors in `canonical-members` are different: they pin the canonical query string and the SHA-256 of a request body, for a raw request, and any implementation in any language can reproduce them without our checker. Their expected values were computed twice, by the JavaScript checker and by a Python implementation that uses only its standard library. The two share no code and agree on all seven inputs, but we wrote both. A third implementation, written and run by ruiruii, matches all seven as well (x402 pull request 3776, comment 6419277292).
+Two kinds of vector sit side by side. Most record what an implementation did (identities, paths, a counterparty's answer) and say what a checker must conclude. The `known-answer-` vectors in `canonical-members` are different: they pin the canonical query string and the SHA-256 of a request body, for a raw request, and any implementation in any language can reproduce them without our checker. Their expected values were computed twice, by the JavaScript checker and by a Python implementation that uses only its standard library. The two share no code and agree on all eleven inputs, but we wrote both. Of the eleven, five are unchanged from the sorted version and were also checked by someone else: ruiruii (x402 pull request 3776, comment 6419277292) and NSPG13 (comment 6420653774). The other six follow the proposed arrival-order rule and nobody other than us has checked them yet.
 
 Every vector states its provenance and a `limits` line saying what it does not show.
 
@@ -34,6 +36,7 @@ From the root of this repository: `npm run attempt-identity`. It prints the reco
 ## Limits
 
 - The text of the section settles the plus sign (it stays a plus), an empty query against no query (the same case, the member is omitted) and JSON with duplicate keys (hashed as its decoded bytes). It does not settle two more things, so the reference checker chooses: an empty segment in a query (`a=1&&b=2`) is dropped, and a `%` that is not followed by two hex digits is kept as a literal percent sign. If the section decides otherwise, the vectors move with it.
+- The arrival-order rule also changes three details that the sorted text did not touch: a name without an equals sign stays bare (`q` is not `q=`), a semicolon is part of a value and not a separator, and a byte that is not valid UTF-8 after percent-decoding is kept as that octet. A route that knows its handler is order-independent would need a declared profile; these vectors cover the default only.
 - The checker does not run a format's own signing recipe (for example an EIP-712 hash). For a reference to signed content it checks that two serializations of the same content give the same reference and that the reference is not the digest of the envelope.
 - The identity values in the recording vectors are labels produced by one function, so a vector of that kind shows whether a checker reads a recording correctly, not whether an implementation hashes the right members in the right order. The `known-answer-` vectors are the part that tests an implementation against the text.
 - The vectors do not certify a facilitator, and they do not check a typed-data signature.

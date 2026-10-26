@@ -7,9 +7,9 @@
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
-  "id": "attempt-identity-known-answer-query-uppercase-hex-and-sort",
+  "id": "attempt-identity-known-answer-query-semicolon-is-not-a-separator",
   "clause": "canonical-members",
-  "encodes": "Uppercase hex and sorted pairs. Expected values were computed by two separately written implementations by us (JavaScript and Python standard library) that agree, and a third implementation, run by someone else, matched all seven (x402 pull request 3776, comment 6419277292).",
+  "encodes": "Only the ampersand separates pairs, a semicolon is part of the value. Expected values were computed by two separately written implementations by us (JavaScript and Python standard library) that agree. Nobody other than us has checked this value yet.",
   "description": "A known answer for a canonical member.",
   "input": {
     "known_answers": [
@@ -17,10 +17,10 @@
         "raw": {
           "method": "GET",
           "path": "/p",
-          "query": "b=2&a=%2f"
+          "query": "x=1;q=b&q=a"
         },
         "observed": {
-          "query": "a=%2F&b=2"
+          "query": "x=1%3Bq%3Db&q=a"
         }
       }
     ]

@@ -7,10 +7,10 @@
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
-  "id": "attempt-identity-canonical-query-order-changes-identity",
+  "id": "attempt-identity-canonical-repeated-keys-reordered-same-identity",
   "clause": "canonical-members",
-  "encodes": "The same two requests, with an identity taken over the query as transmitted: key order and encoding case change the identity.",
-  "description": "The members were hashed as transmitted, never canonicalized first.",
+  "encodes": "An implementation that sorts repeated values gives q=a&q=b and q=b&q=a the same identity: the negative control with a first-value handler.",
+  "description": "Two requests that a handler can tell apart share one identity.",
   "input": {
     "canonical_variants": [
       {
@@ -18,28 +18,28 @@
           "method": "POST",
           "path": "/api/paid/verify-ownership",
           "contentType": "application/json",
-          "query": "b=2&a=%2f",
+          "query": "q=a&q=b",
           "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
         },
-        "identity": "15dd5a0c515a0184ef524fdcb6da6176068824e5f7b64726f070230c005d9512"
+        "identity": "973e955542f53f1583f92f187a0196169677b42dd46262e6fbe576c73ac3045b"
       },
       {
         "raw": {
           "method": "POST",
           "path": "/api/paid/verify-ownership",
           "contentType": "application/json",
-          "query": "a=%2F&b=2",
+          "query": "q=b&q=a",
           "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
         },
-        "identity": "a27fc48027a3f22b57381ed0949a4fb64bc20c3ed96c230b5ceb93282684979f"
+        "identity": "973e955542f53f1583f92f187a0196169677b42dd46262e6fbe576c73ac3045b"
       }
     ]
   },
   "expected": {
     "outcome": "FAIL",
-    "reason_code": "IDENTITY_OVER_NON_CANONICAL_FORM"
+    "reason_code": "DIFFERENT_REQUEST_SAME_IDENTITY"
   },
   "limits": [
-    "This shows hashing the query as transmitted. It does not say how the query was parsed."
+    "This shows one sorting implementation."
   ]
 }

@@ -7,9 +7,9 @@
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
-  "id": "attempt-identity-known-answer-query-sort-by-value",
+  "id": "attempt-identity-known-answer-query-decode-then-encode",
   "clause": "canonical-members",
-  "encodes": "Repeated keys are kept and sorted by encoded value. Expected values were computed by two separately written implementations by us (JavaScript and Python standard library) that agree, and a third implementation, run by someone else, matched all seven (x402 pull request 3776, comment 6419277292).",
+  "encodes": "Each name and value is percent-decoded and re-encoded, so an encoded unreserved character becomes the plain character. Expected values were computed by two separately written implementations by us (JavaScript and Python standard library) that agree. Nobody other than us has checked this value yet.",
   "description": "A known answer for a canonical member.",
   "input": {
     "known_answers": [
@@ -17,10 +17,10 @@
         "raw": {
           "method": "GET",
           "path": "/p",
-          "query": "q=caf%c3%a9&q=a"
+          "query": "q=b&q=%61"
         },
         "observed": {
-          "query": "q=a&q=caf%C3%A9"
+          "query": "q=b&q=a"
         }
       }
     ]

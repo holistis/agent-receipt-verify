@@ -7,9 +7,9 @@
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
-  "id": "attempt-identity-known-answer-query-uppercase-hex-and-sort-wrong",
+  "id": "attempt-identity-known-answer-query-decode-then-encode-wrong",
   "clause": "canonical-members",
-  "encodes": "Lowercase hex kept.",
+  "encodes": "The query was kept as transmitted.",
   "description": "An implementation that gives a different value than the text prescribes.",
   "input": {
     "known_answers": [
@@ -17,10 +17,10 @@
         "raw": {
           "method": "GET",
           "path": "/p",
-          "query": "b=2&a=%2f"
+          "query": "q=b&q=%61"
         },
         "observed": {
-          "query": "a=%2f&b=2"
+          "query": "q=b&q=%61"
         }
       }
     ]

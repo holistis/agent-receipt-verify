@@ -1,0 +1,45 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-canonical-query-percent-case-changes-identity",
+  "clause": "canonical-members",
+  "encodes": "The same two requests, with an identity taken over the query as transmitted: the encoding case changes the identity.",
+  "description": "The members were hashed as transmitted, never canonicalized first.",
+  "input": {
+    "canonical_variants": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "b=2&a=%2f",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "15dd5a0c515a0184ef524fdcb6da6176068824e5f7b64726f070230c005d9512"
+      },
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "contentType": "application/json",
+          "query": "b=2&a=%2F",
+          "bodyBase64": "eyJlbmRwb2ludCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXBpL2hlYWx0aCIsIm93bmVyQWRkcmVzcyI6IjB4MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSJ9"
+        },
+        "identity": "df4e53137c8e03bb2dee369a9a41e89036955ee7d884d666088a7e4428bab32b"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "IDENTITY_OVER_NON_CANONICAL_FORM"
+  },
+  "limits": [
+    "This shows hashing the query as transmitted. It does not say how the query was parsed."
+  ]
+}
