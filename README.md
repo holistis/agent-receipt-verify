@@ -16,7 +16,7 @@ What it does NOT do: it judges the SHAPE of a receipt, not the honesty of the pa
 issued it. See CONFORMANCE.md for what is deliberately left unmeasured.
 
 ```
-npx -y agent-receipt-verify attempt-identity   # 41 vectors for x402 spec section 5.5
+npx -y agent-receipt-verify attempt-identity   # 62 vectors for x402 spec section 5.5
 npx -y agent-receipt-verify link-vectors       # 12 vectors, receipt to settlement
 npx -y agent-receipt-verify kanon              # cross-check against iamonuwa/kanon
 ```

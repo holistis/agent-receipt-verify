@@ -100,6 +100,54 @@ console.log('de kanonieke leden (query, lichaam, JSON) volgens de huidige tekst 
 }
 
 console.log('')
+console.log('regressies uit de onafhankelijke audit van 26 oktober 2026')
+{
+  const SNAP = { method: 'POST', path: '/x', query: '', body: {}, payTo: '0x1', asset: '0x2', network: 'eip155:8453', amount: '1000', scheme: 'exact' }
+  const id = velddigest(SNAP)
+  const A = 'aa'.repeat(32), B = 'bb'.repeat(32), C = 'cc'.repeat(32)
+  const uit = (inv) => toetsPogingIdentiteit(inv)
+  // een samengevouwen identiteit mag niet slagen omdat een ander pad niets heeft vastgelegd
+  const ander = { ...SNAP, amount: '3000' }
+  let r = uit({ ingress: { snapshot: SNAP, identity: id }, paths: [{ path: 'settle', snapshot: ander, identity: velddigest(ander) }, { path: 'refusal', snapshot: ander, identity: id, established_at: 'ingress' }] })
+  t('een pad dat de identiteit behoudt bij een gewijzigd verzoek faalt, ook als een ander pad niets heeft vastgelegd', r.outcome === 'FAIL' && r.reason_code === 'CHANGED_REQUEST_SAME_IDENTITY', r.outcome + '/' + r.reason_code)
+  r = uit({ ingress: { snapshot: SNAP, identity: A }, paths: ['challenge-quote', 'settle', 'refusal', 'replay-lookup'].map((p) => ({ path: p, identity: B })) })
+  t('vier paden die het onderling eens zijn maar niet met de ingress, falen', r.outcome === 'FAIL' && r.reason_code === 'PATHS_DISAGREE_ON_IDENTITY', r.outcome + '/' + r.reason_code)
+  r = uit({ ingress: { snapshot: SNAP, identity: id }, paths: [{ path: 'settle', identity: id }, { path: 'refusal', identity: id }] })
+  t('zonder vastgelegde afleiding is derive-once niet gemeten, en geen goedkeuring', !r.per_clausule.some((c) => c.clausule === 'derive-once-at-ingress' && c.uitkomst === 'PASS'))
+  r = uit({ countersignature: { ingress_value: A, recomputed: B } })
+  t('een afwijking zonder vastgelegd ondertekenen of afrekenen is niet gemeten', r.outcome === 'NOT_MEASURED', r.outcome)
+  r = uit({ countersignature: { ingress_value: A, recomputed: null, signed: false, settled: false, reported_reason: 'comparison_not_possible' } })
+  t('een ontbrekende herberekende waarde is een mislukte vergelijking en geen verschil', r.outcome === 'PASS', r.outcome + '/' + r.reason_code)
+  r = uit({ ingress: { snapshot: Object.fromEntries(Object.keys(SNAP).map((k) => [k, null])), identity: id } })
+  t('een momentopname met negen lege leden is niet volledig', r.reason_code === 'INGRESS_SNAPSHOT_INCOMPLETE', String(r.reason_code))
+  r = uit({ hashed_set: { members: { x: 'waarde', memo: null }, absent: ['x', 'memo'] } })
+  t('een afwezig lid met een lege waarde wordt gezien, ook naast een lid met een waarde', r.reason_code === 'ABSENT_MEMBER_EMITTED_AS_EMPTY', String(r.reason_code))
+  const e1 = '0xAbCdEfabcdefABCDEFabcdefabcdefABCDEFabcd', e2 = e1.toLowerCase()
+  const nv = (a, i) => ({ raw: { network: 'eip155:8453', address: a, timestamp: '2026-10-26T11:00:00Z' }, identity: i })
+  r = uit({ normalization_variants: [nv(e1, A), nv(e2, B), nv('0x1111111111111111111111111111111111111111', C)] })
+  t('twee EVM-adressen die alleen in hoofdletters verschillen en een andere identiteit kregen, falen ook met een derde variant', r.reason_code === 'NORMALIZATION_NOT_APPLIED', String(r.reason_code))
+  r = uit({ normalization_variants: [{ raw: { network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', address: 'So1abcDEF', timestamp: '2026-10-26T11:00:00Z' }, identity: A }, { raw: { network: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', address: 'so1abcdef', timestamp: '2026-10-26T11:00:00Z' }, identity: B }] })
+  t('een Solana-adres wordt niet in kleine letters gezet, dus twee identiteiten voor twee verschillende adressen is goed', r.outcome === 'PASS', r.outcome + '/' + r.reason_code)
+  r = uit({ normalization_variants: [{ raw: { network: 'eip155:8453', address: e2, timestamp: '2026-10-26T11:00:00.500Z' }, identity: A }, { raw: { network: 'eip155:8453', address: e2, timestamp: '2026-10-26T11:00:00Z' }, identity: B }] })
+  t('een tijdstip met 500 milliseconden is een ander tijdstip dan zonder', r.outcome === 'PASS', r.outcome + '/' + r.reason_code)
+  const ref = (declared, variants, extra = {}) => ({ signed_artifact_reference: { declared, input: 'x', version: '1', variants, ...extra } })
+  r = uit(ref('banana', [{ transmitted: '{"a":1}', reference_hash: bytedigest('{"a":1}') }]))
+  t('een onbekende verklaring slaagt nooit', r.outcome !== 'PASS', r.outcome)
+  const d1 = '{"a":1,"b":2}', d2 = '{"x":9}'
+  r = uit(ref('signed-content-identifier', [{ transmitted: d1, reference_hash: A }, { transmitted: d2, reference_hash: B }]))
+  t('twee verschillende inhouden met elk een eigen verwijzing zijn geen instabiele verwijzing', r.outcome !== 'FAIL', r.outcome + '/' + r.reason_code)
+  const { canonicalMembers, parseJsonStrict, bodyDigest: bd, decodeBody: db } = await import('../src/canonical-request.mjs')
+  t('een verzoek zonder query en zonder lichaam laat die leden weg', JSON.stringify(canonicalMembers({ method: 'get', path: '/p' })) === '{"method":"GET","path":"/p"}')
+  t('ISO-8859-1 geeft byte 0x80 als U+0080 en niet als het euroteken', db({ bodyBase64: Buffer.from([0x80]).toString('base64'), contentType: 'text/plain; charset=iso-8859-1' }) === '\u0080')
+  t('een dubbele sleutel na het ontsnappen wordt gezien', parseJsonStrict('{"a":1,"\\u0061":2}').duplicate === true)
+  t('een dubbele sleutel na een tekenreeks die op een backslash eindigt wordt gezien', parseJsonStrict('{"k\\\\":1,"a":1,"a":2}').duplicate === true)
+  const dub = { bodyBase64: Buffer.from('{"a":1,"\\u0061":2}').toString('base64'), contentType: 'application/json' }
+  t('JSON met een dubbele sleutel valt niet samen met het lichaam met alleen de laatste waarde', bd(dub) !== bd({ bodyBase64: Buffer.from('{"a":2}').toString('base64'), contentType: 'application/json' }))
+  const proto = velddigest(JSON.parse('{"__proto__":{"x":1},"a":2}'))
+  t('een sleutel met de naam __proto__ telt mee in het digest', proto !== velddigest({ a: 2 }))
+}
+
+console.log('')
 console.log('de vierde uitkomst, en waarom hij er is')
 {
   const leeg = toetsPogingIdentiteit({})
@@ -134,15 +182,15 @@ console.log('')
 console.log('de twee omgekeerde vallen, want een implementatie doet er bijna zeker een verkeerd')
 {
   const stuk = '{"b":2,"a":1}'
-  const overBytes = { signed_artifact_reference: { scheme_signs: 'bytes', declared: 'transmitted-bytes', variants: [{ transmitted: stuk, reference_hash: bytedigest(stuk) }] } }
-  const overVelden = { signed_artifact_reference: { scheme_signs: 'bytes', declared: 'transmitted-bytes', variants: [{ transmitted: stuk, reference_hash: velddigest(JSON.parse(stuk)) }] } }
+  const overBytes = { signed_artifact_reference: { declared: 'captured-artifact-digest', input: 'the bytes as transmitted', version: '1', variants: [{ transmitted: stuk, reference_hash: bytedigest(stuk) }] } }
+  const overVelden = { signed_artifact_reference: { declared: 'captured-artifact-digest', input: 'the bytes as transmitted', version: '1', variants: [{ transmitted: stuk, reference_hash: velddigest(JSON.parse(stuk)) }] } }
   t('een verwijzing over de verzonden bytes is goed', toetsPogingIdentiteit(overBytes).outcome === 'PASS')
   t(
     'dezelfde verwijzing over een gecanonicaliseerde vorm is fout',
     toetsPogingIdentiteit(overVelden).reason_code === 'REFERENCE_CANONICALIZED_BEFORE_HASHING',
   )
   t('en de controleur rekent beide kandidaten ZELF uit, dus een verkeerd label haalt het niet',
-    toetsPogingIdentiteit({ signed_artifact_reference: { scheme_signs: 'bytes', declared: 'transmitted-bytes', variants: [{ transmitted: stuk, reference_hash: 'f'.repeat(64) }] } }).reason_code === 'REFERENCE_HASH_UNEXPLAINED')
+    toetsPogingIdentiteit({ signed_artifact_reference: { declared: 'captured-artifact-digest', input: 'the bytes as transmitted', version: '1', variants: [{ transmitted: stuk, reference_hash: 'f'.repeat(64) }] } }).reason_code === 'REFERENCE_HASH_UNEXPLAINED')
 
   // En het omgekeerde: bij de EIGEN identiteit moet de sleutelvolgorde juist niets doen.
   const velden = { a: 1, b: 2 }

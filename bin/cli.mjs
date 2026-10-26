@@ -86,7 +86,7 @@ function gebruik() {
   console.log('        marked and skipped rather than failed.')
   console.log('')
   console.log('  npx -y agent-receipt-verify attempt-identity')
-  console.log('        forty-one vectors for the question the other layers assume: are these')
+  console.log('        sixty-two vectors for the question the other layers assume: are these')
   console.log('        records about the SAME attempt? One acceptance and at least one refusal')
   console.log('        per normative clause of x402 spec section 5.5. Offline.')
   console.log('')

@@ -3,7 +3,7 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
@@ -21,7 +21,7 @@
           "query": "",
           "bodyBase64": "Y2Fmw6k="
         },
-        "identity": "da10a50341a404a9d4d58258168eb15283905c7644439249517c335d140b1235"
+        "identity": "86d98776351fa6413f1f5fe8847f8d3615803b1ad8f9a8191a7a6b6b6382eb76"
       },
       {
         "raw": {
@@ -31,7 +31,7 @@
           "query": "",
           "bodyBase64": "Y2Fm6Q=="
         },
-        "identity": "da10a50341a404a9d4d58258168eb15283905c7644439249517c335d140b1235"
+        "identity": "86d98776351fa6413f1f5fe8847f8d3615803b1ad8f9a8191a7a6b6b6382eb76"
       }
     ]
   },
