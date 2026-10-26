@@ -316,9 +316,24 @@ export async function beoordeelGrounding({ rpc, network, feedbackTx, paymentTx =
     payment: betaling.gevonden ? { tx: betalingTx, bron: bronBetaling, from: betaling.from, to: betaling.to, value: betaling.value, blok: betaling.blok, logIndex: betaling.logIndex, aantalOverdrachten: betaling.aantalOverdrachten } : { tx: betalingTx, reden: betaling.reden },
     binding, feiten, grounded,
     registration: registratie.fout ? { reden: registratie.fout } : { blok: registratie.blok },
+    lezingen: lezingenVan(feiten, binding, betaling),
     paymentBeforeRegistration: feiten.paymentAfterRegistration.status === 'true' ? false : feiten.paymentAfterRegistration.status === 'false' ? true : null,
     groundedWithCommitment: grounded === 'yes' && feiten.feedbackHashOpensReceipt.status === 'true',
   }
+}
+
+/**
+ * De drie lezingen van de koppeling naast elkaar (erc-8004-contracts#99): de koppeling op het blok van de betaling, op het blok van de
+ * feedback en zoals hij nu staat. De andere feiten gelden in elke lezing. Het kopoordeel `grounded` blijft de lezing op het blok van de
+ * feedback, zoals AgenticFinanceGraph hem definieert, en verandert hier niet.
+ */
+export function lezingenVan(feiten, binding, betaling) {
+  const rest = ['raterIsPayer', 'paymentBeforeFeedback', 'raterNotOwnerOrOperator'].map((n) => feiten[n].status)
+  const oordeel = (feit2) => (rest.includes('false') || feit2 === 'false' ? 'no' : rest.every((s) => s === 'true') && feit2 === 'true' ? 'yes' : 'incomplete')
+  const bijFeedback = feiten.paidIsBoundWallet.status
+  let nu = bijFeedback
+  if (binding.koppelingVeranderd && betaling.gevonden && binding.agentWalletNu) nu = String(binding.agentWalletNu).toLowerCase() === String(betaling.to).toLowerCase() ? 'true' : 'false'
+  return { paymentBlock: oordeel(feiten.paidIsBoundWalletAtPayment.status), feedbackBlock: oordeel(bijFeedback), now: oordeel(nu) }
 }
 
 // ── commandoregel ──────────────────────────────────────────────────────────────────────────────
@@ -367,11 +382,12 @@ if (process.argv[1]?.endsWith('x402-grounding.mjs') && process.argv.includes('--
   console.log('')
   for (const r of rijen) {
     console.log(`  ${r.afwijkend.length === 0 ? 'agree   ' : 'DISAGREE'}  ${r.naam}${r.afwijkend.length ? '  (differs on: ' + r.afwijkend.join(', ') + ')' : ''}`)
-    console.log(`            verdict by: ${r.bron}`)
+    console.log(`            verdict by: ${r.bron}${/github\.com\/holistis\//.test(r.bron) ? '  (written by us, before the transactions existed, not by someone else)' : ''}`)
   }
   const eens = rijen.filter((r) => r.afwijkend.length === 0).length
   console.log('')
-  console.log(`${eens} of ${rijen.length} recorded controls agree with the other party's verdict.`)
+  const vanAnderen = rijen.filter((r) => !/github\.com\/holistis\//.test(r.bron)).length
+  console.log(`${eens} of ${rijen.length} recorded controls agree with the verdict that was written down first (${vanAnderen} of them written by someone other than us).`)
   console.log('A disagreement is the finding. It is not tuned away.')
   process.exit(eens === rijen.length ? 0 : 1)
 }
@@ -429,6 +445,13 @@ Without --payment the feedbackHash is tried as a transaction hash.`)
   console.log('')
   console.log(`GROUNDED     : ${u.grounded === 'yes' ? 'yes, all four facts hold' : u.grounded === 'no' ? 'no, at least one fact is false' : 'unknown, at least one fact could not be measured'}`)
   if (u.groundedWithCommitment) console.log('  and the feedbackHash opens on that exact settlement through the receipt')
+  const L = u.lezingen
+  const woord = { yes: 'grounded', no: 'not grounded', incomplete: 'could not be measured' }
+  console.log('readings     : the binding of the paid wallet, read at three moments')
+  console.log('               payment block  : ' + woord[L.paymentBlock])
+  console.log('               feedback block : ' + woord[L.feedbackBlock] + '  (the GROUNDED line above)')
+  console.log('               now            : ' + woord[L.now])
+  if (new Set([L.paymentBlock, L.feedbackBlock, L.now]).size > 1) console.log('  note: the readings differ, so the verdict depends on the moment the binding is read (erc-8004/erc-8004-contracts#99). Do not take the GROUNDED line alone.')
   console.log('  note: this is about the chain facts above, not a statement about whether the rating is fair.')
   process.exit(u.grounded === 'yes' ? 0 : u.grounded === 'no' ? 1 : 2)
 }

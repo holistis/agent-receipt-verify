@@ -266,6 +266,22 @@ console.log('the two cases written first by predge-ai (erc-8004-contracts#99, co
   toets('case 2, reading at the feedback block: W1 is the payee, fact 2 holds', u.feiten.paidIsBoundWallet.status === 'true' && u.feiten.raterIsPayer.status === 'true')
 }
 
+console.log('the three readings side by side, on the real recordings of the three cases')
+{
+  const lees = (naam) => JSON.parse(readFileSync(fileURLToPath(new URL('../vectors/grounding/' + naam, import.meta.url)), 'utf8'))
+  const draai = async (v) => {
+    const opname = new Map(v.opname)
+    const rpc = async (m, p) => { const a = opname.get(JSON.stringify([m, p])); if (!a) throw new Error('not recorded'); if (a.fout) throw new Error(a.fout); return a.resultaat }
+    return beoordeelGrounding({ rpc, network: v.network, feedbackTx: v.feedbackTx, paymentTx: v.paymentTx })
+  }
+  const u2 = await draai(lees('ruiruii-geval2-agent-10419.json'))
+  toets('case 2, payment before the registration: payment block no, feedback block yes, now yes', u2.lezingen.paymentBlock === 'no' && u2.lezingen.feedbackBlock === 'yes' && u2.lezingen.now === 'yes' && u2.grounded === 'yes')
+  const u3 = await draai(lees('ruiruii-geval3-agent-10420.json'))
+  toets('case 3, binding changed after the feedback: payment block yes, feedback block yes, now no', u3.lezingen.paymentBlock === 'yes' && u3.lezingen.feedbackBlock === 'yes' && u3.lezingen.now === 'no')
+  const u1 = await draai(lees('predge-geval1-agent-10402.json'))
+  toets('case 1, binding changed before the feedback: payment block yes, feedback block no, now no', u1.lezingen.paymentBlock === 'yes' && u1.lezingen.feedbackBlock === 'no' && u1.lezingen.now === 'no' && u1.grounded === 'no')
+}
+
 console.log('the command line')
 {
   const r = spawnSync(process.execPath, [fileURLToPath(new URL('../src/x402-grounding.mjs', import.meta.url))], { encoding: 'utf8' })

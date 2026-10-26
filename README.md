@@ -324,14 +324,17 @@ Only stablecoins identified by the network's USDC contract address are read; oth
 Since 0.2.16 there is a third reading of the binding, `paidIsBoundWalletAtPayment` with `binding.agentWalletBijBetaling`: which
 wallet was bound to the agent at the block of the payment. It answers whether the payment went to the agent's registered wallet
 when it was made, and it covers the pre-registration case without a separate rule, because before the mint there is no binding to
-read. The tool now shows the reading at the payment block, at the feedback block and as it stands now, and does not pick one for
-the reader. Which one a grounding rule should require is a spec question; this only makes the three answers visible.
+read. Since 0.2.21 the output ends with the three readings side by side (payment block, feedback block, now) and says so when
+they differ, because the GROUNDED line above them is the feedback-block reading and can say yes where the payment-block reading
+says no (case 2 below). The tool does not pick a reading for the reader. Which one a grounding rule should require is a spec
+question; this only makes the three answers visible.
 
 The three readings have vectors in `vectors/grounding-readings/erc8004-grounding-readings.json`: three cases with the expected
 verdict per reading. The same three cases are replayed offline on a simulated chain by `test/grounding.mjs`. The expected verdicts and the first two cases were
 written first by predge-ai (erc-8004/erc-8004-contracts#99); the third case, where the binding changes only after the feedback,
-is ours. Case 1 is also recorded live on Base Sepolia (agent 10402) and the file lists its four transactions, so anyone can run
-`ground` on them.
+is ours. All three cases are recorded live on Base Sepolia (case 1 by us, agent 10402; cases 2 and 3 by ruiruii, agents 10419 and 10420)
+and the file lists their transactions, so anyone can run `ground` on them. `ground --vectors` replays five recordings offline, and says which
+of the expected verdicts were written by someone other than us. `scripts/neem-grounding-op.mjs` makes a new recording.
 
 ## One suite
 

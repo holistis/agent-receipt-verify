@@ -1,8 +1,9 @@
 {
-  "about": "Vectors for the three readings of the wallet binding in an ERC-8004 feedback grounding (erc-8004/erc-8004-contracts#99). Expected verdicts per reading were written first by predge-ai (comment 6397094496); case 1 is also recorded live on Base Sepolia. Run: npx -y agent-receipt-verify ground --feedback=<tx> --network=eip155:84532",
+  "about": "Vectors for the three readings of the wallet binding in an ERC-8004 feedback grounding (erc-8004/erc-8004-contracts#99). Expected verdicts per reading were written first by predge-ai (comment 6397094496); all three cases are recorded live on Base Sepolia (case 1 by us, cases 2 and 3 by ruiruii). Run: npx -y agent-receipt-verify ground --feedback=<tx> --network=eip155:84532",
   "credit": [
     "predge-ai (expected verdicts and the two original cases)",
-    "holistis (verifier, case 3, live recording)"
+    "holistis (verifier, case 3, live recording)",
+    "ruiruii (live recordings of cases 2 and 3 on Base Sepolia, erc-8004/erc-8004-contracts#99 comment 6418209724)"
   ],
   "readings": {
     "payment_block": "fact 2 read at the block of the payment (paidIsBoundWalletAtPayment)",
@@ -61,7 +62,30 @@
         "feedback_block": "grounded",
         "now": "grounded"
       },
-      "live": null
+      "live": {
+        "network": "eip155:84532",
+        "agentId": "10419",
+        "W1": "0x4f7d7080ac5850f5694f4fa7546605303e4580f2",
+        "payer": "0x7483f144ee8c451685e00952cb027f14c0f7c049",
+        "payment": {
+          "tx": "0xbd97b92c32ac8a218d19272658d5ad67b03d03396701d62a4a498e421aaaa60b",
+          "block": 50509680
+        },
+        "registration": {
+          "block": 50509714
+        },
+        "feedback": {
+          "tx": "0x9759e77075505c9b2d9b25481cf2c1aa670af05a30329f795d9bfb5f495d6048",
+          "block": 50509762
+        },
+        "measured_with": "agent-receipt-verify 0.2.21, read from the real chain on 2026-10-26",
+        "readings_measured": {
+          "payment_block": "not grounded (no wallet bound at the payment block, the payment is before the registration)",
+          "feedback_block": "grounded",
+          "now": "grounded"
+        },
+        "replay": "vectors/grounding/ruiruii-geval2-agent-10419.json, replayed offline by: npx -y agent-receipt-verify ground --vectors"
+      }
     },
     {
       "id": "case-3-wallet-changed-after-feedback",
@@ -76,7 +100,31 @@
         "feedback_block": "grounded",
         "now": "differs, change reported"
       },
-      "live": null
+      "live": {
+        "network": "eip155:84532",
+        "agentId": "10420",
+        "W1": "0x4f7d7080ac5850f5694f4fa7546605303e4580f2",
+        "W2": "0x260c5e761ef37841fd10a329796cc264c6e774d0",
+        "payer": "0x7483f144ee8c451685e00952cb027f14c0f7c049",
+        "registration": {
+          "block": 50509777
+        },
+        "payment": {
+          "tx": "0x0f69594fd2358184cadc81f9e2143036aec9b6dc0708c59aa2b5317713e4d51e",
+          "block": 50509819
+        },
+        "feedback": {
+          "tx": "0x177a09a7c8c42678586bfa91773a87b1c1f78bd5d217c28539bce853e36d94a3",
+          "block": 50509849
+        },
+        "measured_with": "agent-receipt-verify 0.2.21, read from the real chain on 2026-10-26",
+        "readings_measured": {
+          "payment_block": "grounded",
+          "feedback_block": "grounded",
+          "now": "not grounded (the wallet is now W2, change reported)"
+        },
+        "replay": "vectors/grounding/ruiruii-geval3-agent-10420.json, replayed offline by: npx -y agent-receipt-verify ground --vectors"
+      }
     }
   ]
 }

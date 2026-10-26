@@ -9,7 +9,7 @@
   ],
   "id": "attempt-identity-known-answer-query-sort-by-value",
   "clause": "canonical-members",
-  "encodes": "Repeated keys are kept and sorted by encoded value. Expected values were computed by two independent implementations (JavaScript and Python standard library) that agree.",
+  "encodes": "Repeated keys are kept and sorted by encoded value. Expected values were computed by two separately written implementations by us (JavaScript and Python standard library) that agree, and a third implementation, run by someone else, matched all seven (x402 pull request 3776, comment 6419277292).",
   "description": "A known answer for a canonical member.",
   "input": {
     "known_answers": [
