@@ -1,0 +1,59 @@
+[
+  {
+    "lib": "PHP $_GET (php -S)",
+    "version": "PHP 8.3.33",
+    "transport": "real-http",
+    "single_accessor": "$_GET['q']",
+    "all_accessor": "none for plain repeated names (only q[] syntax makes a list)",
+    "rep": {
+      "ab": {
+        "qs": "?q=a&q=b",
+        "single": "b",
+        "all": "n/a",
+        "parse_str_q": "b",
+        "request_q": "b"
+      },
+      "ba": {
+        "qs": "?q=b&q=a",
+        "single": "a",
+        "all": "n/a",
+        "parse_str_q": "a",
+        "request_q": "a"
+      }
+    },
+    "cross": {
+      "ab": {
+        "qs": "?a=1&b=2",
+        "keys": [
+          "a",
+          "b"
+        ]
+      },
+      "ba": {
+        "qs": "?b=2&a=1",
+        "keys": [
+          "b",
+          "a"
+        ]
+      }
+    },
+    "extra": {
+      "bracket_syntax": {
+        "ab": {
+          "qs": "?q[]=a&q[]=b",
+          "q": [
+            "a",
+            "b"
+          ]
+        },
+        "ba": {
+          "qs": "?q[]=b&q[]=a",
+          "q": [
+            "b",
+            "a"
+          ]
+        }
+      }
+    }
+  }
+]

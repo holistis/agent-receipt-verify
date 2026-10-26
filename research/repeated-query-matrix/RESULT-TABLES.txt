@@ -1,0 +1,68 @@
+TABLE 1  (cells: ?q=a&q=b  /  ?q=b&q=a)
+| library | version | transport | single accessor | single value | get-all list | single differs | list differs |
+|---|---|---|---|---|---|---|---|
+| Node URLSearchParams | v24.14.1 | in-process | .get("q") | a / b | [a,b] / [b,a] | YES | YES |
+| Node URL.searchParams -> Object.fromEntries (idiom) | v24.14.1 | in-process | Object.fromEntries(sp).q | b / a | n/a | YES | - |
+| Node querystring.parse | v24.14.1 | in-process | .q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| qs (qs.parse) | 6.16.1 | in-process | .q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| Express 5.3.0 default parser (req.query) | 5.3.0 | real-http | req.query.q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| Express 5.3.0 "extended" (qs) | 5.3.0 | real-http | req.query.q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| Express 5.3.0 "simple" (querystring) | 5.3.0 | real-http | req.query.q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| Fastify | 5.12.7 | real-http | request.query.q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| Koa | 3.2.1 | real-http | ctx.query.q (raw property) | [a,b] / [b,a] (array) | [a,b] / [b,a] | YES | YES |
+| Hono (node-server) | 4.13.14 | real-http | c.req.query("q") | a / b | [a,b] / [b,a] | YES | YES |
+| Python urllib.parse.parse_qs | stdlib 3.12.10 | in-process | n/a (values are always lists) | n/a | [a,b] / [b,a] | - | YES |
+| Python urllib.parse.parse_qsl | stdlib 3.12.10 | in-process | dict(parse_qsl(qs))['q'] (common idiom, not a parse_qsl accessor) | b / a | [a,b] / [b,a] | YES | YES |
+| Django QueryDict (in-process) | 6.1.2 | in-process | .get('q') | b / a | [a,b] / [b,a] | YES | YES |
+| Django request.GET (real HTTP, wsgiref) | 6.1.2 | real-http | request.GET.get('q') | b / a | [a,b] / [b,a] | YES | YES |
+| Flask/Werkzeug request.args | Flask 3.1.3 / Werkzeug 3.1.9 | real-http | request.args.get('q') | a / b | [a,b] / [b,a] | YES | YES |
+| Starlette request.query_params | Starlette 1.10.0 | real-http | query_params.get('q') | b / a | [a,b] / [b,a] | YES | YES |
+| FastAPI scalar param `q: str` | FastAPI 0.162.0 | real-http | function arg q: str | b / a | n/a | YES | - |
+| FastAPI list param `q: List[str]` | FastAPI 0.162.0 | real-http | n/a (see previous row) | n/a | [a,b] / [b,a] | - | YES |
+| aiohttp request.query | aiohttp 3.14.5 | real-http | query.get('q') | a / b | [a,b] / [b,a] | YES | YES |
+| Tornado | Tornado 6.6 | real-http | get_query_argument('q') | b / a | [a,b] / [b,a] | YES | YES |
+| Bottle request.query | Bottle 0.13.4 | real-http | request.query.get('q') | b / a | [a,b] / [b,a] | YES | YES |
+| Go net/url ParseQuery | go1.27.0 | in-process | Values.Get("q") | a / b | [a,b] / [b,a] | YES | YES |
+| Go net/http r.URL.Query() | go1.27.0 | real-http | r.URL.Query().Get("q") | a / b | [a,b] / [b,a] | YES | YES |
+| Go net/http r.FormValue / r.Form | go1.27.0 | real-http | r.FormValue("q") | a / b | [a,b] / [b,a] | YES | YES |
+| Gin c.Query / c.QueryArray | gin v1.12.0 | real-http | c.GetQuery("q") | a / b | [a,b] / [b,a] | YES | YES |
+| PHP $_GET (php -S) | PHP 8.3.33 | real-http | $_GET['q'] | b / a | n/a | YES | - |
+
+ROW COUNTS: single-value differs 24/24; get-all list differs 23/23
+FAMILY COUNTS: single differs 18/18; list differs 18/18
+families with single NOT differing: []
+families with list NOT differing: []
+
+TABLE 2  (keys in default iteration order; ?a=1&b=2 vs ?b=2&a=1)
+| library | keys for a,b | keys for b,a | order of different names exposed |
+|---|---|---|---|
+| Node URLSearchParams | [a,b] | [b,a] | yes |
+| Node URL.searchParams -> Object.fromEntries (idiom) | [a,b] | [b,a] | yes |
+| Node querystring.parse | [a,b] | [b,a] | yes |
+| qs (qs.parse) | [a,b] | [b,a] | yes |
+| Express 5.3.0 default parser (req.query) | [a,b] | [b,a] | yes |
+| Express 5.3.0 "extended" (qs) | [a,b] | [b,a] | yes |
+| Express 5.3.0 "simple" (querystring) | [a,b] | [b,a] | yes |
+| Fastify | [a,b] | [b,a] | yes |
+| Koa | [a,b] | [b,a] | yes |
+| Hono (node-server) | [a,b] | [b,a] | yes |
+| Python urllib.parse.parse_qs | [a,b] | [b,a] | yes |
+| Python urllib.parse.parse_qsl | [a,b] | [b,a] | yes |
+| Django QueryDict (in-process) | [a,b] | [b,a] | yes |
+| Django request.GET (real HTTP, wsgiref) | [a,b] | [b,a] | yes |
+| Flask/Werkzeug request.args | [a,b] | [b,a] | yes |
+| Starlette request.query_params | [a,b] | [b,a] | yes |
+| FastAPI scalar param `q: str` | [a,b] | [b,a] | yes |
+| FastAPI list param `q: List[str]` | [a,b] | [b,a] | yes |
+| aiohttp request.query | [a,b] | [b,a] | yes |
+| Tornado | [a,b] | [b,a] | yes |
+| Bottle request.query | [a,b] | [b,a] | yes |
+| Go net/url ParseQuery | [a,b] | [b,a] | NO (random: 2 orders seen in 300 iterations) |
+| Go net/http r.URL.Query() | [a,b] | [b,a] | NO (random: 2 orders seen in 300 iterations) |
+| Go net/http r.FormValue / r.Form | [a,b] | [b,a] | NO (random: 2 orders seen in 300 iterations) |
+| Gin c.Query / c.QueryArray | [a,b] | [b,a] | NO (random: 2 orders seen in 300 iterations) |
+| PHP $_GET (php -S) | [a,b] | [b,a] | yes |
+
+ORDER EXPOSED: 22/26 rows
+EXTRA Go net/url ParseQuery {"Values.Encode() for a=1&b=2":"a=1&b=2","Values.Encode() for b=2&a=1":"a=1&b=2"}
+EXTRA PHP $_GET (php -S) {"bracket_syntax":{"ab":{"qs":"?q[]=a&q[]=b","q":["a","b"]},"ba":{"qs":"?q[]=b&q[]=a","q":["b","a"]}}}
