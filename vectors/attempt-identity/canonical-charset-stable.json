@@ -10,6 +10,7 @@
   "id": "attempt-identity-canonical-charset-stable",
   "clause": "canonical-members",
   "encodes": "The same text as UTF-8 and as ISO-8859-1 is the same code points, so the same attempt. Positive control.",
+  "equivalence_basis": "RFC 9110 section 8.3.2 and the WHATWG Encoding standard: a declared charset only decides how bytes map to code points, and the code points are the same. Windows-1252 against ISO-8859-1 is the known trap, covered by a known-answer vector.",
   "description": "The body is decoded from the declared charset to code points before hashing.",
   "input": {
     "canonical_variants": [

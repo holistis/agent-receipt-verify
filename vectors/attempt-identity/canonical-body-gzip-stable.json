@@ -10,6 +10,7 @@
   "id": "attempt-identity-canonical-body-gzip-stable",
   "clause": "canonical-members",
   "encodes": "The same body, once as sent and once gzip-compressed, is the same attempt. Positive control.",
+  "equivalence_basis": "RFC 9110 section 8.4: a content coding is a transformation of the representation that the recipient reverses, so the decoded body is the same content. Not measured against real handlers: a handler that sees the body only after the framework has decoded it cannot tell the two apart.",
   "description": "The body is decoded (content-encoding reversed) before it is hashed.",
   "input": {
     "canonical_variants": [
