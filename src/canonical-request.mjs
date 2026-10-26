@@ -1,9 +1,12 @@
 // Canonicalization of the request members that enter the attempt identity, as section 5.5 of the x402 specification
 // v2 defines them (pull request 3776, commit 8494922). Pure functions, no network, no account.
 //
-//   query  : parse the raw query string into ordered (name, value) pairs, percent-decode each per RFC 3986, re-encode
-//            with uppercase hex over the unreserved set, sort by encoded name then encoded value, join with "&".
-//            A literal "+" stays a plus. An empty query and no query are the same case: the member is omitted.
+//   query  : split the raw query string on "&" only (";" is not a separator) into its ordered segments, split each at the
+//            first "=", percent-decode each name and value to octets per RFC 3986, re-encode with uppercase hex over the
+//            unreserved set, and join the pairs IN THE ORDER THEY ARRIVED. Nothing is sorted: a handler that reads the first
+//            value, the last value or the ordered list does different work for "q=a&q=b" and "q=b&q=a", so the two get
+//            different identities. A name without "=" stays bare ("q" is not "q="). A literal "+" stays a plus. An empty
+//            query and no query are the same case: the member is omitted.
 //   body   : reverse content-encoding (gzip, deflate, br), decode the charset from Content-Type (UTF-8 if undeclared),
 //            then SHA-256; for JSON bodies the decoded body is first canonicalized with RFC 8785. JSON with duplicate
 //            object keys is not I-JSON and is hashed as its decoded UTF-8 bytes, without canonicalization.
@@ -42,12 +45,10 @@ export function canonicalQuery(raw) {
   for (const stuk of q.split('&')) {
     if (stuk === '') continue
     const i = stuk.indexOf('=')
-    const naam = i === -1 ? stuk : stuk.slice(0, i)
-    const waarde = i === -1 ? '' : stuk.slice(i + 1)
-    paren.push([percentEncode(percentDecode(naam)), percentEncode(percentDecode(waarde))])
+    const naam = percentEncode(percentDecode(i === -1 ? stuk : stuk.slice(0, i)))
+    paren.push(i === -1 ? naam : `${naam}=${percentEncode(percentDecode(stuk.slice(i + 1)))}`)
   }
-  paren.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0))
-  return paren.map(([n, w]) => `${n}=${w}`).join('&')
+  return paren.join('&')
 }
 
 // RFC 8785 for the data types that occur here: property names sorted by UTF-16 code units (the default sort), numbers as
