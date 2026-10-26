@@ -296,6 +296,28 @@ export async function linkBonnetjeViaVerkenner(verkenner, { payload, salt, asset
  * 2 seconden per blok en 80 seconden bij 0,2 seconde per blok, en de afrekening kan best een paar minuten voor of na
  * het bonnetje liggen. Wie zelf blokken kiest (venster) krijgt precies dat, zoals voorheen.
  */
+/**
+ * Is het blok van de gevonden afrekening al definitief (finalized) volgens het knooppunt zelf?
+ *
+ * WAAROM DIT BESTAAT. De beheerder van de x402-endpoint-validator schreef bij zijn rij over dit bonnetje letterlijk
+ * "Not checked: finality of that block, which two agreeing nodes do not prove." Dat is waar: twee knooppunten die
+ * hetzelfde blok teruggeven bewijzen dat ze het hebben gezien, niet dat het niet meer kan veranderen. Een knooppunt
+ * kent daarvoor het blokmerk `finalized` (op OP-stack-ketens zoals Base: het laatste blok dat op de L1 definitief is).
+ *
+ * WAT DIT NIET IS. Het is de mening van DIT knooppunt. Kent het knooppunt het merk niet, dan is het antwoord
+ * "unknown" en nooit "finalized"; een weigering of fout wordt nooit als "nog niet" gelezen en nooit als "definitief".
+ */
+export async function leesFinaliteit(rpc, blok) {
+  try {
+    const b = await rpc('eth_getBlockByNumber', ['finalized', false])
+    const fin = b?.number == null ? NaN : getal(b.number)
+    if (!Number.isFinite(fin)) return { status: 'unknown', reden: 'the node returned no finalized block' }
+    return { status: Number(blok) <= fin ? 'finalized' : 'not_yet_finalized', finalizedBlock: fin, settlementBlock: Number(blok) }
+  } catch (e) {
+    return { status: 'unknown', reden: String(e.message).slice(0, 120) }
+  }
+}
+
 export async function linkBonnetje(rpc, { payload, salt, asset, venster = null, vensterSeconden = 800 }) {
   if (!payload?.payer) throw new Error('het bonnetje heeft geen payer, dus er is geen autorisator')
   const issuedAt = Number(payload.issuedAt)
@@ -328,6 +350,7 @@ export async function linkBonnetje(rpc, { payload, salt, asset, venster = null, 
     ...uitslag,
     venster: { vanBlok, totBlok, blokTijd, aanroepen, kandidaten: nonces.length, seconden: Math.round((totBlok - vanBlok) * blokTijd) },
     afrekening: treffer ?? null,
+    finaliteit: treffer ? await leesFinaliteit(rpc, treffer.blok) : null,
   }
 }
 
@@ -452,6 +475,9 @@ three: receipt, salt and asset. A receipt and a salt alone cannot link.`)
     console.log(`  nonce     : ${r.identifier}`)
     console.log(`  tx        : ${r.afrekening.tx}`)
     console.log(`  block     : ${r.afrekening.blok}`)
+    if (!r.finaliteit) console.log('  finality  : not checked (the explorer is not a node, so it cannot say what is finalized)')
+    else if (r.finaliteit.status === 'unknown') console.log(`  finality  : unknown (${r.finaliteit.reden})`)
+    else console.log(`  finality  : ${r.finaliteit.status === 'finalized' ? 'finalized' : 'NOT YET finalized'} according to this node (settlement block ${r.finaliteit.settlementBlock}, finalized head ${r.finaliteit.finalizedBlock})`)
     process.exit(0)
   }
   console.log(`LINKED      : no (${r.reden})`)

@@ -6,7 +6,7 @@
 // fout teruggeeft. Dat laatste is de belangrijkste: een geweigerde zoekopdracht
 // mag NOOIT als "niets gevonden" doorsijpelen.
 
-import { AUTHORIZATION_USED_TOPIC, adresAlsTopic, blokBijTijd, haalKandidaten, linkBonnetje, kiesBonnetjePad, maakVerkenner, linkBonnetjeViaVerkenner, VERKENNER_STANDAARD } from '../src/x402-link-onchain.mjs'
+import { AUTHORIZATION_USED_TOPIC, adresAlsTopic, blokBijTijd, haalKandidaten, linkBonnetje, kiesBonnetjePad, maakVerkenner, linkBonnetjeViaVerkenner, VERKENNER_STANDAARD, leesFinaliteit } from '../src/x402-link-onchain.mjs'
 import { berekenCommitment } from '../src/x402-offer-receipt.mjs'
 import { fileURLToPath } from 'node:url'
 
@@ -373,6 +373,19 @@ console.log('the explorer as a second reader of the same chain')
   toets('a list cut off at the cap is refused instead of being trusted', /may be cut off/.test(gooide), gooide)
 }
 toets('the default explorers cover the two networks the examples use', Object.keys(VERKENNER_STANDAARD).sort().join() === 'eip155:8453,eip155:84532')
+
+console.log('finality of the settlement block')
+{
+  const rpcMet = (fin) => async (m, p) => { if (m === 'eth_getBlockByNumber' && p[0] === 'finalized') return fin; throw new Error('unexpected ' + m) }
+  const a = await leesFinaliteit(rpcMet({ number: '0x64' }), 90)
+  toets('a block at or below the finalized head is finalized', a.status === 'finalized' && a.finalizedBlock === 100 && a.settlementBlock === 90)
+  const b = await leesFinaliteit(rpcMet({ number: '0x64' }), 101)
+  toets('a block above the finalized head is not yet finalized', b.status === 'not_yet_finalized')
+  const c = await leesFinaliteit(rpcMet(null), 90)
+  toets('a node that returns no finalized block gives unknown, never finalized', c.status === 'unknown')
+  const d = await leesFinaliteit(async () => { throw new Error('invalid block tag') }, 90)
+  toets('a node that refuses the tag gives unknown with the reason', d.status === 'unknown' && /invalid block tag/.test(d.reden))
+}
 
 console.log(`\n${goed} passed, ${fout} failed`)
 process.exit(fout === 0 ? 0 : 1)
