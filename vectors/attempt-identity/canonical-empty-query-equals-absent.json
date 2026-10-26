@@ -10,6 +10,7 @@
   "id": "attempt-identity-canonical-empty-query-equals-absent",
   "clause": "canonical-members",
   "encodes": "An empty query string and an absent query are treated identically: both omit the query member from the hashed set. Positive control.",
+  "equivalence_basis": "The specification text of section 5.5 at 8494922 decides this (the absent-member rule). RFC 3986 section 6.2.3 does not license dropping an empty query by itself, and no handler has been measured, so this equivalence rests on the text alone and may be challenged.",
   "description": "One case covers both.",
   "input": {
     "canonical_variants": [

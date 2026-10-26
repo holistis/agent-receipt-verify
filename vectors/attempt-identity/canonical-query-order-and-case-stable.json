@@ -10,6 +10,7 @@
   "id": "attempt-identity-canonical-query-order-and-case-stable",
   "clause": "canonical-members",
   "encodes": "Two requests that differ only in query parameter order and percent-encoding case are the same attempt. Positive control.",
+  "equivalence_basis": "The percent-encoding case is equivalent by RFC 3986 section 6.2.2.1. The parameter order is CONTESTED: it rests on the text of section 5.5 at 8494922 only, and every library measured (24 of 24 rows, research/repeated-query-matrix) answers differently for a reordered repeated name. See ERRATA.md.",
   "description": "The identity follows the canonical query.",
   "input": {
     "canonical_variants": [

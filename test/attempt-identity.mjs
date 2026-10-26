@@ -206,6 +206,29 @@ console.log('de twee omgekeerde vallen, want een implementatie doet er bijna zek
 }
 
 console.log('')
+console.log('een gelijkwaardigheid die een vector beweert noemt haar grondslag')
+{
+  // Een vector die zegt dat twee verschillende verzoeken dezelfde aanvraag zijn, beweert dat geen enkele ontvanger ze uit elkaar kan houden.
+  // Zo'n bewering moet haar grondslag noemen (een standaard of een meting), anders glipt een onbewezen gelijkwaardigheid er in.
+  const dir = fileURLToPath(new URL('../vectors/attempt-identity/', import.meta.url))
+  let aantal = 0
+  const zonder = []
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.json'))) {
+    const j = JSON.parse(fs.readFileSync(dir + f, 'utf8'))
+    const v = j.input?.canonical_variants
+    if (!Array.isArray(v) || j.expected?.outcome !== 'PASS') continue
+    const raws = new Set(v.map((x) => JSON.stringify(x.raw)))
+    const ids = new Set(v.map((x) => x.identity))
+    if (raws.size > 1 && ids.size < raws.size) {
+      aantal++
+      if (typeof j.equivalence_basis !== 'string' || j.equivalence_basis.length < 60) zonder.push(f)
+    }
+  }
+  t('minstens een vector beweert een gelijkwaardigheid', aantal >= 4)
+  t('elke beweerde gelijkwaardigheid noemt haar grondslag' + (zonder.length ? ' (ontbreekt bij ' + zonder.join(', ') + ')' : ''), zonder.length === 0)
+}
+
+console.log('')
 console.log('varianten met verschillende velden zijn ONGEMETEN, geen afkeuring')
 {
   const anders = {

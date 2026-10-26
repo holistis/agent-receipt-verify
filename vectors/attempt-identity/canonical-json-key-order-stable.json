@@ -10,6 +10,7 @@
   "id": "attempt-identity-canonical-json-key-order-stable",
   "clause": "canonical-members",
   "encodes": "The same JSON body with a different key order and whitespace is the same attempt, which is what RFC 8785 canonicalization gives. Positive control.",
+  "equivalence_basis": "RFC 8785 (JSON Canonicalization Scheme) and RFC 8259 section 4: a JSON object is an unordered collection, so member order and insignificant whitespace carry no meaning. Duplicate keys are excluded and covered by their own known answer.",
   "description": "JSON bodies are canonicalized with RFC 8785 before the SHA-256 is taken.",
   "input": {
     "canonical_variants": [
