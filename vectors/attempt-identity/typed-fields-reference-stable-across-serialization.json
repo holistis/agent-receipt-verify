@@ -3,26 +3,27 @@
   "verifies": "attempt-identity",
   "requires_chain_read": false,
   "provenance": [
-    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit c207612 on 26 October 2026",
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
     "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
     "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
   ],
   "id": "attempt-identity-typed-fields-reference-stable-across-serialization",
   "clause": "three-identifiers-not-collapsed",
-  "encodes": "The useful control from the text: two differently serialized artifacts with identical signed content. Both verify, their capture digests differ, and the signed-content identifier follows the declared recipe.",
-  "description": "A scheme that signs typed fields, with a reference over the signed content, unchanged by member order or whitespace.",
+  "encodes": "The control from the text: two differently serialized artifacts with identical signed content. Both references are the same signed-content identifier and neither is the digest of its envelope.",
+  "description": "The signed-content identifier is unchanged by member order or whitespace.",
   "input": {
     "signed_artifact_reference": {
-      "scheme_signs": "typed-fields",
-      "declared": "signed-content",
+      "declared": "signed-content-identifier",
+      "input": "the typed message and its domain",
+      "version": "1",
       "variants": [
         {
           "transmitted": "{\"domain\":{\"name\":\"x402 offer\",\"version\":\"1\"},\"message\":{\"amount\":\"1000\",\"payTo\":\"0x2888f36548a900b9b08d584524e1f73bc563ec26\"}}",
-          "reference_hash": "4ba25878fcb3212190cd6484df8d7715e1a50f9c1fbf1240c71a0bb8ae7af43a"
+          "reference_hash": "2ccc61d970218382b25429bb08dedbc33543de766dd529f4a120d3a7f486f834"
         },
         {
           "transmitted": "{\n  \"message\": { \"payTo\": \"0x2888f36548a900b9b08d584524e1f73bc563ec26\", \"amount\": \"1000\" },\n  \"domain\": { \"version\": \"1\", \"name\": \"x402 offer\" }\n}",
-          "reference_hash": "4ba25878fcb3212190cd6484df8d7715e1a50f9c1fbf1240c71a0bb8ae7af43a"
+          "reference_hash": "2ccc61d970218382b25429bb08dedbc33543de766dd529f4a120d3a7f486f834"
         }
       ]
     }
@@ -31,6 +32,6 @@
     "outcome": "PASS"
   },
   "limits": [
-    "This says the reference is stable across two serializations. It does not run the typed-data signature check itself."
+    "This does not run the format's own recipe (for example an EIP-712 hash). It checks stability across serializations and that the reference is not the envelope digest."
   ]
 }

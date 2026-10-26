@@ -1,0 +1,31 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-countersignature-mismatch-reported-as-cannot-compare",
+  "clause": "countersignature-recompute-or-refuse",
+  "encodes": "A counterparty that recomputed a different value, refused, and reported the refusal as a failed comparison.",
+  "description": "The two refusals are different facts and the report must name the right one.",
+  "input": {
+    "countersignature": {
+      "ingress_value": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196",
+      "recomputed": "0cc98d9641750eb03f448b3d44b1f86846df1695fde2a00501862b85038748dd",
+      "comparable": true,
+      "signed": false,
+      "settled": false,
+      "reported_reason": "comparison_not_possible"
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "REFUSAL_REASONS_COLLAPSED"
+  },
+  "limits": [
+    "This shows one swapped report."
+  ]
+}

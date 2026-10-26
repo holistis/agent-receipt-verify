@@ -1,0 +1,62 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 8494922 on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-changed-query-established-at-ingress",
+  "clause": "changed-request-different-artifact",
+  "encodes": "A request whose query differs gets its own artifact, established at ingress.",
+  "description": "The text names the query next to the amount and the body.",
+  "input": {
+    "ingress": {
+      "snapshot": {
+        "method": "POST",
+        "path": "/api/paid/verify-ownership",
+        "query": "",
+        "body": {
+          "endpoint": "https://example.com/api/health",
+          "ownerAddress": "0x1111111111111111111111111111111111111111",
+          "method": "dns-txt"
+        },
+        "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+        "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "network": "eip155:8453",
+        "amount": "1000",
+        "scheme": "exact"
+      },
+      "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+    },
+    "paths": [
+      {
+        "path": "settle",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "a=1",
+          "body": {
+            "endpoint": "https://example.com/api/health",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "1000",
+          "scheme": "exact"
+        },
+        "identity": "e9ce5c0d90400c26d5308f4eca4706ebe9675f86ebda98ea335814156921481d",
+        "established_at": "ingress"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This covers the query. Amount and body have their own vectors."
+  ]
+}
