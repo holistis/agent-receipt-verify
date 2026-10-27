@@ -82,6 +82,36 @@ export function domeinUit(accepted) {
   }
 }
 
+const ERC6492_MAGIC = '6492649264926492649264926492649264926492649264926492649264926492'
+
+/**
+ * Leest een ERC-6492-omhulling (abi.encode(address factory, bytes calldata, bytes handtekening) gevolgd door de magic suffix).
+ * Geeft null als de handtekening geen omhulling is. Anders { factory, heeftCalldata, geenPad } waarbij geenPad betekent dat er
+ * geen deployment-pad te maken valt: een nul-factory, lege calldata of een omhulling die niet te lezen is.
+ */
+export function leesErc6492(signature) {
+  const h = String(signature ?? '').replace(/^0x/i, '').toLowerCase()
+  if (!h.endsWith(ERC6492_MAGIC)) return null
+  const lijf = h.slice(0, h.length - ERC6492_MAGIC.length)
+  const onleesbaar = { factory: null, heeftCalldata: false, geenPad: true, onleesbaar: true }
+  try {
+    if (lijf.length < 64 * 3 || lijf.length % 2 !== 0) return onleesbaar
+    const woord = (i) => BigInt('0x' + lijf.slice(i * 2, i * 2 + 64))
+    const factoryWoord = lijf.slice(0, 64)
+    if (/^0{24}/.test(factoryWoord) === false) return onleesbaar
+    const factory = '0x' + factoryWoord.slice(24)
+    const off1 = Number(woord(32)), off2 = Number(woord(64))
+    if (!Number.isSafeInteger(off1) || !Number.isSafeInteger(off2) || off1 + 32 > lijf.length / 2 || off2 + 32 > lijf.length / 2) return onleesbaar
+    const lenCalldata = Number(woord(off1))
+    const lenInner = Number(woord(off2))
+    if (!Number.isSafeInteger(lenCalldata) || !Number.isSafeInteger(lenInner) || off1 + 32 + lenCalldata > lijf.length / 2 || off2 + 32 + lenInner > lijf.length / 2) return onleesbaar
+    const nul = /^0x0{40}$/.test(factory)
+    return { factory, heeftCalldata: lenCalldata > 0, geenPad: nul || lenCalldata === 0, onleesbaar: false }
+  } catch {
+    return onleesbaar
+  }
+}
+
 /** Is de s-waarde van deze handtekening boven de halve groepsorde. */
 export function isKneedbaar(signature) {
   const h = String(signature ?? '').replace(/^0x/i, '')
@@ -120,13 +150,36 @@ async function beoordeelBinnen(input, context = {}) {
     return { valid: false, reason_code: 'NETWORK_MISMATCH' }
   }
 
+  // 1b. Een ERC-6492-omhulling om de handtekening, van een betaler zonder code. Sinds x402#3925 (tekst op 52556d1b, nog niet
+  // gemerged): een verifier mag zo'n handtekening ALLEEN accepteren via het deployment-pad (de factory staat op de lijst en een
+  // simulatie doet de deployment en de overdracht samen) en mag de omhulling NOOIT weghalen om de handtekening erin met ecrecover
+  // te controleren, ook niet als er geen deployment-gegevens in zitten. Dus: geen pad is een afwijzing, een factory die niet op
+  // de lijst staat is een afwijzing, en een volledige omhulling met een toegestane factory kunnen wij zonder simulatie niet beoordelen.
+  // Wat wij hier eerder deden (de omhulling niet herkennen) gaf SIGNER_MISMATCH, een afwijzing om een verkeerde reden.
+  // Een volledige omhulling met een toegestane factory blokkeert de rest niet: het venster, het bedrag en de nonce worden gewoon
+  // nog gecontroleerd (een betaling die we zeker kunnen weigeren blijft geweigerd), alleen de stappen die de handtekening zelf
+  // lezen (kneedbaarheid en herstellen) slaan we over, en aan het eind is de uitslag NIET TE BEOORDELEN.
+  let ingepaktMetToegestaneFactory = false
+  if (payerScope !== 'code') {
+    const omhulling = leesErc6492(signature)
+    if (omhulling) {
+      // De tekst van 3925 geeft invalid_exact_evm_payload_undeployed_smart_wallet voor een nul-factory of lege calldata (52556d1b).
+      // Een omhulling die niet te lezen is staat sinds 72608ea1 ook in de tekst: MUST reject without simulating, met deze code.
+      if (omhulling.onleesbaar) return { valid: false, reason_code: 'invalid_exact_evm_payload_malformed_erc6492_wrapper' }
+      if (omhulling.geenPad) return { valid: false, reason_code: 'invalid_exact_evm_payload_undeployed_smart_wallet' }
+      const lijst = (Array.isArray(context.erc6492Factories) ? context.erc6492Factories : []).map((a) => String(a).toLowerCase())
+      if (!lijst.includes(omhulling.factory)) return { valid: false, reason_code: 'ERC6492_FACTORY_NOT_ALLOWED' }
+      ingepaktMetToegestaneFactory = true
+    }
+  }
+
   // 2. Kneedbaarheid, voor het herstellen. Een hoge s is een tweede geldige vorm van
   // dezelfde handtekening, en wie eerst herstelt accepteert die vorm stilletjes.
   // De regel geldt voor een betaler ZONDER code. USDC kiest de controle naar de code van de betaler en niet naar de vorm
   // van de handtekening: zonder code ecrecover (en dan weigert het een hoge s), met code ERC-1271. Een slimme portemonnee
   // met een handtekening die niet naar zichzelf terug te herstellen is, hoort dus NIET afgekeurd te worden. Aangewezen
   // door robertolocatelli81-dev op x402#3925 en daarmee ook een gebrek van onze eerste versie.
-  if (payerScope !== 'code' && isKneedbaar(signature)) {
+  if (payerScope !== 'code' && !ingepaktMetToegestaneFactory && isKneedbaar(signature)) {
     return { valid: false, reason_code: 'SIG_MALLEABLE' }
   }
 
@@ -140,7 +193,7 @@ async function beoordeelBinnen(input, context = {}) {
   // ander adres dan de betaler en dat is geen gebrek van de betaling. Zonder ethers kan stap 4 niet
   // en is de eerlijke uitslag ONGEMETEN.
   let hersteld = null
-  if (payerScope !== 'code') {
+  if (payerScope !== 'code' && !ingepaktMetToegestaneFactory) {
     const g = await controleerOndertekenaar({ auth, accepted, signature })
     if (g.uitslag) return g.uitslag
     hersteld = g.hersteld
@@ -191,6 +244,9 @@ async function beoordeelBinnen(input, context = {}) {
     return { valid: false, reason_code: 'NONCE_REPLAY' }
   }
 
+  if (ingepaktMetToegestaneFactory) {
+    return { valid: false, reason_code: null, ongemeten: true, reden: 'the signature is an ERC-6492 wrapper with an allowlisted factory; every other rule passed here, but it can only be accepted through a simulation that deploys the account and makes the transfer together, which this offline check does not run' }
+  }
   if (payerScope === 'code') {
     return { valid: false, reason_code: null, ongemeten: true, reden: 'the payer has code, so the token checks the signature with ERC-1271 on chain; every other rule passed here but the signature itself was not checked' }
   }

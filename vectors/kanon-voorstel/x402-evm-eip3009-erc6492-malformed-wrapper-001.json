@@ -1,0 +1,59 @@
+{
+  "id": "x402-evm-eip3009-erc6492-malformed-wrapper-001",
+  "schema_version": "3.0.0",
+  "protocol": "x402",
+  "scheme": "exact",
+  "network": "eip155:84532",
+  "asset_transfer_method": "eip3009",
+  "encodes": "A signature field that ends with the ERC-6492 magic suffix but cannot be decoded into a factory address, factory calldata and inner signature: it supports neither branch, so the payment must be refused without simulating.",
+  "proposal": true,
+  "provenance": [
+    "x402-foundation/x402 pull request 3925, specs/schemes/exact/scheme_exact_evm.md at commit 72608ea1 (not merged), the sentence that names the case and the code: \"A wrapper that ends with the magic suffix but cannot be decoded into a factory address, factory calldata, and inner signature supports neither branch, so a verifier MUST reject it without simulating (invalid_exact_evm_payload_malformed_erc6492_wrapper).\".",
+    "DrVelvetFog on x402 pull request 3925 (comment 6447329229): the unreadable-wrapper case is in the text as of 72608ea1.",
+    "ERC-6492: the suffix check happens before ecrecover, so a counterfactual contract signature is never verified as if it were an EOA signature."
+  ],
+  "description": "The baseline authorization with a signature field of 40 bytes followed by the ERC-6492 magic suffix, for a payer without code. The 40 bytes cannot be decoded as abi.encode(address, bytes, bytes), so the text requires rejecting it without simulating.",
+  "input": {
+    "x402Version": 2,
+    "payload": {
+      "authorization": {
+        "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "to": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "value": "10000",
+        "validAfter": "1740672089",
+        "validBefore": "1740672154",
+        "nonce": "0xf3746613c2d920b5fdabc0856f2aeb2d4f88ee6037b8cc5d04a71a4462f13480"
+      },
+      "signature": "0xabababababababababababababababababababababababababababababababababababababababab6492649264926492649264926492649264926492649264926492649264926492"
+    },
+    "resource": {
+      "url": "https://api.example.com/premium-data",
+      "description": "Access to premium market data",
+      "mimeType": "application/json"
+    },
+    "accepted": {
+      "scheme": "exact",
+      "network": "eip155:84532",
+      "amount": "10000",
+      "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "payTo": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "maxTimeoutSeconds": 60,
+      "extra": {
+        "name": "USDC",
+        "version": "2"
+      }
+    }
+  },
+  "context": {
+    "verification_time": 1740672100,
+    "payerHasCode": false
+  },
+  "expected": {
+    "valid": false,
+    "reason_code": "invalid_exact_evm_payload_malformed_erc6492_wrapper"
+  },
+  "limits": [
+    "This is a proposal and not a published vector. It follows commit 72608ea1 of x402 pull request 3925, which is not merged; if the text changes, this vector moves with it.",
+    "The signature field is shorter than the three 32-byte head words that abi.encode(address, bytes, bytes) starts with, so it cannot be decoded. Other malformed forms are not covered here."
+  ]
+}

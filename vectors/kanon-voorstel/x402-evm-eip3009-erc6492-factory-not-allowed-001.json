@@ -1,0 +1,61 @@
+{
+  "id": "x402-evm-eip3009-erc6492-factory-not-allowed-001",
+  "schema_version": "3.0.0",
+  "protocol": "x402",
+  "scheme": "exact",
+  "network": "eip155:84532",
+  "asset_transfer_method": "eip3009",
+  "encodes": "A complete ERC-6492 wrapper (non-zero factory, non-empty calldata) whose factory is not allowlisted: the deployment path is not open, so the payment must be refused.",
+  "proposal": true,
+  "provenance": [
+    "x402-foundation/x402 pull request 3925, specs/schemes/exact/scheme_exact_evm.md at commit 52556d1b (not merged): \"If authorization.from has no code and the signature ends with the ERC-6492 magic suffix, a verifier MUST accept it only through the deployment path ... and MUST NOT remove the wrapper and check the inner signature with ecrecover, whether or not the wrapper carries deployment data.\"",
+    "ERC-6492: the suffix check happens before ecrecover, so a counterfactual contract signature is never verified as if it were an EOA signature.",
+    "Measured by robertolocatelli81-dev on 26 October 2026 (x402 pull request 3925, comment 6425457514) with the three reference facilitators at be54b7d: for a payer without code and a valid low-s signature in an incomplete wrapper, TypeScript rejects, Go and Python verify it as valid.",
+    "Measured by us on 26 October 2026 with the verifier before this change: the four well-formed wrapped forms we tried were rejected as SIGNER_MISMATCH, a rejection for the wrong reason, because the wrapper was not recognized."
+  ],
+  "description": "The baseline authorization wrapped with a non-zero factory and non-empty calldata, for a payer without code, with an empty factory allowlist.",
+  "input": {
+    "x402Version": 2,
+    "payload": {
+      "authorization": {
+        "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "to": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "value": "10000",
+        "validAfter": "1740672089",
+        "validBefore": "1740672154",
+        "nonce": "0xf3746613c2d920b5fdabc0856f2aeb2d4f88ee6037b8cc5d04a71a4462f13480"
+      },
+      "signature": "0x0000000000000000000000000000000000000000000000000000000000001234000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000004deadbeef0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000416f561d84da69dea3bf562f243b08ec7d3b6b140f7466c7c797d2a24554ed477b60b03719ddabe477324676e2ede73876c8ae62be1c0630b75bb5f050f48b21d71c000000000000000000000000000000000000000000000000000000000000006492649264926492649264926492649264926492649264926492649264926492"
+    },
+    "resource": {
+      "url": "https://api.example.com/premium-data",
+      "description": "Access to premium market data",
+      "mimeType": "application/json"
+    },
+    "accepted": {
+      "scheme": "exact",
+      "network": "eip155:84532",
+      "amount": "10000",
+      "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "payTo": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "maxTimeoutSeconds": 60,
+      "extra": {
+        "name": "USDC",
+        "version": "2"
+      }
+    }
+  },
+  "context": {
+    "verification_time": 1740672100,
+    "payerHasCode": false
+  },
+  "expected": {
+    "valid": false,
+    "reason_code": "ERC6492_FACTORY_NOT_ALLOWED"
+  },
+  "limits": [
+    "This is a proposal and not a published vector. The incomplete-wrapper vector uses invalid_exact_evm_payload_undeployed_smart_wallet, the code the text of x402 pull request 3925 (commit 52556d1b) gives for a zero factory or empty factory calldata. ERC6492_FACTORY_NOT_ALLOWED is ours, because the text has no code for a factory that is not allowlisted. A wrapper that cannot be read at all gets invalid_exact_evm_payload_malformed_erc6492_wrapper, the code the text names at commit 72608ea1.",
+    "The text it follows is not merged. If the text changes, this vector moves with it.",
+    "A wrapper with an allowlisted factory and deployment data cannot be judged offline, it needs a simulation that deploys the wallet and makes the transfer together, so there is no vector for it here."
+  ]
+}
