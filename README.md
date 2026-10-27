@@ -17,7 +17,7 @@ issued it. See CONFORMANCE.md for what is deliberately left unmeasured.
 
 ```
 npx -y agent-receipt-verify attempt-identity   # 72 vectors for x402 spec section 5.5
-npx -y agent-receipt-verify link-vectors       # 12 vectors, receipt to settlement
+npx -y agent-receipt-verify link-vectors       # 14 vectors (13 offline), receipt to settlement
 npx -y agent-receipt-verify kanon              # cross-check against iamonuwa/kanon
 ```
 
@@ -163,8 +163,8 @@ answer now carries `payerScope` (`code`, `no-code` or `unknown`; unknown behaves
 and says so). Pointed out on [x402#3925](https://github.com/x402-foundation/x402/pull/3925)
 by robertolocatelli81-dev, and it applied to our first version too.
 
-The third runs twelve vectors for the half AFTER paying: does this receipt belong to
-that one settlement. Eleven of them need no network at all; the twelfth reads the chain
+The third runs fourteen vectors for the half AFTER paying: does this receipt belong to
+that one settlement. Thirteen of them need no network at all; the fourteenth reads the chain
 and is marked and skipped rather than reported as a failure, because a check that could
 not run says nothing about the receipt. The same twelve also exist in the field layout
 of the Kanon vectors, in `vectors/settlement-link-kanon`, so the two corpora can sit
