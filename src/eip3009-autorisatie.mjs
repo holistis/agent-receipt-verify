@@ -150,7 +150,7 @@ async function beoordeelBinnen(input, context = {}) {
     return { valid: false, reason_code: 'NETWORK_MISMATCH' }
   }
 
-  // 1b. Een ERC-6492-omhulling om de handtekening, van een betaler zonder code. Sinds x402#3925 (tekst op d0dcbf42, nog niet
+  // 1b. Een ERC-6492-omhulling om de handtekening, van een betaler zonder code. Sinds x402#3925 (tekst op 52556d1b, nog niet
   // gemerged): een verifier mag zo'n handtekening ALLEEN accepteren via het deployment-pad (de factory staat op de lijst en een
   // simulatie doet de deployment en de overdracht samen) en mag de omhulling NOOIT weghalen om de handtekening erin met ecrecover
   // te controleren, ook niet als er geen deployment-gegevens in zitten. Dus: geen pad is een afwijzing, een factory die niet op

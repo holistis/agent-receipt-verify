@@ -8,7 +8,7 @@
   "encodes": "A complete ERC-6492 wrapper (non-zero factory, non-empty calldata) whose factory is not allowlisted: the deployment path is not open, so the payment must be refused.",
   "proposal": true,
   "provenance": [
-    "x402-foundation/x402 pull request 3925, specs/schemes/exact/scheme_exact_evm.md at commit d0dcbf42 (not merged): \"If authorization.from has no code and the signature ends with the ERC-6492 magic suffix, a verifier MUST accept it only through the deployment path ... and MUST NOT remove the wrapper and check the inner signature with ecrecover, whether or not the wrapper carries deployment data.\"",
+    "x402-foundation/x402 pull request 3925, specs/schemes/exact/scheme_exact_evm.md at commit 52556d1b (not merged): \"If authorization.from has no code and the signature ends with the ERC-6492 magic suffix, a verifier MUST accept it only through the deployment path ... and MUST NOT remove the wrapper and check the inner signature with ecrecover, whether or not the wrapper carries deployment data.\"",
     "ERC-6492: the suffix check happens before ecrecover, so a counterfactual contract signature is never verified as if it were an EOA signature.",
     "Measured by robertolocatelli81-dev on 26 October 2026 (x402 pull request 3925, comment 6425457514) with the three reference facilitators at be54b7d: for a payer without code and a valid low-s signature in an incomplete wrapper, TypeScript rejects, Go and Python verify it as valid.",
     "Measured by us on 26 October 2026 with the verifier before this change: the four well-formed wrapped forms we tried were rejected as SIGNER_MISMATCH, a rejection for the wrong reason, because the wrapper was not recognized."
@@ -54,7 +54,7 @@
     "reason_code": "ERC6492_FACTORY_NOT_ALLOWED"
   },
   "limits": [
-    "This is a proposal and not a published vector. The reason codes ERC6492_NO_DEPLOYMENT_PATH and ERC6492_FACTORY_NOT_ALLOWED are ours, the spec text and the Kanon set have no code for a wrapped signature (the reference implementations define invalid_exact_evm_payload_undeployed_smart_wallet).",
+    "This is a proposal and not a published vector. The reason codes ERC6492_NO_DEPLOYMENT_PATH and ERC6492_FACTORY_NOT_ALLOWED are ours, in the upper-case style of the Kanon set. For an incomplete wrapper (zero factory or empty factory calldata) the text of x402 pull request 3925 at commit 52556d1b gives invalid_exact_evm_payload_undeployed_smart_wallet. For a factory that is not allowlisted the text has no code.",
     "The text it follows is not merged. If the text changes, this vector moves with it.",
     "A wrapper with an allowlisted factory and deployment data cannot be judged offline, it needs a simulation that deploys the wallet and makes the transfer together, so there is no vector for it here."
   ]
