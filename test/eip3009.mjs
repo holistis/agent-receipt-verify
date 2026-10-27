@@ -250,7 +250,7 @@ console.log('\nERC-6492: de omhulling gaat via het deployment-pad of nergens (x4
     t('toegestane factory, maar het bedrag klopt niet: nog steeds AMOUNT_INSUFFICIENT', bedrag.reason_code === 'AMOUNT_INSUFFICIENT')
     t('een lijst die geen lijst is wordt behandeld als een lege lijst', (await geef(wikkelToegestaan, { erc6492Factories: FACTORY })).reason_code === 'ERC6492_FACTORY_NOT_ALLOWED')
   }
-  t('een omhulling die niet te lezen is: geen pad, afgewezen', (await geef('0x' + 'ab'.repeat(40) + MAGIC)).reason_code === 'ERC6492_WRAPPER_UNREADABLE')
+  t('een omhulling die niet te lezen is: geen pad, afgewezen met de code uit de tekst (72608ea1)', (await geef('0x' + 'ab'.repeat(40) + MAGIC)).reason_code === 'invalid_exact_evm_payload_malformed_erc6492_wrapper')
   t('een betaler MET code: de omhulling-regel geldt niet, de ERC-1271-weg blijft', (await geef(wikkel(inner, '0', ''), { payerHasCode: true })).reason_code !== 'invalid_exact_evm_payload_undeployed_smart_wallet' && (await geef(wikkel(inner, '0', ''), { payerHasCode: true })).reason_code !== 'ERC6492_WRAPPER_UNREADABLE')
   t('de kale handtekening blijft geldig', (await geef(inner)).valid === true)
   for (const f of fs.readdirSync(new URL('../vectors/kanon-voorstel/', import.meta.url)).filter((x) => x.includes('erc6492'))) {

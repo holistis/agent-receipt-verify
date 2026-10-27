@@ -55,7 +55,7 @@
     "reason_code": "invalid_exact_evm_payload_undeployed_smart_wallet"
   },
   "limits": [
-    "This is a proposal and not a published vector. The incomplete-wrapper vector uses invalid_exact_evm_payload_undeployed_smart_wallet, the code the text of x402 pull request 3925 (commit 52556d1b) gives for a zero factory or empty factory calldata. ERC6492_FACTORY_NOT_ALLOWED is ours, because the text has no code for a factory that is not allowlisted, and so is ERC6492_WRAPPER_UNREADABLE, which the verifier gives to a wrapper it cannot read.",
+    "This is a proposal and not a published vector. The incomplete-wrapper vector uses invalid_exact_evm_payload_undeployed_smart_wallet, the code the text of x402 pull request 3925 (commit 52556d1b) gives for a zero factory or empty factory calldata. ERC6492_FACTORY_NOT_ALLOWED is ours, because the text has no code for a factory that is not allowlisted. A wrapper that cannot be read at all gets invalid_exact_evm_payload_malformed_erc6492_wrapper, the code the text names at commit 72608ea1.",
     "The text it follows is not merged. If the text changes, this vector moves with it.",
     "A wrapper with an allowlisted factory and deployment data cannot be judged offline, it needs a simulation that deploys the wallet and makes the transfer together, so there is no vector for it here."
   ]

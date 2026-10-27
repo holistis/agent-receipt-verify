@@ -163,9 +163,9 @@ async function beoordeelBinnen(input, context = {}) {
   if (payerScope !== 'code') {
     const omhulling = leesErc6492(signature)
     if (omhulling) {
-      // De tekst van 3925 (52556d1b) geeft invalid_exact_evm_payload_undeployed_smart_wallet voor een nul-factory of lege calldata.
-      // Een omhulling die niet te lezen is staat niet in de tekst, dus die krijgt een code van ons.
-      if (omhulling.onleesbaar) return { valid: false, reason_code: 'ERC6492_WRAPPER_UNREADABLE' }
+      // De tekst van 3925 geeft invalid_exact_evm_payload_undeployed_smart_wallet voor een nul-factory of lege calldata (52556d1b).
+      // Een omhulling die niet te lezen is staat sinds 72608ea1 ook in de tekst: MUST reject without simulating, met deze code.
+      if (omhulling.onleesbaar) return { valid: false, reason_code: 'invalid_exact_evm_payload_malformed_erc6492_wrapper' }
       if (omhulling.geenPad) return { valid: false, reason_code: 'invalid_exact_evm_payload_undeployed_smart_wallet' }
       const lijst = (Array.isArray(context.erc6492Factories) ? context.erc6492Factories : []).map((a) => String(a).toLowerCase())
       if (!lijst.includes(omhulling.factory)) return { valid: false, reason_code: 'ERC6492_FACTORY_NOT_ALLOWED' }
