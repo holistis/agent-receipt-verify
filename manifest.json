@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "agent-receipt-verify",
   "display_name": "Agent Receipt Verify",
-  "version": "0.2.22",
+  "version": "0.2.23",
   "description": "Checks x402 endpoint conformance before an agent pays, and links the receipt to its settlement.",
   "author": {
     "name": "Abdellah Ouadoudi",
