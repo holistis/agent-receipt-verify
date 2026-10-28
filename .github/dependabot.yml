@@ -1,0 +1,15 @@
+# Keeps dependencies and pinned action SHAs moving. Pinning without an update
+# tool is how a repository ends up frozen on a version with a known advisory, so
+# the two belong together.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
