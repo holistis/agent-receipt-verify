@@ -262,7 +262,7 @@ rises as that payer consumes more nonces, and the upper block number is capped
 at the current chain head until the head passes it. The transaction each receipt
 resolves to is fixed.
 
-The three files in `examples/` hold exactly what section 5.6.4 says a later verifier
+The four files in `examples/` hold exactly what section 5.6.4 says a later verifier
 has: the receipt, its salt, and the asset that was paid. The nonces and the
 transaction hashes are deliberately kept out of them. Those come out of
 `AuthorizationUsed(address,bytes32)` logs on the token contract, and the tool
@@ -281,6 +281,8 @@ A fixture cannot tell you whether the salt arrives at the location §5.6.3 names
 inside a real settlement envelope; only a paid call can.
 Buyer and seller are both us, so this shows the chain closes end to end. It does
 not show that anyone else is using it.
+
+Three of the four are on Base Sepolia. The fourth, `receipt-live-base-mainnet.json`, is a real payment of 0.001 USDC on Base mainnet on 2 November 2026, with the registration, the payment and the feedback on chain (agent 1150884). Someone outside our team, ruiruii, ran the `ground` command from a clean folder on the same day and reported that all four facts hold, that the feedbackHash opens on that settlement, and that the binding reads grounded at the payment block, the feedback block and now (erc-8004/erc-8004-contracts, issue 99, comment 6578898622). One line stays not measured: the rule that the payment lands after the agent was registered, because a public RPC will not serve the archive read for the registration block. Pass `--rpc=` with an endpoint that serves log ranges, and for the registration rule an archive node. Buyer and seller are both us, so this too shows the chain closes, not that anyone else uses it.
 
 ## Is an ERC-8004 feedback grounded in a payment?
 
