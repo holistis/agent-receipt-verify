@@ -1,0 +1,4 @@
+# De hashlijsten van de vectorsuites zijn genomen over de bytes met CRLF naar LF. Met LF in de werkmap geeft ook een gewone
+# sha256sum -c op Windows dezelfde uitkomst als ons eigen commando.
+vectors/**/*.json text eol=lf
+vectors/*/SHA256SUMS text eol=lf

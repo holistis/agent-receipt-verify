@@ -152,6 +152,17 @@ about one nonce reused across two payers. Those are the two open questions in
 [x402#2725](https://github.com/x402-foundation/x402/issues/2725), and the command
 prints exactly where the two possible answers diverge and where they do not.
 
+Five commands read a vector folder (attempt-identity, kanon, beleid, link-vectors and ground --vectors) and check the folder itself first.
+Each folder has a SHA256SUMS in the sha256sum format. A folder that no longer matches its list (a vector removed, added or changed), a missing
+or unreadable list, an empty or missing folder, or a vector that cannot be run makes the run exit 1 with a PROBLEM line and a closing FAIL line,
+instead of printing a count of whatever is left. The hash is taken over the bytes with CRLF line ends turned into LF, and .gitattributes keeps
+these files LF, so a plain sha256sum -c agrees with this command on a fresh checkout, also on Windows with core.autocrlf=true.
+
+A hash list that sits next to the vectors is not a signature: someone who changes a vector and its line together passes. To rule that out,
+compare with the published npm package or the git history. A vector you add yourself is reported on purpose; copy the folder elsewhere to
+experiment. After a deliberate change, node scripts/seal-vectors.mjs rewrites the lists and says what was added, removed or changed. That
+script is in the repository and not in the npm package.
+
 One scope to know about. The high-s rule and the signer recovery apply to a payer WITHOUT
 code. USDC picks the check by the payer's code: no code, ecrecover (and a high-s signature
 reverts); code, ERC-1271 `isValidSignature` on the payer's contract. So a smart wallet, or an
