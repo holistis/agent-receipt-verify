@@ -24,8 +24,13 @@ export const CONTROLES = [
   { sleutel: 'ground', commando: ['ground', '--vectors'], zekerheid: 'a feedback is grounded in a payment, judged like AgenticFinanceGraph judged two (ERC-8004 #99)' },
 ]
 
-const samenvatting = (tekst) => {
+// Bij een mislukking de eerste PROBLEM-regel (de reden) of anders de FAIL-regel, zodat de uitleg niet onder de telregel verdwijnt.
+const samenvatting = (tekst, status = 0) => {
   const regels = String(tekst).split('\n').map((r) => r.trim()).filter(Boolean)
+  if (status !== 0) {
+    const reden = regels.find((r) => r.startsWith('PROBLEM ')) ?? [...regels].reverse().find((r) => r.startsWith('FAIL'))
+    if (reden) return reden
+  }
   return regels.reverse().find((r) => /\d+ of \d+|agree on|\d+ agree|\d+ pass/i.test(r)) ?? regels[0] ?? ''
 }
 
@@ -38,7 +43,7 @@ export function draaiKind(commando) {
 export function draaiSuite({ run = draaiKind, controles = CONTROLES } = {}) {
   const rijen = controles.map((c) => {
     const r = run(c.commando)
-    return { ...c, geslaagd: r.status === 0, status: r.status, regel: samenvatting(r.stdout) }
+    return { ...c, geslaagd: r.status === 0, status: r.status, regel: samenvatting(r.stdout, r.status) }
   })
   return { rijen, geslaagd: rijen.every((r) => r.geslaagd) }
 }

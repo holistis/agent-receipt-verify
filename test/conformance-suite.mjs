@@ -19,6 +19,19 @@ const toets = (naam, ok, extra = '') => {
 }
 const bestand = (p) => fileURLToPath(new URL(p, import.meta.url))
 
+console.log('a failing check shows its reason, not only the count line')
+{
+  const nep = (commando) => (commando[0] === 'attempt-identity'
+    ? { status: 1, stdout: '72 of 72 vectors behave as recorded, across 12 normative clauses of x402 spec section 5.5.\nPROBLEM extra-copy.json is not in SHA256SUMS\nFAIL: this run does not show that the suite is intact and passing. See the lines above.\n' }
+    : { status: 0, stdout: '3 pass\n' })
+  const u = draaiSuite({ run: nep })
+  const rij = u.rijen.find((r) => r.sleutel === 'attempt-identity')
+  toets('shows the reason of a failure: the first PROBLEM line', rij && /^PROBLEM extra-copy\.json/.test(rij.regel), rij && rij.regel)
+  const zonderProbleem = draaiSuite({ run: (c) => (c[0] === 'attempt-identity' ? { status: 1, stdout: '5 of 5 vectors behave as recorded\nFAIL: this run does not show that the suite is intact and passing.\n' } : { status: 0, stdout: '3 pass\n' }) })
+  toets('without a PROBLEM line it shows the FAIL line', /^FAIL:/.test(zonderProbleem.rijen.find((r) => r.sleutel === 'attempt-identity').regel))
+  toets('a passing check still shows its count line', /3 pass/.test(u.rijen.find((r) => r.sleutel === 'kanon').regel))
+}
+
 console.log('the suite, as a stranger runs it')
 {
   const r = spawnSync(process.execPath, [bestand('../src/conformance-suite.mjs')], { encoding: 'utf8' })

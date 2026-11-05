@@ -480,11 +480,13 @@ if (process.argv[1]?.endsWith('attempt-identity.mjs')) {
   const lijstPad = path.join(map, 'SHA256SUMS')
   if (!fs.existsSync(lijstPad)) problemen.push('SHA256SUMS is missing: the suite cannot be checked against what was published')
   else {
-    problemen.push(...vergelijkSuiteMetHashlijst({
-      bestanden,
-      lijstTekst: fs.readFileSync(lijstPad, 'utf8'),
-      hashVan: (b) => crypto.createHash('sha256').update(lf(fs.readFileSync(path.join(map, b)))).digest('hex'),
-    }))
+    try {
+      problemen.push(...vergelijkSuiteMetHashlijst({
+        bestanden,
+        lijstTekst: fs.readFileSync(lijstPad, 'utf8'),
+        hashVan: (b) => crypto.createHash('sha256').update(lf(fs.readFileSync(path.join(map, b)))).digest('hex'),
+      }))
+    } catch (e) { problemen.push('SHA256SUMS or a vector could not be read (' + String(e.message).split(String.fromCharCode(10))[0] + ')') }
   }
   const vectoren = []
   let past = 0
