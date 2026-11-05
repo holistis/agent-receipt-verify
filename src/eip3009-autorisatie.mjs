@@ -32,6 +32,7 @@
 // gebrek van de betaling.
 
 import { laadEthers } from './x402-conformance-treden.mjs'
+import { draaiMetIntegriteit, eersteRegel, lijstVectoren } from './suite-integriteit.mjs'
 
 /** De helft van de secp256k1-groepsorde. Daarboven is een handtekening kneedbaar. */
 const HALVE_ORDE = 0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0n
@@ -287,11 +288,8 @@ if (process.argv[1]?.endsWith('eip3009-autorisatie.mjs')) {
   const path = await import('node:path')
   const { fileURLToPath } = await import('node:url')
   const map = path.join(fileURLToPath(new URL('..', import.meta.url)), 'vectors', 'kanon')
-  if (!fs.existsSync(map)) {
-    console.log('geen vectoren gevonden in ' + map)
-    process.exitCode = 2
-  } else {
-    const bestanden = fs.readdirSync(map).filter((f) => f.endsWith('.json')).sort()
+  await draaiMetIntegriteit(map, async () => {
+    const bestanden = lijstVectoren(map)
     let eens = 0, oneens = 0, ongemeten = 0
     console.log('Cross-check against iamonuwa/kanon, EIP-3009 payment authorizations')
     console.log('Vectors pinned at commit 0d5a7461e996, Apache-2.0, redistributed unmodified.')
@@ -299,8 +297,8 @@ if (process.argv[1]?.endsWith('eip3009-autorisatie.mjs')) {
     console.log('and EIP-712, never against that project\'s source.')
     console.log('')
     for (const f of bestanden) {
-      const v = JSON.parse(fs.readFileSync(path.join(map, f), 'utf8'))
-      const u = await beoordeelVector(v)
+      let v, u
+      try { v = JSON.parse(fs.readFileSync(path.join(map, f), 'utf8')); u = await beoordeelVector(v) } catch (e) { throw new Error(f + ': ' + eersteRegel(e)) }
       if (u.ongemeten) { ongemeten++; console.log('  not measured  ' + v.id + '  ' + u.reden); continue }
       const zelfde = u.valid === v.expected.valid && u.reason_code === v.expected.reason_code
       if (zelfde) { eens++; console.log('  agree         ' + v.id.padEnd(42) + ' ' + u.reason_code) }
@@ -309,6 +307,6 @@ if (process.argv[1]?.endsWith('eip3009-autorisatie.mjs')) {
     console.log('')
     console.log('agree on ' + eens + ' of ' + bestanden.length + ', disagree ' + oneens + ', not measured ' + ongemeten)
     if (ongemeten) console.log('Install the optional ethers dependency to run the signature recovery.')
-    process.exitCode = oneens === 0 ? 0 : 1
-  }
+    return oneens > 0
+  })
 }

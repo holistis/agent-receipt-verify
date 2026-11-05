@@ -22,12 +22,21 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beoordeelVector, beoordeelAutorisatie } from '../src/eip3009-autorisatie.mjs'
+import { controleerSuiteMap, lijstVectoren, meldProblemen } from '../src/suite-integriteit.mjs'
 
 const wortel = fileURLToPath(new URL('..', import.meta.url))
 const MAP = path.join(wortel, 'vectors', 'kanon')
 const lees = (n) => JSON.parse(fs.readFileSync(path.join(MAP, n), 'utf8'))
 
-const vectoren = fs.readdirSync(MAP).filter((f) => f.endsWith('.json')).sort()
+// Een tabel over een map die niet meer is zoals uitgegeven zou misleiden: dan geen tabel maar de problemen.
+const integriteit = controleerSuiteMap(MAP)
+if (integriteit.length) {
+  meldProblemen(integriteit)
+  process.exitCode = 1
+  await new Promise((klaar) => process.stdout.write('', klaar))
+  process.exit()
+}
+const vectoren = lijstVectoren(MAP)
 
 console.log('EIP-3009: the two open questions from x402 issue 2725, measured')
 console.log('')

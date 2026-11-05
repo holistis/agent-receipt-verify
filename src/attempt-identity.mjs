@@ -25,6 +25,7 @@
 
 import { createHash } from 'node:crypto'
 import { canonicalMembers, canonicalQuery, bodyDigest } from './canonical-request.mjs'
+import { controleerSuiteMap, lijstVectoren, meldProblemen } from './suite-integriteit.mjs'
 
 /**
  * De normatieve clausules van paragraaf 5.5, met het letterlijke citaat erbij.
@@ -445,49 +446,16 @@ export function meetDekking(vectoren) {
   return { volledig, zonderVeld, onbekend, zonderGoedkeuring, zonderAfkeuring }
 }
 
-// De suite op schijf moet de suite zijn die is uitgegeven: elke vector staat in SHA256SUMS en elke regel daarin heeft een vector.
-// Zo valt een weggehaalde, toegevoegde of gewijzigde vector op, ook als de rest nog klopt. hashVan(bestand) geeft de sha256 van de bytes met CRLF naar LF.
-export function vergelijkSuiteMetHashlijst({ bestanden, lijstTekst, hashVan }) {
-  const problemen = []
-  const lijst = new Map()
-  for (const regel of lijstTekst.split(/\r?\n/)) {
-    if (!regel.trim() || regel.startsWith('#')) continue
-    const m = regel.match(/^([0-9a-f]{64}) [ *](.+)$/)
-    if (!m) { problemen.push('unreadable line in SHA256SUMS: ' + regel.slice(0, 60)); continue }
-    if (lijst.has(m[2])) problemen.push(m[2] + ' is listed twice in SHA256SUMS')
-    lijst.set(m[2], m[1])
-  }
-  if (lijst.size === 0) problemen.push('SHA256SUMS names no vectors')
-  for (const b of bestanden) {
-    if (!lijst.has(b)) problemen.push(b + ' is not in SHA256SUMS')
-    else if (hashVan(b) !== lijst.get(b)) problemen.push(b + ' does not match SHA256SUMS')
-  }
-  for (const n of lijst.keys()) if (!bestanden.includes(n)) problemen.push(n + ' is in SHA256SUMS but missing on disk')
-  return problemen
-}
-
 // Een ingang, zodat dit geen bestand is dat iemand moet vinden maar een regel die hij kan
 // draaien. Zonder sleutel, zonder account, zonder netwerk.
 if (process.argv[1]?.endsWith('attempt-identity.mjs')) {
   const fs = await import('node:fs')
   const path = await import('node:path')
-  const crypto = await import('node:crypto')
   const { fileURLToPath } = await import('node:url')
   const map = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vectors', 'attempt-identity')
-  const bestanden = fs.readdirSync(map).filter((b) => b.endsWith('.json')).sort()
-  const problemen = []
-  const lf = (buf) => { const out = []; for (let k = 0; k < buf.length; k++) if (!(buf[k] === 13 && buf[k + 1] === 10)) out.push(buf[k]); return Buffer.from(out) }
-  const lijstPad = path.join(map, 'SHA256SUMS')
-  if (!fs.existsSync(lijstPad)) problemen.push('SHA256SUMS is missing: the suite cannot be checked against what was published')
-  else {
-    try {
-      problemen.push(...vergelijkSuiteMetHashlijst({
-        bestanden,
-        lijstTekst: fs.readFileSync(lijstPad, 'utf8'),
-        hashVan: (b) => crypto.createHash('sha256').update(lf(fs.readFileSync(path.join(map, b)))).digest('hex'),
-      }))
-    } catch (e) { problemen.push('SHA256SUMS or a vector could not be read (' + String(e.message).split(String.fromCharCode(10))[0] + ')') }
-  }
+  const problemen = controleerSuiteMap(map)
+  let bestanden = []
+  try { bestanden = lijstVectoren(map) } catch { /* de map is niet te lezen: controleerSuiteMap meldt dat als PROBLEM */ }
   const vectoren = []
   let past = 0
   for (const b of bestanden) {
@@ -519,10 +487,6 @@ if (process.argv[1]?.endsWith('attempt-identity.mjs')) {
     if (dekking.zonderVeld.length) console.log('  without a clause or an expected outcome: ' + dekking.zonderVeld.join(', '))
     if (dekking.onbekend.length) console.log('  naming a clause that does not exist: ' + dekking.onbekend.join(', '))
   }
-  for (const p of problemen) console.log('PROBLEM ' + p)
-  const gefaald = past !== bestanden.length || bestanden.length === 0 || !dekking.volledig || problemen.length > 0
-  if (gefaald) {
-    console.log('FAIL: this run does not show that the suite is intact and passing. See the lines above.')
-    process.exitCode = 1
-  }
+  const gefaald = past !== bestanden.length || bestanden.length === 0 || !dekking.volledig
+  if (meldProblemen(problemen, gefaald)) process.exitCode = 1
 }

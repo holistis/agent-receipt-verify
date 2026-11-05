@@ -44,3 +44,4 @@ const bestand = {
 }
 writeFileSync(map + naam + '.json', JSON.stringify(bestand, null, 1))
 console.log(`opgenomen: ${opname.length} aanroepen, uitslag ${uitslag.grounded}, naar vectors/grounding/${naam}.json`)
+console.log('Run node scripts/seal-vectors.mjs now: ground --vectors reports a PROBLEM until SHA256SUMS lists the new recording.')

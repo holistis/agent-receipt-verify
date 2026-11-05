@@ -27,6 +27,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { berekenCommitment } from './x402-offer-receipt.mjs'
+import { draaiMetIntegriteit, eersteRegel, lijstVectoren } from './suite-integriteit.mjs'
 
 const WORTEL = fileURLToPath(new URL('..', import.meta.url))
 export const VECTORMAP = path.join(WORTEL, 'vectors', 'settlement-link')
@@ -197,17 +198,16 @@ export function beoordeelVector(v) {
 
 export function laadVectoren(map = VECTORMAP) {
   if (!fs.existsSync(map)) return []
-  return fs.readdirSync(map).filter((f) => f.endsWith('.json')).sort()
-    .map((f) => ({ bestand: f, ...JSON.parse(fs.readFileSync(path.join(map, f), 'utf8')) }))
+  return lijstVectoren(map).map((f) => {
+    try { return { bestand: f, ...JSON.parse(fs.readFileSync(path.join(map, f), 'utf8')) } } catch (e) { throw new Error(f + ': ' + eersteRegel(e)) }
+  })
 }
 
 const ditBestand = fileURLToPath(import.meta.url)
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(ditBestand)) {
-  const vectoren = laadVectoren()
-  if (!vectoren.length) {
-    console.error('no vectors found in vectors/settlement-link')
-    process.exitCode = 1
-  } else {
+  await draaiMetIntegriteit(VECTORMAP, async (problemen) => {
+    const vectoren = laadVectoren()
+    if (!vectoren.length) return true
     console.log('settlement-link vectors: does this receipt belong to that one payment?')
     console.log('')
     let goed = 0, fout = 0, overgeslagen = 0
@@ -224,6 +224,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(ditBestand
       // enkele andere vector meer beoordeeld, ook de twaalf goede niet.
       if (!v.expected || typeof v.expected.outcome !== 'string') {
         fout++
+        problemen.push((v.id ?? v.bestand) + ' carries no expected outcome, so it cannot be judged')
         console.log(`  FAIL  ${v.id ?? v.bestand}`)
         console.log('        this vector carries no expected outcome, so it cannot be judged')
         continue
@@ -243,6 +244,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(ditBestand
     console.log('What this command does NOT do: it does not check the signature over that receipt.')
     console.log('So this answers "does this commitment open on that settlement", not "is this')
     console.log('receipt genuine". For the signature, run the conformance check on the endpoint.')
-    process.exitCode = fout === 0 ? 0 : 1
-  }
+    return fout > 0
+  })
 }

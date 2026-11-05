@@ -10,7 +10,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { meetDekking, vergelijkSuiteMetHashlijst, CLAUSULES } from '../src/attempt-identity.mjs'
+import { meetDekking, CLAUSULES } from '../src/attempt-identity.mjs'
 
 const hier = path.dirname(fileURLToPath(import.meta.url))
 const wortel = path.join(hier, '..')
@@ -42,26 +42,10 @@ console.log('meetDekking')
   t('clause all met een andere uitkomst is niet toegestaan', meetDekking([...vol, { bestand: 'all.json', v: { clause: 'all', expected: { outcome: 'PASS' } } }]).volledig === false)
 }
 
-console.log('vergelijkSuiteMetHashlijst')
-{
-  const h = (c) => c.repeat(64)
-  const goedeLijst = h('a') + '  one.json\n' + h('b') + ' *two.json\n'
-  const hashVan = (b) => (b === 'one.json' ? h('a') : h('b'))
-  const vergelijk = (bestanden, lijstTekst, hv = hashVan) => vergelijkSuiteMetHashlijst({ bestanden, lijstTekst, hashVan: hv })
-  t('een kloppende lijst geeft geen problemen', vergelijk(['one.json', 'two.json'], goedeLijst).length === 0)
-  t('een vector weg wordt gemeld', vergelijk(['one.json'], goedeLijst).some((p) => /two\.json is in SHA256SUMS but missing/.test(p)))
-  t('een vector erbij wordt gemeld', vergelijk(['one.json', 'two.json', 'extra.json'], goedeLijst).some((p) => /extra\.json is not in SHA256SUMS/.test(p)))
-  t('een gewijzigde vector wordt gemeld', vergelijk(['one.json', 'two.json'], goedeLijst, (b) => h('c')).length === 2)
-  t('een lege lijst wordt gemeld', vergelijk(['one.json'], '').some((p) => /names no vectors/.test(p)))
-  t('een onleesbare regel wordt gemeld', vergelijk(['one.json', 'two.json'], goedeLijst + 'rommel\n').some((p) => /unreadable line/.test(p)))
-  t('een dubbele regel wordt gemeld', vergelijk(['one.json', 'two.json'], goedeLijst + h('a') + '  one.json\n').some((p) => /listed twice/.test(p)))
-  t('CRLF-regeleinden en commentaarregels zijn toegestaan', vergelijk(['one.json', 'two.json'], '# lijst' + String.fromCharCode(13, 10) + goedeLijst.split('\n').join(String.fromCharCode(13, 10))).length === 0)
-}
-
 console.log('de lijst op schijf klopt met de vectoren')
 {
-  const r = spawnSync(process.execPath, [path.join(wortel, 'scripts', 'seal-attempt-identity-vectors.mjs'), '--check'], { encoding: 'utf8' })
-  t('SHA256SUMS is actueel (node scripts/seal-attempt-identity-vectors.mjs schrijft hem opnieuw)', r.status === 0, (r.stdout || '').trim())
+  const r = spawnSync(process.execPath, [path.join(wortel, 'scripts', 'seal-vectors.mjs'), '--check'], { encoding: 'utf8' })
+  t('SHA256SUMS is actueel (node scripts/seal-vectors.mjs schrijft hem opnieuw)', r.status === 0, (r.stdout || '').trim())
 }
 
 console.log('de matrix: elke weglating of wijziging laat de CLI falen')

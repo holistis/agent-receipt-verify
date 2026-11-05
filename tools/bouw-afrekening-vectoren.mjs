@@ -270,4 +270,5 @@ if (fouten.length) {
   console.log(`  offline, zonder keten te lezen : ${offline}`)
   console.log(`  met ketenlezing, gemarkeerd    : ${vectoren.length - offline}`)
   console.log(`  elk commitment opnieuw berekend en gelijk bevonden aan het ondertekende bonnetje`)
+  if (!droog) console.log('  draai nu node scripts/seal-vectors.mjs: link-vectors meldt een PROBLEM tot SHA256SUMS de nieuwe vectoren noemt')
 }
