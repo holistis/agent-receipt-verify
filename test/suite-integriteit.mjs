@@ -6,7 +6,6 @@
 //
 // attempt-identity heeft daarnaast een eigen, diepere toets (dekking per clausule): test/attempt-identity-suite-check.mjs.
 // Let op: de kopie heeft geen node_modules, dus voor kanon bewijst deze toets de integriteit en niet het afspelen van de handtekeningen.
-// beleid is een tabel en geen replay: een vector die kapot is gemaakt en daarna opnieuw verzegeld is, laat beleid met een stacktrace stoppen.
 
 import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -93,7 +92,7 @@ fs.cpSync(wortel, werk, { recursive: true, filter: (s) => !SKIP(s) })
 const SUITES = [
   { naam: 'attempt-identity', cmd: ['attempt-identity'], dir: 'vectors/attempt-identity', crash: true },
   { naam: 'kanon', cmd: ['kanon'], dir: 'vectors/kanon', crash: true },
-  { naam: 'beleid', cmd: ['beleid'], dir: 'vectors/kanon', crash: false },
+  { naam: 'beleid', cmd: ['beleid'], dir: 'vectors/kanon', crash: true },
   { naam: 'link-vectors', cmd: ['link-vectors'], dir: 'vectors/settlement-link', crash: true },
   { naam: 'ground --vectors', cmd: ['ground', '--vectors'], dir: 'vectors/grounding', crash: true },
 ]
@@ -136,8 +135,8 @@ const OMDRAAIEN = {
 const KAPOT = [
   ['een vector afgekapt en opnieuw verzegeld', (f) => { const x = fs.readFileSync(f, 'utf8'); fs.writeFileSync(f, x.slice(0, Math.floor(x.length / 2))) }],
   ['een vector leeggemaakt en opnieuw verzegeld', (f) => fs.writeFileSync(f, '')],
-  ['een vector vervangen door {} en opnieuw verzegeld', (f) => fs.writeFileSync(f, '{}'), true],
-  ['een vector vervangen door null en opnieuw verzegeld', (f) => fs.writeFileSync(f, 'null'), true],
+  ['een vector vervangen door {} en opnieuw verzegeld', (f) => fs.writeFileSync(f, '{}')],
+  ['een vector vervangen door null en opnieuw verzegeld', (f) => fs.writeFileSync(f, 'null')],
 ]
 for (const s of SUITES) {
   const reservekopie = path.join(werk, '..', 'reserve-' + path.basename(werk) + '-' + s.naam.replace(/\W+/g, '-'))
@@ -151,9 +150,7 @@ for (const s of SUITES) {
     herstel()
   }
   if (s.crash) {
-    for (const [naam, maak, geldigeJson] of KAPOT) {
-      // Zonder ethers (de kopie heeft geen node_modules) telt een vector die geldige JSON is maar niets bevat bij kanon als niet gemeten, niet als crash.
-      if (s.naam === 'kanon' && geldigeJson) continue
+    for (const [naam, maak] of KAPOT) {
       const kapotBestand = jsons(s.dir)[0]
       maak(pad(s.dir, kapotBestand))
       const gezegeld = seal()

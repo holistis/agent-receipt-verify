@@ -22,21 +22,32 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beoordeelVector, beoordeelAutorisatie } from '../src/eip3009-autorisatie.mjs'
-import { controleerSuiteMap, lijstVectoren, meldProblemen } from '../src/suite-integriteit.mjs'
+import { controleerSuiteMap, eersteRegel, lijstVectoren, meldProblemen } from '../src/suite-integriteit.mjs'
 
 const wortel = fileURLToPath(new URL('..', import.meta.url))
 const MAP = path.join(wortel, 'vectors', 'kanon')
 const lees = (n) => JSON.parse(fs.readFileSync(path.join(MAP, n), 'utf8'))
 
 // Een tabel over een map die niet meer is zoals uitgegeven zou misleiden: dan geen tabel maar de problemen.
-const integriteit = controleerSuiteMap(MAP)
-if (integriteit.length) {
-  meldProblemen(integriteit)
+const stop = async (problemen) => {
+  meldProblemen(problemen)
   process.exitCode = 1
   await new Promise((klaar) => process.stdout.write('', klaar))
   process.exit()
 }
+const integriteit = controleerSuiteMap(MAP)
+if (integriteit.length) await stop(integriteit)
 const vectoren = lijstVectoren(MAP)
+// Een vector die niet te lezen of te beoordelen is geeft geen tabel maar een PROBLEM-regel: de tabel hieronder beoordeelt dezelfde vectoren opnieuw.
+const kapot = []
+for (const n of vectoren) {
+  try {
+    const v = lees(n)
+    if (!v || !v.input || !v.expected) throw new Error('the vector has no input or no expected outcome')
+    await beoordeelVector(v)
+  } catch (e) { kapot.push(n + ' could not be run (' + eersteRegel(e) + ')') }
+}
+if (kapot.length) await stop(kapot)
 
 console.log('EIP-3009: the two open questions from x402 issue 2725, measured')
 console.log('')

@@ -156,7 +156,7 @@ Five commands read a vector folder (attempt-identity, kanon, beleid, link-vector
 Each folder has a SHA256SUMS in the sha256sum format. A folder that no longer matches its list (a vector removed, added or changed), a missing
 or unreadable list, an empty or missing folder, or a vector that cannot be run makes the run exit 1 with a PROBLEM line and a closing FAIL line,
 instead of printing a count of whatever is left. The hash is taken over the bytes with CRLF line ends turned into LF, and .gitattributes keeps
-these files LF, so a plain sha256sum -c gives the same answer on every platform.
+these files LF, so a plain sha256sum -c agrees with this command on a fresh checkout, also on Windows with core.autocrlf=true.
 
 A hash list that sits next to the vectors is not a signature: someone who changes a vector and its line together passes. To rule that out,
 compare with the published npm package or the git history. A vector you add yourself is reported on purpose; copy the folder elsewhere to

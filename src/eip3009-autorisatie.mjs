@@ -298,7 +298,11 @@ if (process.argv[1]?.endsWith('eip3009-autorisatie.mjs')) {
     console.log('')
     for (const f of bestanden) {
       let v, u
-      try { v = JSON.parse(fs.readFileSync(path.join(map, f), 'utf8')); u = await beoordeelVector(v) } catch (e) { throw new Error(f + ': ' + eersteRegel(e)) }
+      try {
+        v = JSON.parse(fs.readFileSync(path.join(map, f), 'utf8'))
+        if (!v || !v.input || !v.expected) throw new Error('the vector has no input or no expected outcome')
+        u = await beoordeelVector(v)
+      } catch (e) { throw new Error(f + ': ' + eersteRegel(e)) }
       if (u.ongemeten) { ongemeten++; console.log('  not measured  ' + v.id + '  ' + u.reden); continue }
       const zelfde = u.valid === v.expected.valid && u.reason_code === v.expected.reason_code
       if (zelfde) { eens++; console.log('  agree         ' + v.id.padEnd(42) + ' ' + u.reason_code) }
