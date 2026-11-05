@@ -416,24 +416,111 @@ export function toetsPogingIdentiteit(invoer) {
   }
 }
 
+// De vectorset meet zichzelf bij elke run. De zin dat elke clausule een goedkeuring en een afkeuring draagt
+// stond er eerst vast; nu wordt ze alleen geprint als deze meting het bevestigt (gevonden door onze eigen
+// mutatiematrix op 5 november 2026: een vector, een hele clausule of alle vectoren weghalen gaf nog steeds exit 0).
+// Een vector met clause 'all' is de controle dat een vector zonder waarnemingen NOT_MEASURED geeft; hij hoort
+// bij geen normatieve clausule.
+const BESTURINGS_CLAUSULES = new Set(['all'])
+
+export function meetDekking(vectoren) {
+  const perClausule = new Map(CLAUSULES.map((c) => [c.id, { goed: 0, af: 0 }]))
+  const onbekend = []
+  const zonderVeld = []
+  for (const { bestand, v } of vectoren) {
+    const c = v && v.clause
+    const o = v && v.expected && v.expected.outcome
+    if (typeof c !== 'string' || c === '' || typeof o !== 'string') { zonderVeld.push(bestand); continue }
+    const e = perClausule.get(c)
+    if (!e) {
+      if (!(BESTURINGS_CLAUSULES.has(c) && o === 'NOT_MEASURED')) onbekend.push(bestand + ' (' + c + ')')
+      continue
+    }
+    if (o === 'PASS') e.goed++
+    else if (o === 'FAIL') e.af++
+  }
+  const zonderGoedkeuring = [...perClausule].filter(([, e]) => e.goed === 0).map(([id]) => id)
+  const zonderAfkeuring = [...perClausule].filter(([, e]) => e.af === 0).map(([id]) => id)
+  const volledig = zonderVeld.length === 0 && onbekend.length === 0 && zonderGoedkeuring.length === 0 && zonderAfkeuring.length === 0
+  return { volledig, zonderVeld, onbekend, zonderGoedkeuring, zonderAfkeuring }
+}
+
+// De suite op schijf moet de suite zijn die is uitgegeven: elke vector staat in SHA256SUMS en elke regel daarin heeft een vector.
+// Zo valt een weggehaalde, toegevoegde of gewijzigde vector op, ook als de rest nog klopt. hashVan(bestand) geeft de sha256 van de bytes met CRLF naar LF.
+export function vergelijkSuiteMetHashlijst({ bestanden, lijstTekst, hashVan }) {
+  const problemen = []
+  const lijst = new Map()
+  for (const regel of lijstTekst.split(/\r?\n/)) {
+    if (!regel.trim() || regel.startsWith('#')) continue
+    const m = regel.match(/^([0-9a-f]{64}) [ *](.+)$/)
+    if (!m) { problemen.push('unreadable line in SHA256SUMS: ' + regel.slice(0, 60)); continue }
+    if (lijst.has(m[2])) problemen.push(m[2] + ' is listed twice in SHA256SUMS')
+    lijst.set(m[2], m[1])
+  }
+  if (lijst.size === 0) problemen.push('SHA256SUMS names no vectors')
+  for (const b of bestanden) {
+    if (!lijst.has(b)) problemen.push(b + ' is not in SHA256SUMS')
+    else if (hashVan(b) !== lijst.get(b)) problemen.push(b + ' does not match SHA256SUMS')
+  }
+  for (const n of lijst.keys()) if (!bestanden.includes(n)) problemen.push(n + ' is in SHA256SUMS but missing on disk')
+  return problemen
+}
+
 // Een ingang, zodat dit geen bestand is dat iemand moet vinden maar een regel die hij kan
 // draaien. Zonder sleutel, zonder account, zonder netwerk.
 if (process.argv[1]?.endsWith('attempt-identity.mjs')) {
   const fs = await import('node:fs')
   const path = await import('node:path')
+  const crypto = await import('node:crypto')
   const { fileURLToPath } = await import('node:url')
   const map = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vectors', 'attempt-identity')
   const bestanden = fs.readdirSync(map).filter((b) => b.endsWith('.json')).sort()
+  const problemen = []
+  const lf = (buf) => { const out = []; for (let k = 0; k < buf.length; k++) if (!(buf[k] === 13 && buf[k + 1] === 10)) out.push(buf[k]); return Buffer.from(out) }
+  const lijstPad = path.join(map, 'SHA256SUMS')
+  if (!fs.existsSync(lijstPad)) problemen.push('SHA256SUMS is missing: the suite cannot be checked against what was published')
+  else {
+    problemen.push(...vergelijkSuiteMetHashlijst({
+      bestanden,
+      lijstTekst: fs.readFileSync(lijstPad, 'utf8'),
+      hashVan: (b) => crypto.createHash('sha256').update(lf(fs.readFileSync(path.join(map, b)))).digest('hex'),
+    }))
+  }
+  const vectoren = []
   let past = 0
   for (const b of bestanden) {
-    const v = JSON.parse(fs.readFileSync(path.join(map, b), 'utf8'))
-    const u = toetsPogingIdentiteit(v.input)
-    const ok = u.outcome === v.expected.outcome && (v.expected.reason_code === undefined || u.reason_code === v.expected.reason_code)
+    let v
+    try { v = JSON.parse(fs.readFileSync(path.join(map, b), 'utf8')) } catch (e) {
+      problemen.push(b + ' is not readable JSON (' + String(e.message).split(String.fromCharCode(10))[0] + ')')
+      console.log('  FAIL ' + b.replace('.json', '').padEnd(40) + 'unreadable')
+      continue
+    }
+    vectoren.push({ bestand: b, v })
+    let ok = false
+    let u = { outcome: 'ERROR', reason_code: null }
+    try {
+      u = toetsPogingIdentiteit(v.input)
+      ok = u.outcome === v.expected.outcome && (v.expected.reason_code === undefined || u.reason_code === v.expected.reason_code)
+    } catch (e) { problemen.push(b + ' could not be run (' + String(e.message).split(String.fromCharCode(10))[0] + ')') }
     if (ok) past++
     console.log((ok ? '  ok   ' : '  FAIL ') + b.replace('.json', '').padEnd(40) + u.outcome + (u.reason_code ? ' / ' + u.reason_code : ''))
   }
+  const dekking = meetDekking(vectoren)
   console.log('')
   console.log(past + ' of ' + bestanden.length + ' vectors behave as recorded, across ' + CLAUSULES.length + ' normative clauses of x402 spec section 5.5.')
-  console.log('Every clause carries one acceptance and at least one refusal. No account, no key, no network.')
-  if (past !== bestanden.length) process.exitCode = 1
+  if (dekking.volledig) console.log('Every clause carries one acceptance and at least one refusal. No account, no key, no network.')
+  else {
+    console.log('NOT every clause carries one acceptance and at least one refusal.')
+    if (bestanden.length === 0) console.log('  no vectors found')
+    if (dekking.zonderGoedkeuring.length) console.log('  without an acceptance: ' + dekking.zonderGoedkeuring.join(', '))
+    if (dekking.zonderAfkeuring.length) console.log('  without a refusal: ' + dekking.zonderAfkeuring.join(', '))
+    if (dekking.zonderVeld.length) console.log('  without a clause or an expected outcome: ' + dekking.zonderVeld.join(', '))
+    if (dekking.onbekend.length) console.log('  naming a clause that does not exist: ' + dekking.onbekend.join(', '))
+  }
+  for (const p of problemen) console.log('PROBLEM ' + p)
+  const gefaald = past !== bestanden.length || bestanden.length === 0 || !dekking.volledig || problemen.length > 0
+  if (gefaald) {
+    console.log('FAIL: this run does not show that the suite is intact and passing. See the lines above.')
+    process.exitCode = 1
+  }
 }

@@ -55,3 +55,10 @@ A review pass that we ran ourselves, with AI reviewers that did not write the ve
 Ouadoudi, A. (holistis). Attempt-identity test vectors for x402 section 5.5. agent-receipt-verify, 2026. https://github.com/holistis/agent-receipt-verify/tree/main/vectors/attempt-identity
 
 Licensed under Apache-2.0, see `LICENSE` and `NOTICE` at the root.
+
+## Checking the suite itself
+
+The command does not only run the vectors. On every run it measures that each normative clause has at least one acceptance and one refusal, and it compares this folder with SHA256SUMS, so a vector that was removed, added or changed makes the run fail (exit 1) with a PROBLEM line instead of printing a count of whatever is left. The sentence about acceptances and refusals appears only when that measurement holds.
+
+After a deliberate change to the vectors, run node scripts/seal-attempt-identity-vectors.mjs and commit the new SHA256SUMS. A vector removed together with its line in SHA256SUMS cannot be seen from inside the package; compare with the published npm package or the git history for that.
+
