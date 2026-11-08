@@ -1,15 +1,32 @@
 # Keeps dependencies and pinned action SHAs moving. Pinning without an update
 # tool is how a repository ends up frozen on a version with a known advisory, so
 # the two belong together.
+# Minor and patch updates come as one grouped pull request that turns on auto-merge
+# (see dependabot-auto-merge.yml). Major updates stay separate and wait for a person.
+# New releases wait three days before they are proposed.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
     open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
     open-pull-requests-limit: 5
