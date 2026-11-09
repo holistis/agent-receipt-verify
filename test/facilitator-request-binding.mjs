@@ -19,7 +19,18 @@ const t = (naam, ok, extra = '') => {
 }
 
 console.log('elke vector op schijf wordt echt gedraaid')
-const bestanden = fs.readdirSync(vectorMap).filter((b) => b.endsWith('.json')).sort()
+// Deze map bevat ook niet-vector .json-bestanden (bv. prevalence-scan-summary.json, een
+// meetresultaat, geen vector) -- lees de map niet blind als "elk .json-bestand is een vector",
+// dat liet deze test eerder crashen op een bestand zonder request_a/request_b/claim. Een
+// bestand zonder die drie velden is expliciet geen vector en wordt overgeslagen, zichtbaar
+// gelogd, niet stil.
+const alleJson = fs.readdirSync(vectorMap).filter((b) => b.endsWith('.json')).sort()
+const bestanden = []
+for (const b of alleJson) {
+  const v = JSON.parse(fs.readFileSync(path.join(vectorMap, b), 'utf8'))
+  if (v && v.request_a && v.request_b && v.claim) bestanden.push(b)
+  else console.log('  overgeslagen (geen vector-vorm): ' + b)
+}
 t('er staan vectoren op schijf', bestanden.length >= 7, String(bestanden.length))
 
 const claims = { collapses: 0, distinguished: 0 }
