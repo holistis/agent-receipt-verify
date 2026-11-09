@@ -69,6 +69,19 @@ reason stated above.
   epistemedeus's original reproduction, it is a statement about what the published code
   computes, not an attack carried out against a running service.
 
+## Worked example and prevalence scan
+
+`worked-example-capacity-attest.md` / `.ts`: a concrete answer to epistemedeus's follow-up
+question (two calls to the same tool, different arguments, same price: what binds each
+result to its own claim, and what does a mismatched result do), run against the real,
+unmodified source of `tokenizen/packages/capacity-attest`.
+
+`prevalence-scan.mjs` / `prevalence-scan-summary.json`: a mechanical, repeatable count of how
+often the fixed-resource pattern shows up in real, independent public `@x402/mcp` users
+(denominator and method in the script header; aggregate counts only in the summary file,
+deliberately without individual repository names, so the script, not our say-so, is the
+thing anyone can rerun to check or extend the number).
+
 ## Credit
 
 The underlying observation is [epistemedeus](https://github.com/epistemedeus)'s, posted on

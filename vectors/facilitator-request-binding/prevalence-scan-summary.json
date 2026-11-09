@@ -1,0 +1,18 @@
+{
+  "measured": "2026-11-09T12:56:26.621Z",
+  "search_query": "\"@x402/mcp\"",
+  "github_reported_total": 892,
+  "pages_fetched": 10,
+  "unique_repos_seen": 205,
+  "excluded_not_independent": 1,
+  "denominator_independent_candidates": 204,
+  "outcome_counts": {
+    "GEEN_VAST_PATROON_GEVONDEN": 178,
+    "DYNAMISCH_RESOURCE_PATROON_OOK_AANWEZIG": 0,
+    "VAST_PATROON_MET_EIGEN_BINDINGSSIGNAAL": 9,
+    "VAST_PATROON_ZONDER_ZICHTBAAR_BINDINGSSIGNAAL": 17
+  },
+  "has_fixed_resource_pattern_total": 26,
+  "has_fixed_pattern_no_visible_binding": 17,
+  "limitation": "Grep heuristic on the single matched file per repo, not a full program analysis and no multi-file tracing of the binding mechanism; a false negative on binding (missing a real mitigation elsewhere in the repo) is more likely than a false positive on the pattern itself. The no-visible-binding count is therefore an upper bound, not a precise count. Individual repository names are deliberately not published here; re-run the accompanying script with the same query to reproduce your own per-repo breakdown."
+}
