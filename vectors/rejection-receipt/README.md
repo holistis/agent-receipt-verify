@@ -53,6 +53,17 @@ From the root of this repository: `npm run rejection-receipt`. It needs no accou
 - This does not solve the "server sends no receipt at all" case. Silence is not proof of a refusal, and this package does not manufacture one from the absence of a response.
 - Key rotation and revocation are read as a plain, overwritable `did.json`. The checker returns the raw resolved document alongside the address specifically so a caller can cache it as its own evidence the moment a receipt arrives, rather than trusting a later re-resolution of the same URL.
 
+## A second review round (10 November 2026, before opening the x402 proposal)
+
+Before proposing this to x402-foundation/x402, three more independent passes checked the design and this README's own claims: one re-verified every factual claim against the live code and a fresh GitHub search, one played an adversarial maintainer, one read both documents as a confused or careless reader would. Between them they found:
+
+- `#3148` was mischaracterized as merged in an earlier draft of the proposal text; it is a still-open issue. Fixed.
+- The proposal's worked example showed a receipt as fully verified when, in fact, the `dedicated-signing-key-not-payto` check was never evaluated for it, because this checker only runs that check when a caller supplies both the resolved signing address and the seller's `payTo` address, and silently skips it otherwise, unlike the signature-verification check right next to it, which does return `NOT_MEASURED` in the equivalent situation. Not fixed yet (see Limits below); the proposal text now says so plainly instead of calling it an unqualified "checked rule."
+- A real design gap, not a documentation issue: nothing here checks that a receipt's `issuer.key_id` host matches its `issuer.resource_origin` host. A receipt could sign truthfully for one host while falsely claiming to speak for a different `resource_origin`, and nothing in this design catches that. Disclosed in the x402 proposal's security considerations; not fixed in this version.
+- ruiruii independently sketched a server-internal, unsigned row for the same underlying gap (`gates-spec v0.1`) on the same day this proposal was opened, on the same x402-foundation/x402#3776 thread. That citation describes their own sketch as they scoped it, not an endorsement of this package.
+
+None of these changed the nine clauses or the twenty-two vectors above; they changed what this README and the x402 proposal honestly claim about what the checker does and does not yet enforce.
+
 ## Cite
 
 Ouadoudi, A. (holistis). Rejection receipt test vectors for x402 (own design, not yet a specification). agent-receipt-verify, 2026. https://github.com/holistis/agent-receipt-verify/tree/main/vectors/rejection-receipt
