@@ -1,0 +1,59 @@
+{
+  "gemeten": "2026-11-10T11:49:18.135Z",
+  "zoekopdracht": "filename:x402.json path:.well-known (GitHub code search)",
+  "aantal_gescand": 3,
+  "resultaten": [
+    {
+      "origin": "https://solana-ai-platform.netlify.app",
+      "discovery": {
+        "bereikbaar": true,
+        "status": 200,
+        "x402Version": 2,
+        "service": "Solana AI Platform"
+      },
+      "resources": [
+        {
+          "url": "https://solana-ai-platform.netlify.app/api/v1/x402/agent/action",
+          "bereikbaar": true,
+          "status": 200
+        },
+        {
+          "url": "https://elon00.github.io/solana-ai/api/v1/x402/agent/action",
+          "bereikbaar": true,
+          "status": 200
+        }
+      ],
+      "oordeel": {
+        "score": 1,
+        "label": "OK",
+        "reden": null
+      }
+    },
+    {
+      "origin": "https://elon00.github.io",
+      "discovery": {
+        "bereikbaar": false,
+        "status": 404
+      },
+      "resources": [],
+      "oordeel": {
+        "score": 0,
+        "label": "VERMIJD",
+        "reden": "discovery-bestand niet bereikbaar of geen geldige JSON"
+      }
+    },
+    {
+      "origin": "https://marketplace-service-template-production-e603.up.railway.app",
+      "discovery": {
+        "bereikbaar": false,
+        "status": 404
+      },
+      "resources": [],
+      "oordeel": {
+        "score": 0,
+        "label": "VERMIJD",
+        "reden": "discovery-bestand niet bereikbaar of geen geldige JSON"
+      }
+    }
+  ]
+}
