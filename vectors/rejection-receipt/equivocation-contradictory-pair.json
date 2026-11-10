@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026): de tegenstrijdige-briefjes-aanval (punt F), zelf nagelezen."
+  ],
+  "id": "rejection-receipt-equivocation-contradictory-pair",
+  "clause": "no-equivocation-for-same-binding",
+  "encodes": "De negatieve controle: dezelfde attempt-binding, twee verschillende uitkomsten.",
+  "description": "De verkoper tekende REJECTED en later ACCEPTED voor dezelfde poging. Geen Merkle-log nodig: de twee documenten bewijzen zichzelf zodra ze naast elkaar liggen.",
+  "input": {
+    "receiptA": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "insufficient_funds",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "09a96653127cf6bb33ab3544f0dbfb33b946841dc3cf7d8aaa3bc232bf710332",
+      "signature": "0xsig"
+    },
+    "receiptB": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "ACCEPTED",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "c2a1e112b9207f61a63ed7e1af708322a85044060a2fd253a2d4309823bb2b27",
+      "signature": "0xsig"
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "NO_EQUIVOCATION_FOR_SAME_BINDING"
+  },
+  "limits": [
+    "Dit vangt alleen een conflict als een koper toevallig BEIDE briefjes in handen krijgt."
+  ]
+}

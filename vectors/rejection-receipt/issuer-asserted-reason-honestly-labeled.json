@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-issuer-asserted-reason-honestly-labeled",
+  "clause": "evidence-class-not-overclaimed",
+  "encodes": "De positieve controle: een reden die niemand onafhankelijk kan narekenen, eerlijk gelabeld.",
+  "description": "Een interne risicobeslissing kan geen derde narekenen; ISSUER_ASSERTED is hier de eerlijke, hoogst toegestane claim.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "risk_policy_rejected",
+        "evidence_class": "ISSUER_ASSERTED"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "ac4159d75e24a9cff884142e1fdbff4f2ad448f0faa6b7666cbc6e5faafb657e",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": []
+}

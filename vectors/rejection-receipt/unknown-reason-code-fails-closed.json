@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-unknown-reason-code-fails-closed",
+  "clause": "reason-code-bounded-fail-closed",
+  "encodes": "De negatieve controle: een onbekende reden mag nooit meer dan ISSUER_ASSERTED claimen.",
+  "description": "Zonder dit zou een verkoper zelf een nieuwe, ongecontroleerde reden kunnen verzinnen en meteen als narekenbaar labelen.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "a_reason_nobody_defined",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "8d9a9c48e98063dddeb81b89f7cc33bf9b316ee1bc1dfadb6b13c02554c73b49",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "EVIDENCE_CLASS_NOT_OVERCLAIMED"
+  },
+  "limits": [
+    "Dit toetst alleen het claimniveau, niet of de tekst van de reden zelf zinnig is."
+  ]
+}

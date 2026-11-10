@@ -90,6 +90,12 @@ function gebruik() {
   console.log('        records about the SAME attempt? One acceptance and at least one refusal')
   console.log('        per normative clause of x402 spec section 5.5. Offline.')
   console.log('')
+  console.log('  npx -y agent-receipt-verify rejection-receipt')
+  console.log('        our own design, not yet an x402 spec: a signed receipt a seller returns on a')
+  console.log('        REFUSED attempt, so a buyer has something to show later. One acceptance and')
+  console.log('        at least one refusal per clause. Offline, except the did:web key lookup,')
+  console.log('        which is tested separately with a faked fetch, never a real network call.')
+  console.log('')
   console.log('What this does NOT do: it judges the SHAPE of a receipt, not the honesty of')
   console.log('the party that issued it. See CONFORMANCE.md for what is deliberately left')
   console.log('unmeasured.')
@@ -111,6 +117,7 @@ const onderdelen = {
   'link-vectors': '../src/settlement-link-vectors.mjs',
   'attempt-identity': '../src/attempt-identity.mjs',
   'verify-delivery': '../src/verify-delivery.mjs',
+  'rejection-receipt': '../src/rejection-receipt.mjs',
 }
 
 if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {

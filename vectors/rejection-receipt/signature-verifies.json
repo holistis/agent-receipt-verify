@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-signature-verifies",
+  "clause": "signature-verifies-against-resolved-key",
+  "encodes": "De positieve controle: de handtekening verifieert tegen de opgeloste sleutel.",
+  "description": "context.handtekeningKlopt=true staat hier voor een echte, elders geverifieerde EIP-712-handtekening (zie de losse known-answer-toetsen in test/rejection-receipt.mjs voor de echte crypto).",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "insufficient_funds",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "09a96653127cf6bb33ab3544f0dbfb33b946841dc3cf7d8aaa3bc232bf710332",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "Dit is een vector met een al WAARGENOMEN uitslag, geen vector die zelf een handtekening herrekent."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-issuer-asserted-reason-overclaimed-as-chain-verifiable",
+  "clause": "evidence-class-not-overclaimed",
+  "encodes": "De negatieve controle: het \"liegende briefje\"-gat uit ons eigen red-team-onderzoek, 10 nov 2026.",
+  "description": "Een handtekening bewijst alleen dat de verkoper iets beweerde. risk_policy_rejected als CHAIN_VERIFIABLE claimen is een overclaim die niemand kan narekenen.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "risk_policy_rejected",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "3c83b7585c8a1eb535d2aaf27fa5076a4b97d91f722ef8a95e82bc4d7c383d54",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "EVIDENCE_CLASS_NOT_OVERCLAIMED"
+  },
+  "limits": [
+    "Dit toetst de claim tegen onze tabel, niet tegen een officiële x402-tabel: die bestaat nog niet."
+  ]
+}

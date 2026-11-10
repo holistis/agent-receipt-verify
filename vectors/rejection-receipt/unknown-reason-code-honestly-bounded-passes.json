@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gevonden door al-khasm (10 nov 2026): deze clausule had wel een FAIL-vector maar liep door dezelfde tak als evidence-class-not-overclaimed; dit is het geval dat haar ONDERSCHEIDENDE gedrag toont."
+  ],
+  "id": "rejection-receipt-unknown-reason-code-honestly-bounded-passes",
+  "clause": "reason-code-bounded-fail-closed",
+  "encodes": "De positieve controle die deze clausule ECHT onderscheidt: een onbekende reden, eerlijk op het laagste niveau gezet, is geen afkeuring.",
+  "description": "Het sluit-dicht-naar-ISSUER_ASSERTED-gedrag is zelf satisfiable: een verkoper mag een nieuwe reden gebruiken, zolang hij er niets hogers dan ISSUER_ASSERTED over claimt.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "een_nog_onbekende_reden",
+        "evidence_class": "ISSUER_ASSERTED"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "b8d3dab0e0601aa98a5070e8d9ee2632b3ddc27d29cb347fe14d316ac4a3e676",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": []
+}

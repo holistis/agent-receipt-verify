@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-nothing-recorded-not-measured",
+  "clause": "all",
+  "encodes": "De vierde uitkomst: een vector zonder waarnemingen is niet conform en niet falend, hij is ongemeten.",
+  "description": "Hetzelfde onderscheid dat attempt-identity.mjs al afdwingt, hier herhaald voor dit nieuwe ontwerp.",
+  "input": {
+    "receipt": {},
+    "context": {}
+  },
+  "expected": {
+    "outcome": "NOT_MEASURED"
+  },
+  "limits": [
+    "Dit is een eigenschap van de controleur, niet van een implementatie."
+  ]
+}
