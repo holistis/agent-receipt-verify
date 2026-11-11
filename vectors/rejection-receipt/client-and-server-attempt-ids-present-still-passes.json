@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "client_attempt_id en server_observation_id toegevoegd 11 nov 2026, als reactie op ruiruii se punt op x402#4215: attempt_binding is inhoud-gebaseerd en kan een eerste van een tweede poging op dezelfde betaling niet onderscheiden.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-client-and-server-attempt-ids-present-still-passes",
+  "clause": "receipt-id-recomputes",
+  "encodes": "De positieve controle: de twee nieuwe, optionele topniveau-velden breken niets, en liften gratis mee in de handtekening-envelop.",
+  "description": "client_attempt_id en server_observation_id zijn topniveau-velden, NOOIT onderdeel van attempt_binding. Ze worden niet apart gevalideerd (zoals payment_observation.network/transaction), maar tellen generiek mee in de kanonieke envelop die receipt_id en de handtekening dekken.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "duplicate_payment",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "client_attempt_id": "client-attempt-0002",
+      "server_observation_id": "srv-obs-0007",
+      "issued_at": "2026-11-11T08:00:00.000Z",
+      "receipt_id": "2f6efd8e038146fb3e5ea34365be63893df3dacae31bb1bdcd34a1550dc46451",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "Dit bewijst alleen dat deze twee velden niet breken. Zie test/rejection-receipt.mjs voor de echte handtekening-mutatietoets die bewijst dat een gewijzigd veld de verificatie ook echt laat falen."
+  ]
+}

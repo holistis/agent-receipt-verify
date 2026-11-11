@@ -133,6 +133,22 @@ console.log('echte EIP-712-handtekening (known-answer, met een echte sleutel, ge
     const anderDomein = { ...receipt, issuer: { ...receipt.issuer, resource_origin: 'https://api.other.com' } }
     t('dezelfde digest onder een ANDER domein verifieert niet (domeinscheiding voorkomt cross-server replay)',
       !(await handtekeningKlopt(anderDomein, wallet.address)))
+
+    // CLIENT_ATTEMPT_ID EN SERVER_OBSERVATION_ID (11 nov 2026, ruiruii se bevinding op
+    // x402#4215). Topniveau-velden, generiek gedekt door dezelfde kanonieke envelop:
+    // geen eigen crypto nodig, maar wel bewijzen dat ze ook echt meetellen.
+    const receiptMetPogingIds = { ...receipt, client_attempt_id: 'client-attempt-0001', server_observation_id: 'srv-obs-0003' }
+    const digestMetIds = handtekeningDigest(receiptMetPogingIds)
+    const sigMetIds = await wallet.signTypedData({ name: domein.name, version: domein.version, salt: '0x' + domein.salt.toString('hex') }, EIP712_TYPES, { digest: digestMetIds })
+    receiptMetPogingIds.signature = sigMetIds
+
+    t('een briefje MET client_attempt_id/server_observation_id verifieert gewoon', await handtekeningKlopt(receiptMetPogingIds, wallet.address))
+    const gewijzigdeClientId = { ...receiptMetPogingIds, client_attempt_id: 'een-ander-id' }
+    t('client_attempt_id wijzigen na tekenen breekt de verificatie (het liftte generiek mee, geen apart veld nodig)',
+      !(await handtekeningKlopt(gewijzigdeClientId, wallet.address)))
+    const gewijzigdeServerId = { ...receiptMetPogingIds, server_observation_id: 'een-ander-id' }
+    t('server_observation_id wijzigen na tekenen breekt de verificatie, zelfde reden',
+      !(await handtekeningKlopt(gewijzigdeServerId, wallet.address)))
   }
 }
 
@@ -182,12 +198,40 @@ console.log('tegenstrijdigheid tussen twee briefjes (geen Merkle-log nodig)')
 }
 
 console.log('')
+console.log('waarom client_attempt_id/server_observation_id NOOIT in de binding-vergelijking horen (11 nov 2026, ruiruii se bevinding op x402#4215, extern nagelezen ontwerp bevestigde het gevaar)')
+{
+  const a = {
+    attempt_binding: { payment_payload_hash: '0xaa', payment_requirements_hash: '0xbb' },
+    decision: { outcome: 'REJECTED', reason_code: 'duplicate_payment' },
+    client_attempt_id: 'client-attempt-0001',
+    server_observation_id: 'srv-obs-0003',
+  }
+  const b = { ...a, client_attempt_id: 'client-attempt-0002', server_observation_id: 'srv-obs-0007' }
+
+  t('de echte functie ziet dezelfde betaling als geen conflict, ondanks verschillende client_attempt_id/server_observation_id',
+    toetsTegenstrijdigheid(a, b).outcome === 'PASS')
+
+  // DE FOUT DIE WE NIET MAKEN, LETTERLIJK NAGESPEELD, GEEN AANNAME. Dit simuleert de
+  // FOUTE vergelijking die een extern ontwerp waarschuwde te vermijden: een koper-gekozen
+  // waarde meenemen in dezelfde vergelijking die een dubbele betaling herkent. Mix je dat,
+  // dan kan een koper een hergebruikte betaling als nieuw laten lijken door gewoon een
+  // nieuwe waarde te kiezen -- precies wat dit testje aantoont dat ZOU gebeuren.
+  const verkeerdeVergelijkingMetClientId = (x, y) => {
+    const bindingMetId = (r) => JSON.stringify({ ...r.attempt_binding, client_attempt_id: r.client_attempt_id })
+    return bindingMetId(x) === bindingMetId(y)
+  }
+  t('een FOUTE vergelijking die client_attempt_id meeneemt, ziet dit WEL als een andere betaling (de fout die we vermeden)',
+    verkeerdeVergelijkingMetClientId(a, b) === false)
+}
+
+console.log('')
 console.log('vaste tabellen: geen verrassingen in de waarden zelf')
 {
   t('vier bewijsniveaus, in de juiste volgorde', EVIDENCE_CLASSES.length === 4 && EVIDENCE_CLASSES[0] === 'ISSUER_ASSERTED' && EVIDENCE_CLASSES[3] === 'INDEPENDENTLY_WITNESSED')
   t('vier toegestane payment-observation-statussen, "payment_failed" zit er niet bij', PAYMENT_OBSERVATION_STATES.length === 4 && !PAYMENT_OBSERVATION_STATES.includes('payment_failed'))
   t('risk_policy_rejected en commercial_refusal staan vast op ISSUER_ASSERTED', REDEN_TABEL.get('risk_policy_rejected') === 'ISSUER_ASSERTED' && REDEN_TABEL.get('commercial_refusal') === 'ISSUER_ASSERTED')
   t('insufficient_funds en duplicate_payment staan op CHAIN_VERIFIABLE, niet hoger', REDEN_TABEL.get('insufficient_funds') === 'CHAIN_VERIFIABLE' && REDEN_TABEL.get('duplicate_payment') === 'CHAIN_VERIFIABLE')
+  t('duplicate_payment_internal_record staat lager, ISSUER_ASSERTED (11 nov 2026: een server-eigen herkenning is geen on-chain bewijs)', REDEN_TABEL.get('duplicate_payment_internal_record') === 'ISSUER_ASSERTED')
   t('drie vaste uitkomsten, net als de rest van dit repo', UITKOMSTEN.length === 3 && UITKOMSTEN.includes('NOT_MEASURED'))
 }
 

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "duplicate_payment_internal_record toegevoegd 11 nov 2026, na een extern nagelezen ontwerp dat vond dat 'dubbele betaling alleen in de eigen database herkend' geen CHAIN_VERIFIABLE-niveau verdient.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-duplicate-payment-internal-record-overclaimed-as-chain-verifiable-fails",
+  "clause": "evidence-class-not-overclaimed",
+  "encodes": "De negatieve controle: dezelfde reden-code mag het hogere CHAIN_VERIFIABLE-niveau niet claimen.",
+  "description": "De reden-code duplicate_payment_internal_record is bewust begrensd op ISSUER_ASSERTED. Een briefje dat voor diezelfde code CHAIN_VERIFIABLE claimt, is een overclaim, geen eerlijke keuze binnen de tabel.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "duplicate_payment_internal_record",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-11T08:00:00.000Z",
+      "receipt_id": "78f3ae789e00bdbd7f88030152ce1aee82aab4e602007a4003aa5370930bfe76",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "EVIDENCE_CLASS_NOT_OVERCLAIMED"
+  },
+  "limits": []
+}

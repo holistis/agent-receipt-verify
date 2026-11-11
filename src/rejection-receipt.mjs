@@ -33,6 +33,25 @@
 // Ook niet hier: Witness-modus en een Merkle-transparantielog (fase 3, optioneel).
 // INDEPENDENTLY_WITNESSED mag als waarde bestaan, maar geen enkele reden hieronder wijst
 // er al naartoe, want niemand maakt die claim hier waar.
+//
+// POGING-TELLING (11 nov 2026, ruiruii se eigen betoog op x402#4215, zelf met zijn eigen
+// referentiescript bevestigd). attempt_binding is INHOUD-gebaseerd: twee keer dezelfde
+// betaling sturen geeft twee keer dezelfde binding. Een briefje over de TWEEDE, afgewezen
+// poging bewijst dus "deze betaling werd geweigerd", niet "MIJN tweede poging werd
+// geweigerd terwijl mijn eerste slaagde" -- precies het onderscheid dat een koper nodig
+// heeft, en precies het probleem waarvoor dit hele ontwerp bestaat. Twee NIEUWE, OPTIONELE
+// velden lossen dit op, als TOPNIVEAU-velden naast attempt_binding, NOOIT erin: een
+// `client_attempt_id` (door de koper zelf gekozen) en een `server_observation_id` (door de
+// server gekozen, per echt ontvangen poging, ook als de inhoud identiek is). BEWUST niet in
+// attempt_binding: een extern, onafhankelijk nagelezen ontwerp waarschuwde expliciet dat het
+// mengen van een koper-gekozen waarde in dezelfde hash die dubbele-betaling-herkenning
+// aanstuurt, een koper toelaat om een hergebruikte betaling er als nieuw te laten uitzien
+// gewoon door een nieuwe waarde te kiezen -- dat zou de fraude-detectie zelf breken. Omdat
+// onze handtekening en receipt_id AL generiek het hele briefje dekken (zie
+// kanoniekeEnvelop hieronder), hoeven deze twee velden geen eigen crypto-functie: ze liften
+// gratis mee. toetsTegenstrijdigheid vergelijkt ook NU AL alleen attempt_binding, dus die
+// blijft ongewijzigd correct: twee briefjes met hetzelfde attempt_binding maar verschillende
+// client_attempt_id/server_observation_id zijn terecht GEEN tegenstrijdigheid.
 
 import { createHash } from 'node:crypto'
 import { resolve as padResolve } from 'node:path'
@@ -130,6 +149,16 @@ export const EVIDENCE_CLASSES = ['ISSUER_ASSERTED', 'CLIENT_VERIFIABLE', 'CHAIN_
  * ingekort tot de gevallen die wij kunnen uitleggen. "risk_policy_rejected" en
  * "commercial_refusal" blijven ISSUER_ASSERTED: geen enkele derde kan een interne
  * risicobeslissing of een commerciële keuze onafhankelijk narekenen.
+ *
+ * `duplicate_payment` VERSUS `duplicate_payment_internal_record` (11 nov 2026, een extern
+ * nagelezen ontwerp vond dit zelf, niet onszelf): "dubbele betaling" is GEEN ene feit met
+ * één bewijsniveau. Een verkoper die kan aanwijzen dat de onderliggende betaalmachtiging al
+ * on-chain verbruikt is, claimt iets dat een derde zelf kan narekenen: CHAIN_VERIFIABLE,
+ * reden-code `duplicate_payment`. Een verkoper die de herhaling alleen in zijn EIGEN
+ * database herkende (geen on-chain controle, geen derde kan het narekenen) MOET de
+ * eerlijkere code `duplicate_payment_internal_record` gebruiken, ISSUER_ASSERTED. Voor onze
+ * eerdere versie stond er maar één code op CHAIN_VERIFIABLE voor allebei de gevallen, wat het
+ * tweede geval een hoger bewijsniveau liet claimen dan eerlijk is.
  */
 export const REDEN_TABEL = new Map([
   ['invalid_signature', 'CLIENT_VERIFIABLE'],
@@ -139,6 +168,7 @@ export const REDEN_TABEL = new Map([
   ['invalid_exact_evm_payload_authorization_valid_after', 'CHAIN_VERIFIABLE'],
   ['insufficient_funds', 'CHAIN_VERIFIABLE'],
   ['duplicate_payment', 'CHAIN_VERIFIABLE'],
+  ['duplicate_payment_internal_record', 'ISSUER_ASSERTED'],
   ['facilitator_timeout', 'ISSUER_ASSERTED'],
   ['risk_policy_rejected', 'ISSUER_ASSERTED'],
   ['commercial_refusal', 'ISSUER_ASSERTED'],
