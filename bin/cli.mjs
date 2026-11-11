@@ -96,6 +96,11 @@ function gebruik() {
   console.log('        at least one refusal per clause. Offline, except the did:web key lookup,')
   console.log('        which is tested separately with a faked fetch, never a real network call.')
   console.log('')
+  console.log('  npx -y agent-receipt-verify duplicate-payment --receipt=<file> --payload=<file>')
+  console.log('        checks a rejection-receipt duplicate_payment/CHAIN_VERIFIABLE claim against the')
+  console.log('        real chain (EIP-3009 authorizationState), instead of trusting the label. Only')
+  console.log('        exact/eip3009 on an eip155 network; everything else comes back NOT MEASURED.')
+  console.log('')
   console.log('What this does NOT do: it judges the SHAPE of a receipt, not the honesty of')
   console.log('the party that issued it. See CONFORMANCE.md for what is deliberately left')
   console.log('unmeasured.')
@@ -118,6 +123,7 @@ const onderdelen = {
   'attempt-identity': '../src/attempt-identity.mjs',
   'verify-delivery': '../src/verify-delivery.mjs',
   'rejection-receipt': '../src/rejection-receipt.mjs',
+  'duplicate-payment': '../src/eip3009-nonce-check.mjs',
 }
 
 if (!eerste || eerste === '--help' || eerste === '-h' || eerste === 'help') {

@@ -18,6 +18,7 @@ issued it. See CONFORMANCE.md for what is deliberately left unmeasured.
 ```
 npx -y agent-receipt-verify attempt-identity   # 72 vectors for x402 spec section 5.5
 npx -y agent-receipt-verify rejection-receipt  # our own design: a signed receipt on a REFUSED attempt
+npx -y agent-receipt-verify duplicate-payment --receipt=<file> --payload=<file>  # checks that claim against the real chain
 npx -y agent-receipt-verify link-vectors       # 14 vectors (13 offline), receipt to settlement
 npx -y agent-receipt-verify kanon              # cross-check against iamonuwa/kanon
 ```
