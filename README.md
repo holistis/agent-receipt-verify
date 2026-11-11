@@ -30,6 +30,19 @@ countersigned receipts, and the proofs ERC-8004 consumers count).
 
 `receipt-commons/receipt-interop` covers the first kind. This covers the second.
 
+## Who has independently taken this up
+
+These are other people stating something about this project, not claims made here. Every line is a link you can open.
+
+- INAM names it in their own verifier documentation as an independent implementation, written from SPEC.md and not from their source, and adds that they have not audited the code and that you should run the vectors yourself: [docs/VERIFIER.md](https://github.com/inamprotocol/inam-protocol/blob/main/docs/VERIFIER.md)
+- goun7 carries two measurements from this project in the honest-limits section of his own vector document, with the wording kept as ours: [TEST-VEKTOR-KOK-COMPUTE-WORK.md](https://github.com/goun7/kok/blob/master/docs/TEST-VEKTOR-KOK-COMPUTE-WORK.md)
+- iamonuwa decided to link this project's receipt-to-settlement corpus from Kanon as a complementary set with no endorsement, and to keep the two formats compatible: [kanon#32](https://github.com/iamonuwa/kanon/issues/32)
+- babyblueviper1 deployed a refusal reported here, where a producer carrying a display name and no key id is rejected before payment settles: [erc-8004#99](https://github.com/erc-8004/erc-8004-contracts/issues/99)
+
+Two of these carry a caveat worth repeating. The Kanon README link is stated in the issue and is not live yet, and INAM says plainly that they have not audited this code. Both are written that way on purpose. A list of people who looked is worth more when it also says what they did not do.
+
+Confirmed from the other side, which matters more than any claim made here: the author of the x402 specification ran their own implementation, which shares no code with this one, against three live receipts and reached the same three settlements, starting from the receipt, the salt and the asset as §5.6.4 requires. Their result and ours are in [x402#3827](https://github.com/x402-foundation/x402/pull/3827#issuecomment-6230063003).
+
 ## Use it from an agent: the MCP server
 
 Both checks are also a Model Context Protocol server, so an agent can run them itself
@@ -88,17 +101,6 @@ vector files published by the protocol's own authors.
 
 If two implementations that have not seen each other's code agree on the same
 vectors, that is interop. One implementation agreeing with itself proves nothing.
-
-## Who has independently taken this up
-
-These are other people stating something about this project, not claims made here. Every line is a link you can open.
-
-- INAM names it in their own verifier documentation as an independent implementation, written from SPEC.md and not from their source, and adds that they have not audited the code and that you should run the vectors yourself: [docs/VERIFIER.md](https://github.com/inamprotocol/inam-protocol/blob/main/docs/VERIFIER.md)
-- goun7 carries two measurements from this project in the honest-limits section of his own vector document, with the wording kept as ours: [TEST-VEKTOR-KOK-COMPUTE-WORK.md](https://github.com/goun7/kok/blob/master/docs/TEST-VEKTOR-KOK-COMPUTE-WORK.md)
-- iamonuwa decided to link this project's receipt-to-settlement corpus from Kanon as a complementary set with no endorsement, and to keep the two formats compatible: [kanon#32](https://github.com/iamonuwa/kanon/issues/32)
-- babyblueviper1 deployed a refusal reported here, where a producer carrying a display name and no key id is rejected before payment settles: [erc-8004#99](https://github.com/erc-8004/erc-8004-contracts/issues/99)
-
-Two of these carry a caveat worth repeating. The Kanon README link is stated in the issue and is not live yet, and INAM says plainly that they have not audited this code. Both are written that way on purpose. A list of people who looked is worth more when it also says what they did not do.
 
 ## Status
 
