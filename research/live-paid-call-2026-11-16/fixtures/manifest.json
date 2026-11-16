@@ -1,0 +1,39 @@
+{
+  "seller": {
+    "endpoint": "https://x402toll.com/v1/paycheck",
+    "payTo": "0x1C9923489CD7D75Dd2f6735c48090b8bD4c7E5a9",
+    "network": "eip155:8453"
+  },
+  "purchases": [
+    {
+      "n": 1,
+      "input": { "salary": 85000, "state": "TX", "filingStatus": "single", "payFrequency": "biweekly" },
+      "tx": "0xc7d40f93b99c5d6ff0e8679b0ad42057b575bc49462095a6d4ad0002f05af8a0",
+      "body": "purchase-1-body.jcs.json",
+      "bodyKind": "jcs-copy",
+      "criteria": "criteria-1.jcs.json",
+      "record": "records/record-1-2142152c.json",
+      "receiptSha256": "2142152c02a82f9b49dae020f39faea41bc2f16cbe7951c55891a0f899a48eb8"
+    },
+    {
+      "n": 2,
+      "input": { "salary": 75000, "state": "FL", "filingStatus": "single", "payFrequency": "biweekly" },
+      "tx": "0xd8f2a444b4959e98c0126c845ecf1ffc54cbc81f9ac09fe8afbfd781ecb1b6ce",
+      "body": "purchase-2-body.raw.json",
+      "bodyKind": "raw",
+      "criteria": "criteria-2.jcs.json",
+      "record": "records/record-2-fd2e105c.json",
+      "receiptSha256": "fd2e105ced01e3047407127d391e68407e057a82f39ce068e2d28f1846238d32"
+    },
+    {
+      "n": 3,
+      "input": { "salary": 120000, "state": "CA", "filingStatus": "single", "payFrequency": "biweekly" },
+      "tx": "0xea6b33df18d066f7caddc0e36ddd08104b63e65f722dec00764529ff805aed51",
+      "body": "purchase-3-body.raw.json",
+      "bodyKind": "raw",
+      "criteria": "criteria-2.jcs.json",
+      "record": "records/record-3-5443c49d.json",
+      "receiptSha256": "5443c49dd2522241aa5b59accaf72ceacde1a7fb8f0d0f9d841022df5656ceb4"
+    }
+  ]
+}

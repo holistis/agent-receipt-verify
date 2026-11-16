@@ -1,0 +1,2 @@
+# Fixtures are evidence: byte-exact, no line-ending conversion on any platform.
+fixtures/** -text
