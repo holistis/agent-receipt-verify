@@ -69,6 +69,8 @@ This table follows the checker operator's own summary in the thread linked above
 ## Limits of the claim
 
 - Independence. A record declares the checker independent. The acceptance-binding module in this repository classifies these records as LABELS_VERSCHILLEN: the checker's key id and the producer's key id differ, but nothing in a record proves the seller does not control the checker's key. We know of no link between them and cannot show there is none.
+Update, 17 November 2026: a fourth purchase, on our own route and with a producer key we hold, produced a record that the same module reads as BEWEZEN_ONAFHANKELIJK. It is kept as vectors/acceptance-binding/real-record-producer-signed-live.json. The three records on this page stay as they are, at LABELS_VERSCHILLEN.
+
 - No person looked at these deliveries, according to the records themselves. The validator field reads "invinoveritas work-acceptance checker v0 (gpt-5.6-terra); extraction: utf-8 text" and the human_review block says not-performed.
 - We chose the purchases, wrote the criteria and wrote this page, so none of that is independent of us. Independent of us are the signed records and the recomputation of the hash rule by the checker's operator.
 - Three purchases, one seller, one endpoint, a deterministic function. This says nothing about other sellers.
