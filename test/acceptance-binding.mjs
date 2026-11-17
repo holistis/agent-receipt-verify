@@ -440,3 +440,57 @@ process.exitCode = fout === 0 ? 0 : 1
 console.log('')
 console.log(goed + ' groen, ' + fout + ' rood (met de plaatsingsfout)')
 process.exitCode = fout === 0 ? 0 : 1
+
+// ── het live record met een producent-handtekening (17 november 2026)
+//
+// Tot nu toe haalde alleen een zelf opgewekte vector BEWEZEN_ONAFHANKELIJK. Dit is een
+// echt record, uitgegeven door de uitgever, met een handtekening van een producent die een
+// andere sleutel houdt. Elke toets hieronder plant ook de fout waar hij voor bestaat:
+// zonder die proef zegt een groen vakje niets.
+{
+  const v = JSON.parse(fs.readFileSync(path.join(vectorMap, 'real-record-producer-signed-live.json'), 'utf8'))
+  const doc = v.input.doc
+  const kloon = (f) => {
+    const d = JSON.parse(JSON.stringify(doc))
+    f(d)
+    return d
+  }
+  const BEWEZEN = 'BEWEZEN_ONAFHANKELIJK'
+  // Een tweede, geldige ed25519-did:key, alleen om te wisselen. Alleen de publieke sleutel staat hier.
+  const ANDERE_DID = 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK'
+
+  const u = koppelAcceptatie(v.input)
+  t('het live record is gekoppeld en bewezen onafhankelijk', u.reason_code === 'LINKED' && u.independence === BEWEZEN, u.reason_code + ' ' + u.independence)
+  t('beide x402-sleutels zijn vergeleken, elk met zijn eigen tegenhanger', JSON.stringify(u.compared) === '["COMMITMENT","AUTHORIZATION"]')
+  t('de uitgever markeerde de sleutel als dezelfde als de aangegeven sleutel', doc.bindings_sidecar.producer.declared_key_id_match === 'same')
+  t('de producent noemt in het ondertekende record dezelfde sleutel als in de sidecar', doc.record.receipt.parties.producer.key_id === doc.bindings_sidecar.producer.key)
+  t('de sleutel van de producent is niet die van de controleur', doc.record.receipt.parties.producer.key_id !== doc.record.receipt.parties.checker.key_id && doc.record.receipt.key_id !== doc.bindings_sidecar.producer.key)
+  t('en het record zelf draagt de handtekening van de producent niet binnen het ondertekende deel', !doc.record.receipt.parties.producer.signature)
+
+  const oneg = onafhankelijkheid(kloon((d) => { const s = d.bindings_sidecar.producer; s.signature = (s.signature[0] === 'A' ? 'B' : 'A') + s.signature.slice(1) }))
+  t('een teken van de handtekening gewijzigd: niet meer bewezen', oneg.staat !== BEWEZEN, oneg.staat)
+  t('en dat komt met een waarschuwing, niet stil', oneg.waarschuwing === 'PRODUCENT_HANDTEKENING_ONGELDIG', String(oneg.waarschuwing))
+  t('handtekening weggehaald: terug naar LABELS_VERSCHILLEN', onafhankelijkheid(kloon((d) => { delete d.bindings_sidecar.producer.signature })).staat === 'LABELS_VERSCHILLEN')
+  t('het hele producent-blok weggehaald: terug naar LABELS_VERSCHILLEN', onafhankelijkheid(kloon((d) => { delete d.bindings_sidecar.producer })).staat === 'LABELS_VERSCHILLEN')
+  t('de handtekening leeggemaakt: niet bewezen', onafhankelijkheid(kloon((d) => { d.bindings_sidecar.producer.signature = '' })).staat !== BEWEZEN)
+  t('de handtekening afgekapt: niet bewezen', onafhankelijkheid(kloon((d) => { const s = d.bindings_sidecar.producer; s.signature = s.signature.slice(0, 40) })).staat !== BEWEZEN)
+  t('een andere sleutel met dezelfde handtekening: niet bewezen', onafhankelijkheid(kloon((d) => { d.bindings_sidecar.producer.key = ANDERE_DID })).staat !== BEWEZEN)
+  t('dezelfde handtekening over een gewijzigde receipt_sha256: niet bewezen', onafhankelijkheid(kloon((d) => { const h = d.bindings_sidecar.receipt_sha256; d.bindings_sidecar.receipt_sha256 = (h[0] === 'a' ? 'b' : 'a') + h.slice(1) })).staat !== BEWEZEN)
+  t('de handtekening in het record gezet in plaats van in de sidecar: niet bewezen', onafhankelijkheid(kloon((d) => {
+    d.record.receipt.parties.producer.signature = d.bindings_sidecar.producer.signature
+    delete d.bindings_sidecar.producer.signature
+  })).staat !== BEWEZEN)
+
+  t('een ander bestand dan het record beoordeelde: NOT_LINKED', koppelAcceptatie({ ...v.input, deliverableSha256: '0'.repeat(64) }).detail === 'DELIVERABLE_HASH_MISMATCH')
+  t('een andere receipt-hash dan de sidecar noemt: NOT_LINKED', koppelAcceptatie({ ...v.input, receiptSha256: '1'.repeat(64) }).detail === 'RECEIPT_HASH_MISMATCH')
+  t('een andere belofte in ons eigen bonnetje: NOT_LINKED', koppelAcceptatie({ ...v.input, receipt: { ...v.input.receipt, authorizationCommitment: '0x' + '2'.repeat(64) } }).detail === 'COMMITMENT_MISMATCH')
+  t('een andere nonce in ons eigen bonnetje: NOT_LINKED', koppelAcceptatie({ ...v.input, receipt: { ...v.input.receipt, authorizationNonce: '0x' + '3'.repeat(64) } }).detail === 'AUTHORIZATION_MISMATCH')
+
+  // De tegenproef: dezelfde uitgever, geen producent-sleutel. Dat blijft zwakker, en moet zo blijven.
+  const oud = JSON.parse(fs.readFileSync(path.join(hier, '..', 'research', 'live-paid-call-2026-11-16', 'fixtures', 'records', 'record-2-fd2e105c.json'), 'utf8'))
+  t('een record van dezelfde uitgever zonder producent-sleutel blijft LABELS_VERSCHILLEN', onafhankelijkheid(oud).staat === 'LABELS_VERSCHILLEN')
+}
+
+console.log('')
+console.log(goed + ' groen, ' + fout + ' rood (met het live producent-record)')
+process.exitCode = fout === 0 ? 0 : 1
