@@ -87,11 +87,11 @@ export function leesRecord(doc) {
 
   const partij = (knoop, plat) => {
     if (knoop && typeof knoop === 'object') {
-      if (tekst(knoop.key_id)) return { id: tekst(knoop.key_id), naamruimte: 'key_id' }
-      if (tekst(knoop.name)) return { id: tekst(knoop.name), naamruimte: 'name' }
-      return { id: null, naamruimte: null }
+      if (tekst(knoop.key_id)) return { id: tekst(knoop.key_id), naamruimte: 'key_id', ruw: typeof knoop.key_id === 'string' ? knoop.key_id : null }
+      if (tekst(knoop.name)) return { id: tekst(knoop.name), naamruimte: 'name', ruw: null }
+      return { id: null, naamruimte: null, ruw: null }
     }
-    return { id: tekst(plat), naamruimte: tekst(plat) ? 'plat' : null }
+    return { id: tekst(plat), naamruimte: tekst(plat) ? 'plat' : null, ruw: null }
   }
 
   return {
@@ -219,13 +219,15 @@ export function producentHandtekeningKlopt(doc) {
   if (!sleutel || !sig || !hash) return { aanwezig: false, klopt: false, waarom: 'het record draagt geen producent-sleutel, -handtekening of receipt_sha256' }
   try {
     const ruw = base58decodeLokaal(String(sleutel).replace(/^did:key:/, '').replace(/^z/, ''))
-    if (ruw[0] !== 0xed || ruw[1] !== 0x01) return { aanwezig: true, klopt: false, waarom: 'de producent-sleutel is geen ed25519-did:key' }
+    if (ruw[0] !== 0xed || ruw[1] !== 0x01) return { aanwezig: true, klopt: false, sleutel: String(sleutel), waarom: 'de producent-sleutel is geen ed25519-did:key' }
     const der = Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), ruw.subarray(2)])
     const pub = crypto.createPublicKey({ key: der, format: 'der', type: 'spki' })
     const ok = crypto.verify(null, Buffer.from(String(hash), 'utf8'), pub, Buffer.from(String(sig), 'base64'))
     return {
       aanwezig: true,
       klopt: ok,
+      // De sleutel die tekende, zodat onafhankelijkheid() hem kan vergelijken met de sleutel die het record als producent noemt.
+      sleutel: String(sleutel),
       waarom: ok ? null : 'de handtekening klopt niet over receipt_sha256',
       // Een handtekening BINNEN het record is zelfverwijzend: zijn aanwezigheid verandert
       // de bytes waarover receipt_sha256 gaat. Dat is geen afkeuring maar het moet
@@ -234,7 +236,7 @@ export function producentHandtekeningKlopt(doc) {
       plaatsing: inHetRecord ? 'IN_HET_RECORD_ZELFVERWIJZEND' : 'IN_DE_SIDECAR',
     }
   } catch (e) {
-    return { aanwezig: true, klopt: false, waarom: 'kon de producent-sleutel of -handtekening niet lezen' }
+    return { aanwezig: true, klopt: false, sleutel: String(sleutel), waarom: 'kon de producent-sleutel of -handtekening niet lezen' }
   }
 }
 
@@ -296,6 +298,33 @@ export function onafhankelijkheid(doc) {
       vergelekenOp: c.naamruimte,
       waarschuwing: 'PRODUCENT_HANDTEKENING_ZELFVERWIJZEND',
       ontbreekt: 'producent-handtekening op een plek buiten het record',
+    }
+  }
+  // DE SLEUTEL DIE TEKENDE MOET DE SLEUTEL ZIJN DIE HET RECORD ALS PRODUCENT NOEMT.
+  //
+  // Zonder deze controle zei deze module BEWEZEN_ONAFHANKELIJK bij elke geldige handtekening, ook als het record de
+  // producent met een label noemt of met een andere sleutel dan die tekende. Dan zegt de handtekening niets over
+  // de partij die het record producent noemt. Een controleur die met een wegwerp-sleutel tekent en een label als
+  // producent opschrijft las dan als bewezen onafhankelijk. Gevonden op 17 november 2026 bij het toetsen van het
+  // eerste live record met een producent-handtekening, en vastgelegd in issue 106.
+  //
+  // De uitgever dwingt dit zelf af en meldt het in de sidecar (declared_key_id_match), maar die melding staat
+  // BUITEN het ondertekende record, dus deze module kan er niet op leunen. De vergelijking is letterlijk en gaat
+  // tegen de ONBEWERKTE key_id (p.ruw), niet tegen p.id: dat is voor labels op kleine letters gezet, en een
+  // did:key is hoofdlettergevoelig.
+  //
+  // Het record blijft meetellen en kan nog steeds LINKED geven: alleen het oordeel over onafhankelijkheid zakt
+  // naar LABELS_VERSCHILLEN, met een eigen waarschuwing.
+  if (ph.aanwezig && ph.klopt && ph.sleutel !== p.ruw) {
+    return {
+      staat: 'LABELS_VERSCHILLEN',
+      reden:
+        'de handtekening klopt, maar de sleutel die tekende is niet de sleutel die het record als producent noemt (' +
+        (p.ruw ?? p.id) +
+        '), dus de handtekening zegt niets over die producent',
+      vergelekenOp: c.naamruimte,
+      waarschuwing: 'PRODUCENT_SLEUTEL_WIJKT_AF',
+      ontbreekt: 'handtekening van de sleutel die het record als producent noemt',
     }
   }
   if (ph.aanwezig && ph.klopt) {
