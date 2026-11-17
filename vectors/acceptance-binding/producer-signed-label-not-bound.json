@@ -1,11 +1,12 @@
 {
-  "_why": "De enige vector die BEWEZEN_ONAFHANKELIJK haalt, nu met een ECHT uitgerekende receipt_sha256. Sleutel en handtekening staan in de sidecar, buiten het object waarover de hash gaat, zodat het toevoegen ervan de hash niet verandert.",
+  "_why": "Een geldige handtekening door een andere sleutel dan het record als producent noemt. Het record noemt de producent met een label (producer-1), en de sleutel die tekende staat alleen in de sidecar. De handtekening klopt, maar zegt niets over de partij die het record producent noemt. Sinds de reparatie van issue 106 geeft dit LABELS_VERSCHILLEN met waarschuwing PRODUCENT_SLEUTEL_WIJKT_AF; daarvoor gaf dit ten onrechte BEWEZEN_ONAFHANKELIJK.",
   "provenance": [
     "Zelf opgewekt op 18 oktober 2026 met node:crypto: een echte ed25519-sleutel, een echte handtekening, en receipt_sha256 ECHT uitgerekend als sha256 over de canonieke vorm van record.receipt.",
-    "De eerste versie van deze vector gebruikte een verzonnen hash en kon daarom de plaatsingsfout niet vinden. Dat is aangewezen door de uitgever van het formaat in erc-8004/erc-8004-contracts#99."
+    "De eerste versie van deze vector gebruikte een verzonnen hash en kon daarom de plaatsingsfout niet vinden. Dat is aangewezen door de uitgever van het formaat in erc-8004/erc-8004-contracts#99.",
+    "Verwachting gewijzigd op 17 november 2026: eerst BEWEZEN_ONAFHANKELIJK, nu LABELS_VERSCHILLEN. Het record zelf is niet veranderd, alleen wat de module ervan zegt. Zie issue 106."
   ],
   "limits": [
-    "Dit veld bestaat inmiddels bij de uitgever: zie real-record-producer-signed-live.json voor een live record met een producent-handtekening. Deze vector blijft als zelf opgewekt voorbeeld met een sleutel die wij zelf hielden.",
+    "Dit veld bestaat inmiddels bij de uitgever: zie real-record-producer-signed-live.json voor een live record waarin de producent met dezelfde sleutel tekent als waarmee het record hem noemt. Deze vector is zelf opgewekt, met een sleutel die wij zelf hielden, en dient nu als negatief geval.",
     "Een geldige handtekening bewijst dat de producent de sleutel bezit die hij noemt en dat hij dit record aanvaardt, oordeel inbegrepen. Hij bewijst NIET dat producent en controleur verschillende personen zijn: twee sleutels kunnen van dezelfde persoon zijn.",
     "De producent kan pas tekenen NA de toets, dus dit is aanvaarding van de uitkomst en geen toezegging vooraf."
   ],
@@ -54,6 +55,6 @@
   "expected": {
     "reason_code": "LINKED",
     "valid": true,
-    "independence": "BEWEZEN_ONAFHANKELIJK"
+    "independence": "LABELS_VERSCHILLEN"
   }
 }

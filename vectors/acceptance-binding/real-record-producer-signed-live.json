@@ -234,7 +234,7 @@
     "The producer key was created by us for this test. The checker's service states that it refuses a producer key it holds itself; that refusal is the service's statement and is not measured here.",
     "The criteria describe the shape of the response only. The record's human_review block says not-performed and its tools field names a model as validator.",
     "chain_anchor reads GEEN_KETENLEZING because this vector reads no chain. The checker reports having confirmed the nonce on chain. It did not open the commitment, which needs the salt we keep; only we opened it.",
-    "The module does not yet compare the key that signed with the key the receipt names as producer. In this record they are equal, and the tests assert it. The checker's service enforces it and marks it declared_key_id_match, but that mark sits outside the checker's signed receipt.",
+    "The module requires the key that signed to be the key the receipt names as producer, and compares them letter for letter. In this record they are equal, and the tests assert it. The checker's service marks the same thing as declared_key_id_match, but that mark sits outside the checker's signed receipt, so the module does not rely on it.",
     "Linking the payment to the acceptance record does not prove the payment settled. That is the receipt-to-settlement question and it needs a chain read."
   ]
 }

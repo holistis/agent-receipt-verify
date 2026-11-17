@@ -387,7 +387,7 @@ process.exitCode = fout === 0 ? 0 : 1
 
 // ── het ontbrekende vakje, en de reden dat deze vector bestaat
 {
-  const pad = path.join(vectorMap, 'producer-signed-proven.json')
+  const pad = path.join(vectorMap, 'real-record-producer-signed-live.json')
   const v = JSON.parse(fs.readFileSync(pad, 'utf8'))
   const o = onafhankelijkheid(v.input.doc)
   t('een ECHT ondertekend record haalt de sterkste toestand', o.staat === 'BEWEZEN_ONAFHANKELIJK', o.staat)
@@ -429,11 +429,11 @@ process.exitCode = fout === 0 ? 0 : 1
 
   // En de kern: de hash is in beide vectoren ECHT uitgerekend, dus deze test zou falen
   // zodra iemand hem weer door een plaatshouder vervangt.
-  const goed = JSON.parse(fs.readFileSync(path.join(vectorMap, 'producer-signed-proven.json'), 'utf8'))
+  const goed = JSON.parse(fs.readFileSync(path.join(vectorMap, 'producer-signed-label-not-bound.json'), 'utf8'))
   const h = goed.input.doc.bindings_sidecar.receipt_sha256
   t('de hash in de vector is geen plaatshouder', !/^(.)\1{10,}/.test(h), h.slice(0, 16))
   t('en de twee vectoren dragen dezelfde hash, want hetzelfde record', binnen.input.doc.bindings_sidecar.receipt_sha256 === h)
-  t('de goede vector zet sleutel en handtekening in de SIDECAR', Boolean(goed.input.doc.bindings_sidecar.producer?.signature))
+  t('de vector met de sidecar-plaatsing zet sleutel en handtekening in de SIDECAR', Boolean(goed.input.doc.bindings_sidecar.producer?.signature))
   t('en niet in het record', !goed.input.doc.record.receipt.parties.producer.signature)
 }
 
@@ -493,4 +493,59 @@ process.exitCode = fout === 0 ? 0 : 1
 
 console.log('')
 console.log(goed + ' groen, ' + fout + ' rood (met het live producent-record)')
+process.exitCode = fout === 0 ? 0 : 1
+
+// ── de sleutel die tekende moet de sleutel zijn die het record als producent noemt (issue 106)
+//
+// Vroeger gaf elke geldige handtekening BEWEZEN_ONAFHANKELIJK, ook als het record de producent met een label
+// noemde of met een andere sleutel. Hieronder staat per manier waarop die twee uit elkaar kunnen lopen een
+// geplante fout, en elk daarvan moet de sterkste toestand verliezen. De positieve controle (dezelfde sleutel)
+// staat erbij, anders bewijst een rij afkeuringen alleen dat de module nee zegt.
+{
+  const live = JSON.parse(fs.readFileSync(path.join(vectorMap, 'real-record-producer-signed-live.json'), 'utf8'))
+  const doc = live.input.doc
+  const kloon = (f) => {
+    const d = JSON.parse(JSON.stringify(doc))
+    f(d)
+    return d
+  }
+  const BEWEZEN = 'BEWEZEN_ONAFHANKELIJK'
+  const DID = doc.bindings_sidecar.producer.key
+  const ANDERE = 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK'
+
+  const ph = producentHandtekeningKlopt(doc)
+  t('de controle geeft de sleutel terug die tekende', ph.sleutel === DID, String(ph.sleutel))
+  t('positieve controle: de producent noemt dezelfde sleutel als die tekende, bewezen', onafhankelijkheid(doc).staat === BEWEZEN)
+
+  const label = onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = 'tokenizen' }))
+  t('de producent met een label genoemd, handtekening door een sleutel: niet bewezen', label.staat === 'LABELS_VERSCHILLEN', label.staat)
+  t('en met een eigen waarschuwing', label.waarschuwing === 'PRODUCENT_SLEUTEL_WIJKT_AF', String(label.waarschuwing))
+  t('en de reden noemt de producent zoals het record hem noemt', /tokenizen/.test(label.reden ?? ''))
+  t('de handtekening zelf is dan nog steeds geldig, het is de koppeling die ontbreekt', producentHandtekeningKlopt(kloon((d) => { d.record.receipt.parties.producer.key_id = 'tokenizen' })).klopt === true)
+
+  const andere = onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = ANDERE }))
+  t('de producent met een ANDERE did:key genoemd dan die tekende: niet bewezen', andere.staat === 'LABELS_VERSCHILLEN' && andere.waarschuwing === 'PRODUCENT_SLEUTEL_WIJKT_AF', andere.staat)
+  t('een hoofdletter anders in de genoemde sleutel: niet bewezen, er wordt niets genormaliseerd', onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = DID.toLowerCase() })).staat !== BEWEZEN)
+  t('een spatie achter de genoemde sleutel: niet bewezen', onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = DID + ' ' })).staat !== BEWEZEN)
+  t('de genoemde sleutel zonder het did:key-voorvoegsel: niet bewezen', onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = DID.replace(/^did:key:/, '') })).staat !== BEWEZEN)
+  t('de sleutel in de sidecar vervangen door de genoemde sleutel zonder nieuwe handtekening: niet bewezen', onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = ANDERE; d.bindings_sidecar.producer.key = ANDERE })).staat !== BEWEZEN)
+
+  const alleenNamen = onafhankelijkheid(kloon((d) => { d.record.receipt.parties.checker = { name: 'invinoveritas' }; d.record.receipt.parties.producer = { name: 'tokenizen' } }))
+  t('beide partijen alleen met een naam genoemd, handtekening door een sleutel: niet bewezen', alleenNamen.staat === 'LABELS_VERSCHILLEN' && alleenNamen.waarschuwing === 'PRODUCENT_SLEUTEL_WIJKT_AF', alleenNamen.staat + ' ' + alleenNamen.waarschuwing)
+  const zonderNaam = onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer = {} }))
+  t('een producent zonder naam of sleutel is geen bewezen onafhankelijkheid', zonderNaam.staat !== BEWEZEN, zonderNaam.staat)
+  const lm = onafhankelijkheid(kloon((d) => { d.record.receipt.parties.producer.key_id = 'tokenizen' }))
+  t('het record telt nog mee en blijft LINKED, alleen het oordeel over onafhankelijkheid zakt', koppelAcceptatie({ ...live.input, doc: kloon((d) => { d.record.receipt.parties.producer.key_id = 'tokenizen' }) }).reason_code === 'LINKED')
+  t('en dat oordeel in koppelAcceptatie is hetzelfde als in onafhankelijkheid', koppelAcceptatie({ ...live.input, doc: kloon((d) => { d.record.receipt.parties.producer.key_id = 'tokenizen' }) }).independence === lm.staat)
+
+  // De oude oefenvoorbeelden: label als producent, sleutel alleen in de sidecar. Dat was ten onrechte "bewezen".
+  const oud = JSON.parse(fs.readFileSync(path.join(vectorMap, 'producer-signed-label-not-bound.json'), 'utf8'))
+  const o = onafhankelijkheid(oud.input.doc)
+  t('het oude oefenvoorbeeld met een label als producent is niet meer bewezen', o.staat === 'LABELS_VERSCHILLEN' && o.waarschuwing === 'PRODUCENT_SLEUTEL_WIJKT_AF', o.staat + ' ' + o.waarschuwing)
+  t('zijn handtekening klopt wel, en dat is precies de val', producentHandtekeningKlopt(oud.input.doc).klopt === true)
+  t('de enige vector in de set die BEWEZEN_ONAFHANKELIJK haalt is het live record', fs.readdirSync(vectorMap).filter((b) => b.endsWith('.json')).filter((b) => JSON.parse(fs.readFileSync(path.join(vectorMap, b), 'utf8')).expected.independence === BEWEZEN).join(',') === 'real-record-producer-signed-live.json')
+}
+
+console.log('')
+console.log(goed + ' groen, ' + fout + ' rood (met de sleutelvergelijking)')
 process.exitCode = fout === 0 ? 0 : 1
