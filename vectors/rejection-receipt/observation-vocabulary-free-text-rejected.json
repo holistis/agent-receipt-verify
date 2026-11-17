@@ -30,10 +30,11 @@
       "payment_observation": {
         "state": "payment_failed",
         "network": "eip155:8453",
-        "transaction": ""
+        "transaction": "",
+        "block_number": 23000000
       },
       "issued_at": "2026-11-10T15:00:00.000Z",
-      "receipt_id": "5b4835c369851587b75c8da86918ada9ba32101682d77662769b0c8da15533a7",
+      "receipt_id": "136e00c8c0659145b03400e2168b090423b0d2132495e38d4d6aa324650f4045",
       "signature": "0xsig"
     },
     "context": {

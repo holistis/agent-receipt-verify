@@ -164,8 +164,8 @@ export const REDEN_TABEL = new Map([
   ['invalid_signature', 'CLIENT_VERIFIABLE'],
   ['wrong_amount', 'CLIENT_VERIFIABLE'],
   ['wrong_recipient', 'CLIENT_VERIFIABLE'],
-  ['invalid_exact_evm_payload_authorization_valid_before', 'CHAIN_VERIFIABLE'],
-  ['invalid_exact_evm_payload_authorization_valid_after', 'CHAIN_VERIFIABLE'],
+  ['invalid_exact_evm_payload_authorization_valid_before', 'CLIENT_VERIFIABLE'],
+  ['invalid_exact_evm_payload_authorization_valid_after', 'CLIENT_VERIFIABLE'],
   ['insufficient_funds', 'CHAIN_VERIFIABLE'],
   ['duplicate_payment', 'CHAIN_VERIFIABLE'],
   ['duplicate_payment_internal_record', 'ISSUER_ASSERTED'],
@@ -175,6 +175,49 @@ export const REDEN_TABEL = new Map([
 ])
 
 const EVIDENCE_RANG = new Map(EVIDENCE_CLASSES.map((naam, i) => [naam, i]))
+
+/**
+ * Redenen waarvan het bewijs een SALDO op een bepaald moment is. Een saldo is alleen na
+ * te rekenen op een vast blok: zonder blokverwijzing kan een derde alleen een vergelijkbare
+ * bewering narekenen, niet deze. Daarom geldt het CHAIN_VERIFIABLE-plafond hier alleen als
+ * payment_observation.block_number een geheel getal >= 0 is; anders zakt het plafond naar
+ * ISSUER_ASSERTED. valid_before/valid_after staan op CLIENT_VERIFIABLE: die vergelijken
+ * velden uit de payload met een tijd, en die tijd (issued_at) is van de uitgever zelf; de
+ * keten voegt daar niets aan toe.
+ */
+export const BLOK_VEREIST = new Set(['insufficient_funds'])
+
+/** Het hoogste eerlijke bewijsniveau voor DIT briefje: de reden plus wat het meedraagt. */
+export function plafondVoor(receipt) {
+  const reden = receipt?.decision?.reason_code
+  const basis = REDEN_TABEL.get(reden) ?? 'ISSUER_ASSERTED'
+  if (BLOK_VEREIST.has(reden)) {
+    const blok = receipt?.payment_observation?.block_number
+    if (!(Number.isSafeInteger(blok) && blok >= 0)) return 'ISSUER_ASSERTED'
+  }
+  return basis
+}
+
+/**
+ * De twee attempt_binding-hashes, herberekend uit wat een partij zelf waarnam.
+ *  - payment_payload_hash: sha256 over de bytes van de betaalheader-waarde zoals verzonden
+ *    (de base64-tekst zelf, zonder de witruimte aan begin en eind die HTTP al weghaalt),
+ *    niet gedecodeerd en niet opnieuw geserialiseerd.
+ *  - payment_requirements_hash: sha256 over de RFC 8785-vorm van het ene
+ *    PaymentRequirements-object waartegen de poging werd beoordeeld (de gekozen
+ *    accepts-entry), niet over het hele PaymentRequired-antwoord.
+ * Beide als '0x' plus 64 kleine hex-tekens. receipt_id heeft geen voorvoegsel.
+ */
+export function berekenAttemptBinding({ paymentHeaderValue, requirements } = {}) {
+  if (typeof paymentHeaderValue !== 'string' || requirements == null || typeof requirements !== 'object' || Array.isArray(requirements)) {
+    throw new TypeError('berekenAttemptBinding: paymentHeaderValue (string) en requirements (object) zijn verplicht')
+  }
+  const h = (x) => '0x' + createHash('sha256').update(x, 'utf8').digest('hex')
+  return {
+    payment_payload_hash: h(paymentHeaderValue.trim()),
+    payment_requirements_hash: h(jcs(requirements)),
+  }
+}
 
 /** De envelop zoals die ondertekend wordt: alles behalve receipt_id en signature. */
 export function kanoniekeEnvelop(receipt) {
@@ -362,8 +405,7 @@ export function toetsAfwijzingsBon(receipt, context = {}) {
   }
 
   // reason-code-bounded-fail-closed + evidence-class-not-overclaimed
-  const toegestaan = REDEN_TABEL.get(decision.reason_code)
-  const toegestaanNaam = toegestaan ?? 'ISSUER_ASSERTED'
+  const toegestaanNaam = plafondVoor(receipt)
   if (!EVIDENCE_CLASSES.includes(decision.evidence_class)) {
     return { outcome: 'FAIL', reason_code: 'EVIDENCE_CLASS_UNKNOWN', detail: veiligVeld(decision.evidence_class) }
   }

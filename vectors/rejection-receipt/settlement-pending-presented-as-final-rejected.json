@@ -30,10 +30,11 @@
       "payment_observation": {
         "state": "SETTLEMENT_PENDING",
         "network": "eip155:8453",
-        "transaction": ""
+        "transaction": "",
+        "block_number": 23000000
       },
       "issued_at": "2026-11-10T15:00:00.000Z",
-      "receipt_id": "57949003a6033155809647e5eb7df2bf51d414ead04f19d16643a1c908f18204",
+      "receipt_id": "5e51ba04ef9f4cbc4f8d5fc0d1e2f4498bed2956743dd6abefbdab771ef7af05",
       "signature": "0xsig"
     },
     "context": {

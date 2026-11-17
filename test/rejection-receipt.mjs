@@ -11,7 +11,10 @@ import {
   toetsAfwijzingsBon, toetsTegenstrijdigheid, CLAUSULES, UITKOMSTEN,
   berekenReceiptId, kanoniekeEnvelop, eip712Domein, EIP712_TYPES, handtekeningDigest,
   losDidWebSleutelOp, handtekeningKlopt, REDEN_TABEL, EVIDENCE_CLASSES, PAYMENT_OBSERVATION_STATES,
+  plafondVoor, berekenAttemptBinding,
 } from '../src/rejection-receipt.mjs'
+import { createHash } from 'node:crypto'
+import { jcs } from '../src/canonical-request.mjs'
 
 const hier = path.dirname(fileURLToPath(import.meta.url))
 const vectorMap = path.join(hier, '..', 'vectors', 'rejection-receipt')
@@ -84,7 +87,7 @@ console.log('receipt_id en de kanonieke envelop')
     attempt_binding: { payment_payload_hash: '0xaa', payment_requirements_hash: '0xbb' },
     issuer: { resource_origin: 'https://api.example.com', key_id: 'did:web:api.example.com#rejection-key' },
     decision: { outcome: 'REJECTED', reason_code: 'insufficient_funds', evidence_class: 'CHAIN_VERIFIABLE' },
-    payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '' },
+    payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '', block_number: 23000000 },
     issued_at: '2026-11-10T15:00:00.000Z',
   }
   t('de envelop sluit receipt_id en signature uit', !('receipt_id' in kanoniekeEnvelop({ ...basis, receipt_id: 'x', signature: 'y' })))
@@ -117,7 +120,7 @@ console.log('echte EIP-712-handtekening (known-answer, met een echte sleutel, ge
       attempt_binding: { payment_payload_hash: '0xaa', payment_requirements_hash: '0xbb' },
       issuer: { resource_origin: 'https://api.example.com', key_id: 'did:web:api.example.com#rejection-key' },
       decision: { outcome: 'REJECTED', reason_code: 'insufficient_funds', evidence_class: 'CHAIN_VERIFIABLE' },
-      payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '' },
+      payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '', block_number: 23000000 },
       issued_at: '2026-11-10T15:00:00.000Z',
     }
     const digest = handtekeningDigest(receipt)
@@ -243,7 +246,7 @@ console.log('chaos-toetsen (al-mustamil, 10 nov 2026): rare invoer die niet mag 
     attempt_binding: { payment_payload_hash: '0xaa', payment_requirements_hash: '0xbb' },
     issuer: { resource_origin: 'https://api.example.com', key_id: 'did:web:api.example.com#rejection-key' },
     decision: { outcome: 'REJECTED', reason_code: 'insufficient_funds', evidence_class: 'CHAIN_VERIFIABLE' },
-    payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '' },
+    payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '', block_number: 23000000 },
     issued_at: '2026-11-10T15:00:00.000Z',
   }
   geldig.receipt_id = berekenReceiptId(geldig)
@@ -293,6 +296,66 @@ console.log('chaos-toetsen (al-mustamil, 10 nov 2026): rare invoer die niet mag 
   const heelLang = { ...geldig, payment_observation: { ...geldig.payment_observation, state: 'x'.repeat(500000) } }
   const uitslagLang = toetsAfwijzingsBon(heelLang, {})
   t('een enorme string in payment_observation.state wordt afgekapt in detail', (uitslagLang.detail ?? '').length < 200)
+}
+
+console.log('')
+console.log('review 17 nov 2026: envelop, binding-recept, EIP-712-type, plafonds')
+{
+  const basis = {
+    type: 'x402-rejection-receipt', version: 1,
+    attempt_binding: { payment_payload_hash: '0xaa', payment_requirements_hash: '0xbb' },
+    issuer: { resource_origin: 'https://api.example.com', key_id: 'did:web:api.example.com#rejection-key' },
+    decision: { outcome: 'REJECTED', reason_code: 'insufficient_funds', evidence_class: 'CHAIN_VERIFIABLE' },
+    payment_observation: { state: 'NOT_SUBMITTED', network: 'eip155:8453', transaction: '', block_number: 23000000 },
+    issued_at: '2026-11-10T15:00:00.000Z',
+  }
+
+  // (1) De envelop is het hele object min receipt_id en signature, OOK extra velden.
+  t('een extra, niet in §4 genoemd veld zit in de envelop', 'extra_veld' in kanoniekeEnvelop({ ...basis, extra_veld: 1 }))
+  t('en verandert dus receipt_id', berekenReceiptId(basis) !== berekenReceiptId({ ...basis, extra_veld: 1 }))
+  const zonderExtra = { ...basis, payment_observation: { state: 'NOT_SUBMITTED' } }
+  t('network/transaction/block_number weglaten geeft een andere receipt_id (ze zijn ondertekend)', berekenReceiptId(basis) !== berekenReceiptId(zonderExtra))
+
+  // (2) Het recept voor de twee binding-hashes, met bekende antwoorden.
+  const header = 'eyJ4NDAyVmVyc2lvbiI6Mn0='
+  const req = { scheme: 'exact', network: 'eip155:8453', amount: '1000', payTo: '0x2', asset: '0x1' }
+  const b = berekenAttemptBinding({ paymentHeaderValue: header, requirements: req })
+  t('payment_payload_hash = 0x + sha256 over de header-tekst zoals verzonden', b.payment_payload_hash === '0x' + createHash('sha256').update(header, 'utf8').digest('hex'))
+  t('payment_requirements_hash = 0x + sha256 over de RFC 8785-vorm van de ene accepts-entry', b.payment_requirements_hash === '0x' + createHash('sha256').update(jcs(req), 'utf8').digest('hex'))
+  t('witruimte aan begin en eind van de header telt niet mee (HTTP haalt die al weg)', berekenAttemptBinding({ paymentHeaderValue: '  ' + header + ' ', requirements: req }).payment_payload_hash === b.payment_payload_hash)
+  t('de header wordt NIET gedecodeerd: een andere base64-schrijfwijze geeft een andere hash', berekenAttemptBinding({ paymentHeaderValue: header.replace(/=$/, ''), requirements: req }).payment_payload_hash !== b.payment_payload_hash)
+  const omgedraaid = Object.fromEntries(Object.entries(req).reverse())
+  t('sleutelvolgorde in requirements verandert de hash niet (RFC 8785)', berekenAttemptBinding({ paymentHeaderValue: header, requirements: omgedraaid }).payment_requirements_hash === b.payment_requirements_hash)
+  t('een ander bedrag in requirements geeft een andere hash', berekenAttemptBinding({ paymentHeaderValue: header, requirements: { ...req, amount: '1001' } }).payment_requirements_hash !== b.payment_requirements_hash)
+  t('het hele PaymentRequired-object geeft een andere hash dan de ene entry', berekenAttemptBinding({ paymentHeaderValue: header, requirements: { x402Version: 2, accepts: [req] } }).payment_requirements_hash !== b.payment_requirements_hash)
+  t('binding-hashes hebben het voorvoegsel 0x en 64 kleine hex-tekens', /^0x[0-9a-f]{64}$/.test(b.payment_payload_hash) && /^0x[0-9a-f]{64}$/.test(b.payment_requirements_hash))
+  t('receipt_id heeft GEEN voorvoegsel', /^[0-9a-f]{64}$/.test(berekenReceiptId(basis)))
+  let gooit = false
+  try { berekenAttemptBinding({ paymentHeaderValue: header, requirements: [req] }) } catch { gooit = true }
+  t('een lijst in plaats van de ene entry wordt geweigerd', gooit)
+
+  // (3) Het EIP-712-type, letterlijk.
+  t('primaryType RejectionReceiptDigest met precies een veld digest: bytes32', JSON.stringify(EIP712_TYPES) === JSON.stringify({ RejectionReceiptDigest: [{ name: 'digest', type: 'bytes32' }] }))
+  const dom = eip712Domein('https://api.example.com')
+  t('domein heeft precies name, version, salt', JSON.stringify(Object.keys(dom)) === JSON.stringify(['name', 'version', 'salt']))
+  t('digest = 0x + receipt_id', handtekeningDigest(basis) === '0x' + berekenReceiptId(basis))
+
+  // (4) Plafonds.
+  t('valid_before staat op CLIENT_VERIFIABLE', REDEN_TABEL.get('invalid_exact_evm_payload_authorization_valid_before') === 'CLIENT_VERIFIABLE')
+  t('valid_after staat op CLIENT_VERIFIABLE', REDEN_TABEL.get('invalid_exact_evm_payload_authorization_valid_after') === 'CLIENT_VERIFIABLE')
+  t('insufficient_funds met block_number: plafond CHAIN_VERIFIABLE', plafondVoor(basis) === 'CHAIN_VERIFIABLE')
+  for (const [naam, waarde] of [['zonder block_number', undefined], ['block_number als tekst', '23000000'], ['negatief block_number', -1], ['block_number 1.5', 1.5]]) {
+    const r2 = { ...basis, payment_observation: { ...basis.payment_observation, block_number: waarde } }
+    if (waarde === undefined) delete r2.payment_observation.block_number
+    r2.receipt_id = berekenReceiptId(r2)
+    t('insufficient_funds ' + naam + ': plafond zakt naar ISSUER_ASSERTED', plafondVoor(r2) === 'ISSUER_ASSERTED')
+    const u = toetsAfwijzingsBon(r2, { handtekeningKlopt: true })
+    t('  en een CHAIN_VERIFIABLE-claim faalt dan op overclaim', u.outcome === 'FAIL' && u.reason_code === 'EVIDENCE_CLASS_NOT_OVERCLAIMED', u.reason_code)
+  }
+  const eerlijk = { ...basis, decision: { ...basis.decision, evidence_class: 'ISSUER_ASSERTED' }, payment_observation: { state: 'NOT_SUBMITTED' } }
+  eerlijk.receipt_id = berekenReceiptId(eerlijk)
+  t('insufficient_funds zonder blok maar eerlijk ISSUER_ASSERTED gaat door het plafond', toetsAfwijzingsBon(eerlijk, { handtekeningKlopt: true }).reason_code !== 'EVIDENCE_CLASS_NOT_OVERCLAIMED')
+  t('een blok verhoogt geen andere reden: duplicate_payment_internal_record blijft ISSUER_ASSERTED', plafondVoor({ ...basis, decision: { ...basis.decision, reason_code: 'duplicate_payment_internal_record' } }) === 'ISSUER_ASSERTED')
 }
 
 console.log('')

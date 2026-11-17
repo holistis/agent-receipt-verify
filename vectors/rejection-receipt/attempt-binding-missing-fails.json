@@ -25,10 +25,11 @@
       "payment_observation": {
         "state": "NOT_SUBMITTED",
         "network": "eip155:8453",
-        "transaction": ""
+        "transaction": "",
+        "block_number": 23000000
       },
       "issued_at": "2026-11-10T15:00:00.000Z",
-      "receipt_id": "f691d2466f2abb319eb977c6e2c5cb40ed88223a635d8183f302f48f70085411",
+      "receipt_id": "51325f6bc0709599f655d254d9a4134b790b624d2fd2074009be4509868b0c53",
       "signature": "0xsig"
     },
     "context": {
