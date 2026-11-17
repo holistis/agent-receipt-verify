@@ -107,7 +107,7 @@ export const CLAUSULES = [
   {
     id: 'settlement-pending-not-presented-as-final',
     citaat:
-      'Een briefje waarvan payment_observation.state SETTLEMENT_PENDING is, MAG decision.outcome niet gebruiken ' +
+      'Een briefje waarvan payment_observation.state SETTLEMENT_PENDING of UNKNOWN is, MAG decision.outcome niet gebruiken ' +
       'als een definitieve weigering zonder dat met zoveel woorden te markeren. Reden: een onzekere betaling kan ' +
       'later alsnog slagen; dit voorkomt dat een briefje zelf een onjuiste betalingsclaim wordt.',
   },
@@ -399,9 +399,14 @@ export function toetsAfwijzingsBon(receipt, context = {}) {
     return { outcome: 'FAIL', reason_code: 'PAYMENT_OBSERVATION_VOCABULARY_BOUNDED', detail: veiligVeld(obs.state) }
   }
 
-  // settlement-pending-not-presented-as-final
+  // settlement-pending-not-presented-as-final. UNKNOWN valt hier ook onder: een time-out kan
+  // vallen nadat de afrekening al geland is, dus een onbekende betaaluitkomst is net zo min
+  // definitief als een lopende. Een bewering op ISSUER_ASSERTED-niveau maakt dat niet anders.
   if (obs.state === 'SETTLEMENT_PENDING' && decision.outcome === 'REJECTED' && decision.final !== false) {
     return { outcome: 'FAIL', reason_code: 'SETTLEMENT_PENDING_NOT_FINAL' }
+  }
+  if (obs.state === 'UNKNOWN' && decision.outcome === 'REJECTED' && decision.final !== false) {
+    return { outcome: 'FAIL', reason_code: 'PAYMENT_OUTCOME_UNKNOWN_NOT_FINAL' }
   }
 
   // reason-code-bounded-fail-closed + evidence-class-not-overclaimed

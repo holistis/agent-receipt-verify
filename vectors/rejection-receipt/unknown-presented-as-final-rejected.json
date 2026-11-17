@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-unknown-presented-as-final-rejected",
+  "clause": "settlement-pending-not-presented-as-final",
+  "encodes": "De negatieve controle voor UNKNOWN: een onbekende betaaluitkomst als definitieve weigering aanbieden (review NSPG13, 17 nov 2026).",
+  "description": "Een facilitator-time-out kan vallen nadat de afrekening al geland is; UNKNOWN met final true is dus een onjuiste betalingsclaim, ook op ISSUER_ASSERTED-niveau.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "facilitator_timeout",
+        "evidence_class": "ISSUER_ASSERTED",
+        "final": true
+      },
+      "payment_observation": {
+        "state": "UNKNOWN",
+        "network": "eip155:8453",
+        "transaction": ""
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "ca7ca615dc1b67b8815be77276fb817b3a50dab757dc90cc11ce2ca4c6be6917",
+      "signature": "0xsig"
+    },
+    "context": {
+      "handtekeningKlopt": true
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "PAYMENT_OUTCOME_UNKNOWN_NOT_FINAL"
+  },
+  "limits": []
+}

@@ -356,6 +356,16 @@ console.log('review 17 nov 2026: envelop, binding-recept, EIP-712-type, plafonds
   const eerlijk = { ...basis, decision: { ...basis.decision, evidence_class: 'ISSUER_ASSERTED' }, payment_observation: { state: 'NOT_SUBMITTED' } }
   eerlijk.receipt_id = berekenReceiptId(eerlijk)
   t('insufficient_funds zonder blok maar eerlijk ISSUER_ASSERTED gaat door het plafond', toetsAfwijzingsBon(eerlijk, { handtekeningKlopt: true }).reason_code !== 'EVIDENCE_CLASS_NOT_OVERCLAIMED')
+  // UNKNOWN is net zo min definitief als SETTLEMENT_PENDING (review NSPG13, 17 nov 2026).
+  const onbekend = (final) => {
+    const r = { ...basis, decision: { outcome: 'REJECTED', reason_code: 'facilitator_timeout', evidence_class: 'ISSUER_ASSERTED' }, payment_observation: { state: 'UNKNOWN' } }
+    if (final !== undefined) r.decision.final = final
+    r.receipt_id = berekenReceiptId(r)
+    return toetsAfwijzingsBon(r, { handtekeningKlopt: true })
+  }
+  t('UNKNOWN met final true faalt', onbekend(true).reason_code === 'PAYMENT_OUTCOME_UNKNOWN_NOT_FINAL')
+  t('UNKNOWN zonder final faalt ook (final MOET aanwezig en false zijn)', onbekend(undefined).reason_code === 'PAYMENT_OUTCOME_UNKNOWN_NOT_FINAL')
+  t('UNKNOWN met final false gaat door', onbekend(false).outcome === 'PASS', JSON.stringify(onbekend(false)))
   t('een blok verhoogt geen andere reden: duplicate_payment_internal_record blijft ISSUER_ASSERTED', plafondVoor({ ...basis, decision: { ...basis.decision, reason_code: 'duplicate_payment_internal_record' } }) === 'ISSUER_ASSERTED')
 }
 
