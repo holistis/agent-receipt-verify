@@ -21,6 +21,8 @@ const WORTEL = path.join(HERE, '..')
 const DOEL = path.join(WORTEL, 'research', 'live-paid-call-2026-11-16', 'reproduce.mjs')
 const origineel = fs.readFileSync(DOEL)
 const tekst = origineel.toString('utf8')
+const EOL = tekst.includes('\r\n') ? '\r\n' : '\n'
+const naarEol = (s) => s.replace(/\r?\n/g, EOL)
 
 // [naam, wat er staat, waardoor het vervangen wordt]
 const MUTATIES = [
@@ -29,7 +31,9 @@ const MUTATIES = [
   ['deliverable: lengtecontrole weg', ' && Buffer.byteLength(p.bodyBytes) === f.bytes', ''],
   ['handtekening altijd waar', 'ed25519Verifies(published.public_key_base64, jcs(receipt), p.record.record.signature.value)', 'true'],
   ['handtekening: sleutel-in-record-vergelijking weg', 'published.public_key_base64 === inRecord.public_key_base64 &&', ''],
-  ['hash-regel altijd waar', 'responseHashOf(body) === body.provenance.responseHash', 'true'],
+  ['hash-regel altijd waar', 'responseHashOf(body, p.input) === body.provenance.responseHash', 'true'],
+  ['hash-regel neemt result.inputs in plaats van het verzoek', 'inputs: requestInput,', 'inputs: body.result.inputs,'],
+  ['hash-regel weigert een ontbrekend verzoek niet meer', "  if (requestInput === undefined) throw new Error('responseHashOf needs the request body that was sent')\n", ''],
   ['hash-regel laat method weg', '    method: body.provenance.method,\n', ''],
   ['hash-regel laat dataVintage weg', '    dataVintage: body.provenance.dataVintage,\n', ''],
   ['hash-regel gebruikt het hele antwoord', 'result: body.result,\n    method', 'result: body,\n    method'],
@@ -50,7 +54,9 @@ const MUTATIES = [
 
 let levend = 0
 try {
-  for (const [naam, van, naar] of MUTATIES) {
+  for (const [naam, vanRuw, naarRuw] of MUTATIES) {
+    const van = naarEol(vanRuw)
+    const naar = naarEol(naarRuw)
     if (!tekst.includes(van)) { console.log('NIET GEVONDEN  ' + naam + ' (het script is veranderd, pas deze lijst aan)'); levend++; continue }
     fs.writeFileSync(DOEL, tekst.replace(van, naar))
     const r = spawnSync(process.execPath, [path.join(HERE, 'live-paid-call.mjs')], { encoding: 'utf8', cwd: WORTEL })

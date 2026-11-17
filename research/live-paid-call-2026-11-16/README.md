@@ -29,7 +29,7 @@ Per purchase:
 3. Committed criteria document hashes to the criteria id in the record and in its sidecar.
 4. JCS form of the record's receipt hashes to the id the checker issued.
 5. Ed25519 signature over that JCS form verifies with the checker's published key, and the record carries the same key.
-6. Seller's own hash, provenance.responseHash, recomputes (see below).
+6. Seller's own hash, provenance.responseHash, recomputes from the request recorded in manifest.json (see below).
 7. Each committed criterion, re-evaluated from the body by the script, agrees with the record's result.
 8. Verdict agrees with that evaluation.
 9. Producer field names the seller's payTo address.
@@ -43,7 +43,9 @@ Each response carries provenance.responseHash and provenance.fixedPointVersion (
 
     "sha256:" + hex(SHA-256(JCS({endpoint, inputs, result, method, dataVintage})))
 
-with endpoint = body.endpoint, inputs = body.result.inputs, result = body.result, method = body.provenance.method, dataVintage = body.provenance.dataVintage. The operator of the checker reproduced it independently with their own JCS code on the same three bodies: https://github.com/x402-foundation/x402/issues/2887#issuecomment-6929632540
+with endpoint = body.endpoint, inputs = the JSON request body the buyer sent, result = body.result, method = body.provenance.method, dataVintage = body.provenance.dataVintage. The operator of the checker reproduced it independently with their own JCS code on the same three bodies: https://github.com/x402-foundation/x402/issues/2887#issuecomment-6929632540
+
+Correction, 17 November 2026. An earlier version of this page, and our own comment on x402#2887, gave inputs = body.result.inputs. That equals the request only when the request already held every field. SolomonisBlack, who publishes the Golden Vector Provenance spec, wrote on x402#2887 that inputs is the request body as sent, and that the seller's responses now state the rule in provenance.hashRule: https://github.com/x402-foundation/x402/issues/2887#issuecomment-6935775924 . The free sample at https://x402toll.com/v1/sample/paycheck shows it. We sent all four fields in all three purchases, so no number here changed. The case of a request with fewer fields is the seller's statement: we did not test it with a purchase, and the test for it uses a synthetic body. The three recorded bodies predate hashRule and do not carry it.
 
 By this rule summary, meta and the rest of provenance sit outside the hash. A body with an edited summary still passes the hash and is caught only by the binding in the record. The test pins this boundary in both directions.
 

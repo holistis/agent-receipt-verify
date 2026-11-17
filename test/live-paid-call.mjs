@@ -93,9 +93,21 @@ geval('aankoop 3: provenance.method gewijzigd', (d) => { d.purchases[2].bodyByte
 geval('aankoop 3: result gewijzigd en de hash door de knutselaar opnieuw uitgerekend', (d) => {
   const b = JSON.parse(tekst(d.purchases[2].bodyBytes))
   b.result.stateTax += 1
-  b.provenance.responseHash = responseHashOf(b)
+  b.provenance.responseHash = responseHashOf(b, d.purchases[2].input)
   d.purchases[2].bodyBytes = Buffer.from(JSON.stringify(b))
 }, 2, ['deliverable-sha256', 'criteria-recomputed'], ['hash-rule'])
+geval('aankoop 2: het manifest noemt een ander verzoek dan er verstuurd is', (d) => { d.purchases[1].input.salary += 1 },
+  1, ['hash-rule'], ['deliverable-sha256', 'receipt-sha256', 'signature'])
+// Synthetisch, naar de uitspraak van de verkoper en niet door ons live gekocht: bij een verzoek
+// met minder velden vult result.inputs de standaardwaarden aan, terwijl de hash over het
+// verzoek zoals verstuurd gaat.
+geval('aankoop 1: verzoek met twee velden, result.inputs vult aan, hash over het verzoek zoals verstuurd', (d) => {
+  const b = JSON.parse(tekst(d.purchases[0].bodyBytes))
+  const verzoek = { salary: b.result.inputs.salary, state: b.result.inputs.state }
+  b.provenance.responseHash = responseHashOf(b, verzoek)
+  d.purchases[0].input = verzoek
+  d.purchases[0].bodyBytes = Buffer.from(JSON.stringify(b))
+}, 0, ['deliverable-sha256'], ['hash-rule'])
 geval('aankoop 2 en 3 gewisseld', (d) => { const a = d.purchases[1].bodyBytes; d.purchases[1].bodyBytes = d.purchases[2].bodyBytes; d.purchases[2].bodyBytes = a },
   1, ['deliverable-sha256'])
 geval('aankoop 2: lege body', (d) => { d.purchases[1].bodyBytes = Buffer.alloc(0) },
@@ -155,6 +167,15 @@ geval('manifest: een teken van de verwachte receipt-hash gewijzigd', (d) => { co
   0, ['receipt-sha256'], ['signature'])
 
 console.log('randgevallen')
+{
+  const b = JSON.parse(tekst(schoon.purchases[0].bodyBytes))
+  const verzoek = { salary: b.result.inputs.salary, state: b.result.inputs.state }
+  b.provenance.responseHash = responseHashOf(b, verzoek)
+  t('hash over het verzoek zoals verstuurd, niet over result.inputs', responseHashOf(b, verzoek) === b.provenance.responseHash && responseHashOf(b, b.result.inputs) !== b.provenance.responseHash)
+  let gooide = false
+  try { responseHashOf(b) } catch { gooide = true }
+  t('zonder verzoek weigert de functie te rekenen', gooide)
+}
 t('geen aankopen: niet goedgekeurd', verifyAll({ seller: schoon.seller, keys: schoon.keys, purchases: [] }).ok === false)
 t('elke controle is minstens een keer rood geworden door een geplante fout', [...new Set(eerste.results[0].checks.map((c) => c.id))].every((id) => rood.has(id)),
   'nooit rood geworden: ' + [...new Set(eerste.results[0].checks.map((c) => c.id))].filter((id) => !rood.has(id)).join(','))
