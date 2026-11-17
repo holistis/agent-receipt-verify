@@ -323,6 +323,7 @@ console.log('review 17 nov 2026: envelop, binding-recept, EIP-712-type, plafonds
   t('payment_payload_hash = 0x + sha256 over de header-tekst zoals verzonden', b.payment_payload_hash === '0x' + createHash('sha256').update(header, 'utf8').digest('hex'))
   t('payment_requirements_hash = 0x + sha256 over de RFC 8785-vorm van de ene accepts-entry', b.payment_requirements_hash === '0x' + createHash('sha256').update(jcs(req), 'utf8').digest('hex'))
   t('witruimte aan begin en eind van de header telt niet mee (HTTP haalt die al weg)', berekenAttemptBinding({ paymentHeaderValue: '  ' + header + ' ', requirements: req }).payment_payload_hash === b.payment_payload_hash)
+  t('alleen spaties en tabs vallen weg, zoals HTTP doet: een regeleinde blijft meetellen', berekenAttemptBinding({ paymentHeaderValue: header + '\n', requirements: req }).payment_payload_hash !== b.payment_payload_hash)
   t('de header wordt NIET gedecodeerd: een andere base64-schrijfwijze geeft een andere hash', berekenAttemptBinding({ paymentHeaderValue: header.replace(/=$/, ''), requirements: req }).payment_payload_hash !== b.payment_payload_hash)
   const omgedraaid = Object.fromEntries(Object.entries(req).reverse())
   t('sleutelvolgorde in requirements verandert de hash niet (RFC 8785)', berekenAttemptBinding({ paymentHeaderValue: header, requirements: omgedraaid }).payment_requirements_hash === b.payment_requirements_hash)

@@ -214,7 +214,7 @@ export function berekenAttemptBinding({ paymentHeaderValue, requirements } = {})
   }
   const h = (x) => '0x' + createHash('sha256').update(x, 'utf8').digest('hex')
   return {
-    payment_payload_hash: h(paymentHeaderValue.trim()),
+    payment_payload_hash: h(paymentHeaderValue.replace(/^[ \t]+|[ \t]+$/g, '')),
     payment_requirements_hash: h(jcs(requirements)),
   }
 }
