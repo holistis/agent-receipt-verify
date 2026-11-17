@@ -31,10 +31,14 @@ const FIELDS = ['endpoint', 'result', 'provenance', 'summary', 'meta']
 
 // The seller's rule for provenance.responseHash, named by the Golden Vector Provenance
 // project as GVP-FixedPoint/2 and confirmed here on every body by recomputation.
-export function responseHashOf(body) {
+// `inputs` is the JSON request body the buyer sent, not body.result.inputs: the seller wrote
+// on x402#2887 (17 November 2026) that result.inputs equals it only when the request already
+// held every field, and its responses now say so in provenance.hashRule.
+export function responseHashOf(body, requestInput) {
+  if (requestInput === undefined) throw new Error('responseHashOf needs the request body that was sent')
   const members = {
     endpoint: body.endpoint,
-    inputs: body.result.inputs,
+    inputs: requestInput,
     result: body.result,
     method: body.provenance.method,
     dataVintage: body.provenance.dataVintage,
@@ -139,8 +143,8 @@ export function verifyAll(data) {
     } catch { check(checks, 'signature', false, 'no signature or key to check') }
 
     try {
-      check(checks, 'hash-rule', responseHashOf(body) === body.provenance.responseHash,
-        'provenance.responseHash recomputed over {endpoint, inputs, result, method, dataVintage}')
+      check(checks, 'hash-rule', responseHashOf(body, p.input) === body.provenance.responseHash,
+        'provenance.responseHash recomputed over {endpoint, request as sent, result, method, dataVintage}')
     } catch { check(checks, 'hash-rule', false, 'body lacks the members the rule needs') }
 
     try {
