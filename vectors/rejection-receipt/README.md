@@ -41,6 +41,8 @@ The 26th file, `nothing-recorded-not-measured`, carries `clause: "all"`: a vecto
 
 Most vectors record what a receipt and its surrounding context already contain (a resolved key address, a signature-verified boolean) and test the checker's logic over that recording — no network, no key, no account, same approach as `vectors/attempt-identity`. The real cryptography (EIP-712 signing and verification, `did:web` resolution with the SSRF/timeout/size guards reused from `verify-delivery.mjs`) is covered separately, with a real generated key and a faked `fetch`, in `test/rejection-receipt.mjs`.
 
+The one exception is `vectors/rejection-receipt-signature/real-signature-known-answer.json`: a real EIP-712 signature by a published test key, with the typed data, the signer address and three variants that must not verify, so another implementation can redo the signature check itself. An independent check with Python's `eth-account` and the standard library reproduced the receipt id and the signer address, and the three variants recovered other addresses (18 November 2026).
+
 ## How to run
 
 From the root of this repository: `npm run rejection-receipt`. It needs no account, no key and no network. The canonicalization is the same RFC 8785 function (`src/canonical-request.mjs`) the rest of this repository already uses.

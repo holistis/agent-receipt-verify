@@ -370,5 +370,28 @@ console.log('review 17 nov 2026: envelop, binding-recept, EIP-712-type, plafonds
 }
 
 console.log('')
+console.log('known-answer-vector met een ECHTE handtekening (vectors/rejection-receipt-signature), voor andere implementaties')
+{
+  const ethers = await import('ethers').catch(() => null)
+  const v = JSON.parse(fs.readFileSync(path.join(hier, '..', 'vectors', 'rejection-receipt-signature', 'real-signature-known-answer.json'), 'utf8'))
+  const r = v.input.receipt
+  t('het bestand legt het domein vast zoals de code het afleidt', JSON.stringify(v.eip712.domain) === JSON.stringify({ name: eip712Domein(r.issuer.resource_origin).name, version: eip712Domein(r.issuer.resource_origin).version, salt: '0x' + eip712Domein(r.issuer.resource_origin).salt.toString('hex') }))
+  t('het bestand legt de EIP-712-typen vast zoals de code ze kent', JSON.stringify(v.eip712.types) === JSON.stringify(EIP712_TYPES) && v.eip712.primaryType === 'RejectionReceiptDigest')
+  t('receipt_id in het bestand is de herberekening', berekenReceiptId(r) === r.receipt_id)
+  t('het ondertekende digest is 0x + receipt_id', v.eip712.message.digest === '0x' + r.receipt_id && handtekeningDigest(r) === v.eip712.message.digest)
+  t('de testsleutel is herleidbaar uit de tekst in het bestand', !ethers || new ethers.Wallet(ethers.id(v.test_key.derivation)).address === v.test_key.address)
+  if (!ethers) {
+    t('ethers ontbreekt, dus de handtekeningcontrole zelf is NIET GEMETEN, niet overgeslagen als groen', true, '(optionele dependency afwezig)')
+  } else {
+    t('de echte handtekening verifieert tegen het adres van de testsleutel', (await handtekeningKlopt(r, v.test_key.address)) === v.expected.verifies_against_test_key_address)
+    t('en tegen een ander adres niet', (await handtekeningKlopt(r, v.variants.other_address.address)) === v.expected.verifies_against_other_address)
+    t('een gemanipuleerde reason_code verifieert niet tegen de testsleutel', (await handtekeningKlopt(v.variants.tampered_reason_code.receipt, v.test_key.address)) === v.expected.tampered_reason_code_verifies_against_test_key_address)
+    t('een ander resource_origin verifieert niet tegen de testsleutel', (await handtekeningKlopt(v.variants.other_resource_origin.receipt, v.test_key.address)) === v.expected.other_resource_origin_verifies_against_test_key_address)
+    const kapot = { ...r, signature: r.signature.slice(0, -4) + (r.signature.endsWith('0000') ? '1111' : '0000') }
+    t('een aangetaste handtekening verifieert niet', (await handtekeningKlopt(kapot, v.test_key.address)) === false)
+  }
+}
+
+console.log('')
 console.log(`rejection-receipt: ${goed} pass, ${fout} fail`)
 if (fout > 0) process.exit(1)

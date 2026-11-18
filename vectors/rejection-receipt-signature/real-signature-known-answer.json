@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt-signature",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1 (specs/extensions, x402-foundation/x402 PR 4215).",
+    "Dit bestand bevat een ECHTE EIP-712-handtekening van een vaste testsleutel, zodat een andere implementatie de handtekeningcontrole zelf kan nadoen. De andere vectoren in vectors/rejection-receipt noteren de uitslag van die controle alleen als waarneming.",
+    "De testsleutel is keccak256 van de tekst in test_key.derivation en heeft nooit geld bevat; gebruik hem nooit voor iets anders."
+  ],
+  "id": "rejection-receipt-signature-real-known-answer",
+  "clause": "signature-verifies-against-resolved-key",
+  "description": "Een echte handtekening, met alles wat een onafhankelijke verifier nodig heeft: de receipt, het EIP-712-bericht, het adres van de ondertekenaar en drie varianten die NIET moeten verifieren.",
+  "test_key": {
+    "derivation": "x402-rejection-receipt known-answer test key, never holds funds, 2026-11-18",
+    "derivation_function": "keccak256 of the UTF-8 text, used as the secp256k1 private key",
+    "address": "0xBEcB7c58EB8335ddFD729263f190443Ec04b6C60"
+  },
+  "eip712": {
+    "domain": {
+      "name": "x402-rejection-receipt",
+      "version": "1",
+      "salt": "0x137b9e5e4e13211ce3487cb1f3148ad0ef4147e2a4647ca12191bd2c8528b646"
+    },
+    "domain_note": "name and version are fixed strings; salt is the sha256 of issuer.resource_origin as UTF-8",
+    "primaryType": "RejectionReceiptDigest",
+    "types": {
+      "RejectionReceiptDigest": [
+        {
+          "name": "digest",
+          "type": "bytes32"
+        }
+      ]
+    },
+    "message": {
+      "digest": "0x55a91b6b5b11f96d31d426eb02fe6a33473b06849c4db49e57b2ef923a32c815"
+    },
+    "digest_note": "digest is 0x followed by receipt_id, the sha256 of the RFC 8785 canonical form of the receipt without receipt_id and signature"
+  },
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "insufficient_funds",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": "",
+        "block_number": 23000000
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "55a91b6b5b11f96d31d426eb02fe6a33473b06849c4db49e57b2ef923a32c815",
+      "signature": "0x5975292b17bf5e1e7c8f493e2a21ae7bbf40fca57fb1baa8acb463d91d0055bf2c62658e41bf2beb3908d8159e357fa51c6e47c026ee32c0e11c871e9e5d65dc1b"
+    }
+  },
+  "variants": {
+    "tampered_reason_code": {
+      "receipt": {
+        "type": "x402-rejection-receipt",
+        "version": 1,
+        "attempt_binding": {
+          "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+          "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+        },
+        "issuer": {
+          "resource_origin": "https://api.example.com",
+          "key_id": "did:web:api.example.com#rejection-key"
+        },
+        "decision": {
+          "outcome": "REJECTED",
+          "reason_code": "duplicate_payment",
+          "evidence_class": "CHAIN_VERIFIABLE"
+        },
+        "payment_observation": {
+          "state": "NOT_SUBMITTED",
+          "network": "eip155:8453",
+          "transaction": "",
+          "block_number": 23000000
+        },
+        "issued_at": "2026-11-10T15:00:00.000Z",
+        "receipt_id": "55a91b6b5b11f96d31d426eb02fe6a33473b06849c4db49e57b2ef923a32c815",
+        "signature": "0x5975292b17bf5e1e7c8f493e2a21ae7bbf40fca57fb1baa8acb463d91d0055bf2c62658e41bf2beb3908d8159e357fa51c6e47c026ee32c0e11c871e9e5d65dc1b"
+      },
+      "changed": "decision.reason_code",
+      "note": "the digest of this receipt differs, so the original signature recovers a different address"
+    },
+    "other_resource_origin": {
+      "receipt": {
+        "type": "x402-rejection-receipt",
+        "version": 1,
+        "attempt_binding": {
+          "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+          "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+        },
+        "issuer": {
+          "resource_origin": "https://api.other.com",
+          "key_id": "did:web:api.example.com#rejection-key"
+        },
+        "decision": {
+          "outcome": "REJECTED",
+          "reason_code": "insufficient_funds",
+          "evidence_class": "CHAIN_VERIFIABLE"
+        },
+        "payment_observation": {
+          "state": "NOT_SUBMITTED",
+          "network": "eip155:8453",
+          "transaction": "",
+          "block_number": 23000000
+        },
+        "issued_at": "2026-11-10T15:00:00.000Z",
+        "receipt_id": "55a91b6b5b11f96d31d426eb02fe6a33473b06849c4db49e57b2ef923a32c815",
+        "signature": "0x5975292b17bf5e1e7c8f493e2a21ae7bbf40fca57fb1baa8acb463d91d0055bf2c62658e41bf2beb3908d8159e357fa51c6e47c026ee32c0e11c871e9e5d65dc1b"
+      },
+      "changed": "issuer.resource_origin",
+      "note": "the EIP-712 salt differs, so the same digest under another origin recovers a different address"
+    },
+    "other_address": {
+      "address": "0x1111111111111111111111111111111111111111",
+      "note": "a correct signature checked against a key that did not sign it"
+    }
+  },
+  "expected": {
+    "recovered_address_of_input": "0xBEcB7c58EB8335ddFD729263f190443Ec04b6C60",
+    "verifies_against_test_key_address": true,
+    "verifies_against_other_address": false,
+    "tampered_reason_code_verifies_against_test_key_address": false,
+    "other_resource_origin_verifies_against_test_key_address": false
+  },
+  "limits": [
+    "This proves the signature check, not that the statement in the receipt is true.",
+    "The key here is a published test key, so it proves nothing about who a real issuer is; resolving a real issuer key through did:web is a separate step."
+  ]
+}
