@@ -1,0 +1,658 @@
+[
+ {
+  "id": "accepted-never-submitted-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": null
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "accepted-never-submitted",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": null
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "accepted-settled-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": null
+   },
+   {
+    "field": "settlement",
+    "computed": "settled"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "accepted-settled",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": null
+   },
+   {
+    "field": "settlement",
+    "computed": "settled"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "authorization-expired-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "authorization-expired-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "duplicate-payment-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "settled"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "duplicate-payment-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "settled"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "eip3009-nonce-spent-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "settled"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "eip3009-nonce-spent",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "settled"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "facilitator-timeout-auth-unread-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "unknown"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "facilitator-timeout-auth-unread",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "unknown"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "insufficient-funds-unread-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "unknown"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "insufficient-funds-unread",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "unknown"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "internal-error-no-legs-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "unknown"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "internal-error-no-legs",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "unknown"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "invalid-signature-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "invalid-signature-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "malformed-payload-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "malformed-payload-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "nonce-spent-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "nonce-spent-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "chain_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "pending-refusal-not-final-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "pending"
+   },
+   {
+    "field": "final",
+    "computed": false
+   }
+  ]
+ },
+ {
+  "id": "pending-refusal-not-final",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "pending"
+   },
+   {
+    "field": "final",
+    "computed": false
+   }
+  ]
+ },
+ {
+  "id": "permit2-transfer-reverted-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "permit2-transfer-reverted",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "reject-authorization-expired-executed",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-bad-decision",
+  "outcome": "REJECT",
+  "code": "bad_decision"
+ },
+ {
+  "id": "reject-bad-settlement",
+  "outcome": "REJECT",
+  "code": "bad_settlement"
+ },
+ {
+  "id": "reject-nonce-already-used-not-reached",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-overclaim-on-transfer-leg",
+  "outcome": "REJECT",
+  "code": "not_reproducible"
+ },
+ {
+  "id": "reject-pending-claimed-final",
+  "outcome": "REJECT",
+  "code": "finality_pending_is_not_final"
+ },
+ {
+  "id": "reject-risk-policy-after-submission",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-transfer-leg-failed-auth-unknown",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-transfer-leg-failed-transfer-not-reached",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-transfer-leg-failed-transfer-unknown",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-transfer-not-observed",
+  "outcome": "REJECT",
+  "code": "leg_not_observed"
+ },
+ {
+  "id": "reject-transfer-ran-and-succeeded",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "reject-unknown-leg-status",
+  "outcome": "REJECT",
+  "code": "unknown_leg_status"
+ },
+ {
+  "id": "reject-unknown-leg",
+  "outcome": "REJECT",
+  "code": "unknown_leg"
+ },
+ {
+  "id": "reject-unreviewed-reason",
+  "outcome": "REJECT",
+  "code": "unreviewed_reason"
+ },
+ {
+  "id": "reject-wrong-amount-with-executed-authorization",
+  "outcome": "REJECT",
+  "code": "leg_contradicts_reason"
+ },
+ {
+  "id": "risk-policy-not-reached-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "risk-policy-not-reached",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "issuer_asserted"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "wrong-amount-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "wrong-amount-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "wrong-recipient-refused-wrong",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ },
+ {
+  "id": "wrong-recipient-refused",
+  "outcome": "ACCEPT",
+  "fields": [
+   {
+    "field": "evidence_class",
+    "computed": "client_verifiable"
+   },
+   {
+    "field": "settlement",
+    "computed": "not_submitted"
+   },
+   {
+    "field": "final",
+    "computed": true
+   }
+  ]
+ }
+]

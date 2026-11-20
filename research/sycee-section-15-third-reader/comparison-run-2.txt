@@ -1,0 +1,50 @@
+OK         accepted-never-submitted-wrong                     R1 differs from its twin in: evidence_class
+OK         accepted-never-submitted                           
+OK         accepted-settled-wrong                             R1 differs from its twin in: evidence_class
+OK         accepted-settled                                   
+OK         authorization-expired-refused-wrong                R1 differs from its twin in: evidence_class
+OK         authorization-expired-refused                      
+OK         duplicate-payment-refused-wrong                    R1 differs from its twin in: evidence_class
+OK         duplicate-payment-refused                          
+OK         eip3009-nonce-spent-wrong                          R1 differs from its twin in: evidence_class
+OK         eip3009-nonce-spent                                
+OK         facilitator-timeout-auth-unread-wrong              R1 differs from its twin in: settlement
+OK         facilitator-timeout-auth-unread                    
+OK         insufficient-funds-unread-wrong                    R1 differs from its twin in: evidence_class
+OK         insufficient-funds-unread                          
+OK         internal-error-no-legs-wrong                       R1 differs from its twin in: evidence_class
+OK         internal-error-no-legs                             
+OK         invalid-signature-refused-wrong                    R1 differs from its twin in: evidence_class
+OK         invalid-signature-refused                          
+OK         malformed-payload-refused-wrong                    R1 differs from its twin in: evidence_class
+OK         malformed-payload-refused                          
+OK         nonce-spent-refused-wrong                          R1 differs from its twin in: evidence_class
+OK         nonce-spent-refused                                
+OK         pending-refusal-not-final-wrong                    R1 differs from its twin in: final
+OK         pending-refusal-not-final                          
+OK         permit2-transfer-reverted-wrong                    R1 differs from its twin in: evidence_class
+OK         permit2-transfer-reverted                          
+OK         reject-authorization-expired-executed              twin=authorization-expired-refused -> ACCEPT
+OK         reject-bad-decision                                twin=accepted-settled -> ACCEPT
+OK         reject-bad-settlement                              twin=accepted-settled -> ACCEPT
+OK         reject-nonce-already-used-not-reached              twin=nonce-spent-refused -> ACCEPT
+OK         reject-overclaim-on-transfer-leg                   twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-pending-claimed-final                       twin=facilitator-timeout-auth-unread -> ACCEPT
+OK         reject-risk-policy-after-submission                twin=risk-policy-not-reached -> ACCEPT
+OK         reject-transfer-leg-failed-auth-unknown            twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-transfer-leg-failed-transfer-not-reached    twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-transfer-leg-failed-transfer-unknown        twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-transfer-not-observed                       twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-transfer-ran-and-succeeded                  twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-unknown-leg-status                          twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-unknown-leg                                 twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-unreviewed-reason                           twin=internal-error-no-legs -> ACCEPT
+OK         reject-wrong-amount-with-executed-authorization    twin=wrong-amount-refused -> ACCEPT
+OK         risk-policy-not-reached-wrong                      R1 differs from its twin in: settlement
+OK         risk-policy-not-reached                            
+OK         wrong-amount-refused-wrong                         R1 differs from its twin in: evidence_class
+OK         wrong-amount-refused                               
+OK         wrong-recipient-refused-wrong                      R1 differs from its twin in: evidence_class
+OK         wrong-recipient-refused                            
+
+48 files, 0 disagreements
