@@ -1,0 +1,12 @@
+Passages relied on in the second run, all from github.com/ruiruii/sycee at commit df240da, public.
+
+specs/extensions/refusal-row.md
+  section 6, item 2: "When refused, `reason` is in the closed set. An unknown reason means the row was not produced by a conforming implementation; the row is not silently reinterpreted."
+  section 6, item 4: "`final` is `false` whenever `settlement` is `pending`."
+  15.4: the table of permitted leg statuses per reason, and "A row whose recorded status is outside its reason's row is rejected with `leg_contradicts_reason`; a row that omits a leg the reason requires is rejected with `leg_not_observed`."
+  15.4, L3: "An unknown leg name, or an unknown status, is a malformed row. It is rejected with `unknown_leg` or `unknown_leg_status`"
+  the ceiling table, last row: "anything else | `issuer_asserted` | fail closed: an unreviewed reason never sounds rigorous"
+
+conformance/refusal/README.md
+  the list of rejection codes, which is where the name unreviewed_reason comes from (the prose does not name it)
+  line 21 says 48 files, line 136 says "The set is now 40 files"

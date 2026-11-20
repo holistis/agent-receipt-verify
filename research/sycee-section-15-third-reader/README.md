@@ -52,6 +52,28 @@ For context: 6 of the 14 closed reasons appear in any vector, the only vector wi
 - Section 5 says six reasons also exist for a repeat presentation, and the table lists three.
 - SPEC.md 5.5.2 lists insufficient_funds at chain_verifiable and has no transfer_leg_failed. The extension says the honest claim for insufficient_funds is issuer_asserted. I followed the extension. No vector covers it.
 
+## Second run, against sycee df240da
+
+You fixed the four disagreements in your repository and asked for the reader to be run again against commit df240da, which has 48 files in conformance/refusal. 26 of them are new or renamed; three of the first 25 were replaced. The sha256 of the list of the 48 file hashes is f61fa0e035420e333ede625ceefb9767ea5cf0be469300ade16b41190e59ac8d (vectors-sha256-run2.txt). The guess log for this run is guess-log-run2.md. Its sha256 and the sha256 of the updated reader were taken at 2026-11-20T18:26:38Z by my own clock, before the run, and the commit date of this folder is again the only outside timestamp.
+
+What this run is: a regression check, not a fresh independent reading. It is the same reader that found the four disagreements, run against a text that changed because of them. Before writing the guess log I had opened the input of the 17 right files that are new or renamed, and no recorded answer. I did not open the new Python checker, judge.mjs or docs-parity.mjs, and I extracted only SPEC.md, the extension, the README and the vectors from the commit.
+
+The reader changed in three places, each traced to a sentence in guess-log-run2.md: it applies the table of permitted leg statuses in 15.4, it rejects an unknown reason as unreviewed_reason, and it keeps insufficient_funds at issuer_asserted, which it already did. The second change corrects a miss of mine. Section 6 item 2 was already in the text at 632c2f56, and my first reader did not apply it because no vector tested it.
+
+Result: 48 of 48 files agree, including the 16 rejections with their codes and the 16 wrong twins (comparison-run-2.txt). I predicted this before the run, and I predicted that if anything disagreed it would be the unreviewed_reason code, a final value for settlement unknown, or the order of two leg errors. None did.
+
+Planted mistakes: the same 21 as in the first run (diagnose-output-run2.txt). 14 of the 15 that passed all 25 files are now caught; I expected at most two to survive. One still passes all 48 files: a reader that rejects a pending row with final true only when the reason is facilitator_timeout. The three vectors with a pending settlement all use facilitator_timeout, and section 6 item 4 says final is false whenever settlement is pending, whatever the reason. A refused row with another reason such as internal_error, settlement pending and final true, expecting finality_pending_is_not_final, would catch it.
+
+Five of the 17 reasons in the closed set have no vector: authorization_not_yet_valid, commercial_refusal, could_not_compare, replay_already_settled and replay_in_flight. Three mistakes that I chose after seeing the new text, so not among the 21, pass all 48 files for that reason: authorization_not_yet_valid with another default class, commercial_refusal with an executed authorization, and replay_already_settled with an authorization that was not reached.
+
+Three things in the text:
+
+- conformance/refusal/README.md says in one place that the set is now 40 files and in another that it has 48.
+- The table in 15.4 has no row for duplicate_payment, which is a reason in section 5 and has a vector, and its last row calls any other reason unknown.
+- Section 6 item 2 and the last row of the ceiling table say different things about an unknown reason. The first calls the row not conforming, the second gives it issuer_asserted as a default. The vector reject-unreviewed-reason follows the first, and so does the updated reader.
+
+This run does not show that the 48 files are enough: the rules and reasons without a vector are not tested by them, as listed above. The reader code stays private. Passages relied on are in sources-run2.txt.
+
 ## What this does not show
 
 I did not run the JavaScript or the Python implementation, so this says nothing about whether they agree with each other beyond what the recorded answers say. One person wrote this reader in one sitting, after the vector inputs and the README were open, so it is independent of your code but not of your files. No real receipts and no replay test were used.
@@ -64,3 +86,4 @@ I did not run the JavaScript or the Python implementation, so this says nothing 
 - diagnose-output.txt, the three flips and the 21 planted mistakes
 - vectors-sha256.txt, the hash of each of the 25 files
 - hashes-before-run.txt and sources.txt, the hashes taken before the run and the passages relied on
+- guess-log-run2.md, run-2-output.json, comparison-run-2.txt, diagnose-output-run2.txt, vectors-sha256-run2.txt, hashes-before-run-run2.txt and sources-run2.txt: the same files for the second run

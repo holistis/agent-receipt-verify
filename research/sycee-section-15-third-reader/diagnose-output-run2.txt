@@ -1,0 +1,38 @@
+baseline (the run 2 reader, no planted mistake) against 48 files: 0 disagreements
+
+The same 21 planted mistakes as in run 1 (a mutant that survives = no vector pins that rule)
+ caught    transfer_leg_failed default = base ceiling chain_verifiable (the mistake the judge tests)   <- permit2-transfer-reverted-wrong, permit2-transfer-reverted
+ caught    insufficient_funds default = chain_verifiable   <- insufficient-funds-unread-wrong, insufficient-funds-unread
+ caught    duplicate_payment default = issuer_asserted   <- duplicate-payment-refused-wrong, duplicate-payment-refused
+ caught    invalid_signature default = issuer_asserted   <- invalid-signature-refused-wrong, invalid-signature-refused
+ caught    wrong_recipient default = chain_verifiable   <- wrong-recipient-refused-wrong, wrong-recipient-refused
+ caught    malformed_payload default = issuer_asserted   <- malformed-payload-refused-wrong, malformed-payload-refused
+ caught    authorization_expired default = issuer_asserted   <- authorization-expired-refused-wrong, authorization-expired-refused
+ caught    unknown reason defaults to chain_verifiable (not fail closed)   <- reject-unreviewed-reason
+ caught    nonce_already_used: no leg rule (any leg status passes)   <- reject-nonce-already-used-not-reached
+ caught    authorization_expired with an executed leg passes   <- reject-authorization-expired-executed
+ caught    transfer_leg_failed accepts transfer=unknown (treats unknown as failed)   <- reject-transfer-leg-failed-transfer-unknown
+ caught    transfer_leg_failed accepts transfer=not_reached   <- reject-transfer-leg-failed-transfer-not-reached
+ caught    transfer_leg_failed: missing leg is not an error   <- reject-transfer-not-observed
+ caught    transfer_leg_failed: no contradiction check at all   <- reject-transfer-leg-failed-auth-unknown, reject-transfer-leg-failed-transfer-not-reached
+ caught    rejects every row with settlement=pending   <- pending-refusal-not-final-wrong, pending-refusal-not-final
+ SURVIVES  pending+final=true only rejected for facilitator_timeout
+ caught    final defaults to false when settlement=unknown   <- facilitator-timeout-auth-unread-wrong, facilitator-timeout-auth-unread
+ caught    final defaults to false when settlement=not_submitted   <- accepted-never-submitted-wrong, accepted-never-submitted
+ caught    caller-supplied evidence_class is ignored (ceiling used)   <- reject-overclaim-on-transfer-leg
+ caught    invalid decision value is accepted   <- reject-bad-decision
+ caught    invalid settlement value is accepted   <- reject-bad-settlement
+
+21 planted mistakes, 1 survive all 48 vectors
+
+Mistakes added after seeing the new text and the reasons that have no vector (not among the 21):
+ caught    an unknown reason is accepted at issuer_asserted instead of rejected   <- reject-unreviewed-reason
+ SURVIVES  authorization_not_yet_valid default = issuer_asserted
+ SURVIVES  commercial_refusal accepts an executed authorization
+ SURVIVES  replay_already_settled accepts an authorization that was not reached
+
+reasons appearing in any vector: authorization_expired, duplicate_payment, facilitator_timeout, insufficient_funds, internal_error, invalid_signature, malformed_payload, nonce_already_used, payment_declined, risk_policy_rejected, transfer_leg_failed, wrong_amount, wrong_recipient
+reasons of the closed set without any vector: authorization_not_yet_valid, commercial_refusal, could_not_compare, replay_already_settled, replay_in_flight
+vectors with settlement=pending: pending-refusal-not-final-wrong.json, pending-refusal-not-final.json, reject-pending-claimed-final.json
+vectors that supply an evidence_class in the input: reject-overclaim-on-transfer-leg.json
+vectors with transfer=unknown: 1 | with transfer=not_reached: 1
