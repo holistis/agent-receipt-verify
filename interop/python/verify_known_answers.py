@@ -159,7 +159,7 @@ def jcs_serialize(value: Any) -> str:
     Numbers follow the ECMAScript Number::toString shortest round-trip
     form that RFC 8785 requires; Python's repr is the same algorithm for
     the doubles these vectors use, so it is used with the two shape fixes
-    JCS demands (no "+" exponent sign, no trailing ".0").
+    JCS demands (no leading zero in the exponent, no trailing ".0").
     """
     if value is None:
         return "null"
@@ -419,8 +419,13 @@ def main(argv: list[str]) -> int:
                     print(f"         reading : {f['reading']}")
 
     failed = [r for r in records if not r["passed"]]
-    print()
-    print(f"{len(records) - len(failed)}/{len(records)} files behaved as expected")
+    summary = f"{len(records) - len(failed)}/{len(records)} files behaved as expected"
+    if as_json:
+        # stdout stays pure JSON so another program can parse it
+        print(summary, file=sys.stderr)
+    else:
+        print()
+        print(summary)
     return 0 if not failed else 1
 
 
