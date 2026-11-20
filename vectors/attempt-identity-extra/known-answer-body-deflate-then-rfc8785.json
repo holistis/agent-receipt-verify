@@ -1,0 +1,36 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776, the same text as the 22 frozen files in vectors/attempt-identity",
+    "added on 2026-11-20 by github.com/holistis after a run that planted 23 mistakes in our own implementation showed that four rules were checked by neither the 22 frozen files, the harness nor the other tests of this repository: deflate, the order of several encodings, the case of a charset name and a +json media type",
+    "these files are not part of the 22 frozen files and change none of them; nobody outside this project has checked these values yet"
+  ],
+  "id": "attempt-identity-extra-known-answer-body-deflate-then-rfc8785",
+  "clause": "canonical-members",
+  "encodes": "The body is decompressed with deflate (the zlib format of HTTP), then canonicalized with RFC 8785, then hashed. The expected value was computed by two separately written implementations, one in JavaScript and one in Python (standard library only), that agree.",
+  "description": "A known answer for a canonical member.",
+  "input": {
+    "known_answers": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/p",
+          "contentType": "application/json",
+          "contentEncoding": "deflate",
+          "bodyBase64": "eJwFwTEKgDAURMGrPLb+iAZs9ipioWIXUogBNeTuzjS0y6RAm8wyBWmYx0CP1kCHTEOfTKk5B3pl7quedPoPsWMPMw=="
+        },
+        "observed": {
+          "body_sha256": "bf20ad18c7d7e5f73db57a5de532bf489bb461ac3cb1f6a349f3d6bdacb3a5c0"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This pins deflate as a content-encoding. It says nothing about brotli, which needs a library the second reader does not have."
+  ]
+}

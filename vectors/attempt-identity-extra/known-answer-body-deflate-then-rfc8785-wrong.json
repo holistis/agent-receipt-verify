@@ -1,0 +1,37 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776, the same text as the 22 frozen files in vectors/attempt-identity",
+    "added on 2026-11-20 by github.com/holistis after a run that planted 23 mistakes in our own implementation showed that four rules were checked by neither the 22 frozen files, the harness nor the other tests of this repository: deflate, the order of several encodings, the case of a charset name and a +json media type",
+    "these files are not part of the 22 frozen files and change none of them; nobody outside this project has checked these values yet"
+  ],
+  "id": "attempt-identity-extra-known-answer-body-deflate-then-rfc8785-wrong",
+  "clause": "canonical-members",
+  "encodes": "The body was decompressed with deflate but hashed as it was written, without RFC 8785.",
+  "description": "An implementation that gives a different value than the text prescribes.",
+  "input": {
+    "known_answers": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/p",
+          "contentType": "application/json",
+          "contentEncoding": "deflate",
+          "bodyBase64": "eJwFwTEKgDAURMGrPLb+iAZs9ipioWIXUogBNeTuzjS0y6RAm8wyBWmYx0CP1kCHTEOfTKk5B3pl7quedPoPsWMPMw=="
+        },
+        "observed": {
+          "body_sha256": "641647b211296d46f84d12547e5da14485ed6bb42e6761ebf1fa9dd9f1251921"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "CANONICAL_MEMBER_MISMATCH"
+  },
+  "limits": [
+    "This shows one wrong value. Other wrong values are rejected the same way."
+  ]
+}

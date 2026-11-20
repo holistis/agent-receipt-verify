@@ -38,3 +38,5 @@ The published verdict for a wrong file is "it passes as soon as the computed val
 - Two cases the section does not settle (an empty query segment is dropped, a `%` not followed by two hex digits stays a literal percent sign) are declared in `python/README.md`; if the section decides either way, the vectors and the checkers move together.
 
 License: Apache-2.0, same as the rest of this repository.
+
+Four more pairs that pin down rules the 22 frozen files leave open live in `vectors/attempt-identity-extra`; run them with `npm run interop-extra`.

@@ -1,0 +1,36 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776, the same text as the 22 frozen files in vectors/attempt-identity",
+    "added on 2026-11-20 by github.com/holistis after a run that planted 23 mistakes in our own implementation showed that four rules were checked by neither the 22 frozen files, the harness nor the other tests of this repository: deflate, the order of several encodings, the case of a charset name and a +json media type",
+    "these files are not part of the 22 frozen files and change none of them; nobody outside this project has checked these values yet"
+  ],
+  "id": "attempt-identity-extra-known-answer-body-charset-name-is-case-insensitive-wrong",
+  "clause": "canonical-members",
+  "encodes": "The capitalized name was not recognized as Latin-1 and the bytes were read as windows-1252, where 0x80 is the euro sign.",
+  "description": "An implementation that gives a different value than the text prescribes.",
+  "input": {
+    "known_answers": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/p",
+          "contentType": "text/plain; charset=ISO-8859-1",
+          "bodyBase64": "Y2Fm6SCA"
+        },
+        "observed": {
+          "body_sha256": "e66baa599b628bfeacdf904db6d22eb50d9feaadb2947a689b1ef83707a1d4f2"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "CANONICAL_MEMBER_MISMATCH"
+  },
+  "limits": [
+    "This shows one wrong value. Other wrong values are rejected the same way."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776, the same text as the 22 frozen files in vectors/attempt-identity",
+    "added on 2026-11-20 by github.com/holistis after a run that planted 23 mistakes in our own implementation showed that four rules were checked by neither the 22 frozen files, the harness nor the other tests of this repository: deflate, the order of several encodings, the case of a charset name and a +json media type",
+    "these files are not part of the 22 frozen files and change none of them; nobody outside this project has checked these values yet"
+  ],
+  "id": "attempt-identity-extra-known-answer-body-charset-name-is-case-insensitive",
+  "clause": "canonical-members",
+  "encodes": "The charset name is read without regard to case: ISO-8859-1 in capitals is Latin-1, so byte 0x80 is the control character U+0080 and not the euro sign. The expected value was computed by two separately written implementations, one in JavaScript and one in Python (standard library only), that agree.",
+  "description": "A known answer for a canonical member.",
+  "input": {
+    "known_answers": [
+      {
+        "raw": {
+          "method": "POST",
+          "path": "/p",
+          "contentType": "text/plain; charset=ISO-8859-1",
+          "bodyBase64": "Y2Fm6SCA"
+        },
+        "observed": {
+          "body_sha256": "27d073d0afd6b9b5627548a9dd55ec0d014298414a97a8cf3762559a907b1649"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "The existing file for ISO-8859-1 uses a lower-case name; this one adds the capitals. Other charset names are not covered."
+  ]
+}
