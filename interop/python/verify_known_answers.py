@@ -259,13 +259,15 @@ def canonical_body(raw: dict) -> tuple[str, str]:
 
     octets = base64.b64decode(body_b64)
 
-    encoding = (raw.get("contentEncoding") or "").strip().lower()
-    if encoding in ("gzip", "x-gzip"):
-        octets = gzip.decompress(octets)
-    elif encoding == "deflate":
-        octets = zlib.decompress(octets)
-    elif encoding not in ("", "identity"):
-        raise ValueError(f"unsupported Content-Encoding: {encoding}")
+    # Content-Encoding lists the encodings in the order they were applied, so they are undone from the last to the first.
+    encodings = [e.strip() for e in (raw.get("contentEncoding") or "").lower().split(",") if e.strip()]
+    for encoding in reversed(encodings):
+        if encoding in ("gzip", "x-gzip"):
+            octets = gzip.decompress(octets)
+        elif encoding == "deflate":
+            octets = zlib.decompress(octets)
+        elif encoding != "identity":
+            raise ValueError(f"unsupported Content-Encoding: {encoding}")
 
     content_type = raw.get("contentType")
 

@@ -1,0 +1,8 @@
+1ec8d560afd01fefd701fdf96fd4303e9fd006aee2c5a6377eeff65b7c630bd3  known-answer-body-charset-name-is-case-insensitive-wrong.json
+11bd6c1d74993bdeeec1d0154c67856a1db28c6ea5101ee2bc86cc732684eab8  known-answer-body-charset-name-is-case-insensitive.json
+990a8a484c624892d179a7d199b9ba0fa5db704a43df79c652735a784fe620fa  known-answer-body-content-encodings-reversed-in-order-wrong.json
+02156d4f2ce4343c36315732aaa4f6b9172cceffe2c31c492739dd9ebd3fe1c2  known-answer-body-content-encodings-reversed-in-order.json
+0014471fdcfd440d6222a5311860fc04260f1f74410d47ebf6540d1a119ca691  known-answer-body-deflate-then-rfc8785-wrong.json
+ffce0637aabeb15e96dd8ec0351d718e7a68adfc9d4a9f1217b4a8ecfa573eaf  known-answer-body-deflate-then-rfc8785.json
+01f3a051c9ce97c2fce1d82e10b9ecde0051b1c1126ccebd3dec2f793c744636  known-answer-body-plus-json-media-type-is-json-wrong.json
+01c1deb4a47f36f255e91fc8faab98e603ecfc3154db6030e1d30625b572fcb4  known-answer-body-plus-json-media-type-is-json.json

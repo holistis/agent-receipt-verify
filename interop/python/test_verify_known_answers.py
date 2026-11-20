@@ -151,6 +151,30 @@ class TestBodyRules(unittest.TestCase):
         self.assertEqual(digest, hashlib.sha256(b"\xc2\x80A").hexdigest())
         self.assertIn("latin-1", reading)
 
+    def test_several_encodings_are_undone_last_to_first(self):
+        import base64
+        import gzip
+        import hashlib
+        import zlib
+
+        body = gzip.compress(zlib.compress(b'{"b":2,"a":1}'), mtime=0)
+        raw = {
+            "contentType": "application/json",
+            "contentEncoding": "deflate, gzip",
+            "bodyBase64": base64.b64encode(body).decode("ascii"),
+        }
+        digest, _ = V.canonical_body(raw)
+        self.assertEqual(digest, hashlib.sha256(b'{"a":1,"b":2}').hexdigest())
+        # The same list the other way round names the wrong order, and the bytes do not decode.
+        raw["contentEncoding"] = "gzip, deflate"
+        with self.assertRaises(Exception):
+            V.canonical_body(raw)
+
+    def test_unknown_encoding_in_a_list_is_refused(self):
+        raw = {"contentType": "application/json", "contentEncoding": "gzip, snappy", "bodyBase64": "e30="}
+        with self.assertRaises(ValueError):
+            V.canonical_body(raw)
+
 
 class TestMutantsDie(unittest.TestCase):
     """Each mutant is a wrong reading of the text; the checker must notice."""
