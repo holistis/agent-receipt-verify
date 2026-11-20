@@ -1,0 +1,19 @@
+Passages relied on, all from github.com/ruiruii/sycee at commit 632c2f56, public.
+
+specs/extensions/refusal-row.md
+  line 157: "Six reasons also exist to describe a repeat presentation" (the table below it lists three)
+  line 338: section 13 crosswalk row: purchase_not_settled | prior persisted, not settled | accepted (not_submitted)
+  line 467: section 15.3 table: transfer_leg_failed, "the authorization leg executed and the transfer leg did not, in the same attempt"
+  line 494: section 15.4 rule L2: a reason that makes a causal claim about a leg MUST record that leg; wrong_amount and authorization_expired are the claim-free examples
+  line 502: section 15.5 states the general rule: a reason may claim an evidence class only if every leg it depends on carries a marker a third party can attribute to a single attempt
+  line 540: section 15.7: the unit test mutants include "treating unknown as failed"
+  line 544: section 15.7: the default evidence_class for a refused row is the reproducible ceiling, not the reason's base ceiling
+
+SPEC.md
+  line 277: section 5.5.2 table lists insufficient_funds at chain_verifiable; it has no transfer_leg_failed and no section 15
+
+Hashes taken before the first run, 2026-11-20T15:40:52Z, own clock (hashes-before-run.txt):
+  guess-log.md  610be52d1c23b0a1d240dd639b8a5c6682213c15449831136adb6b008c1cdb4a
+  lezer.mjs   f26a869308319d1d7d33d3de9fd134158d8d3f58d34a2f3c00e9e3536dffa816
+Hash of the list of the 25 vector hashes (vectoren-sha256.txt):
+  76aa61af5928a6136cc111b59b64c3a77f3b6dd63a49b63a858babf15cdbe409

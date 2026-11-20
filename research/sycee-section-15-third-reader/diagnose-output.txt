@@ -1,0 +1,36 @@
+PART A: which guess explains which disagreement
+ run-1 settings (g9 off, auth unknown not ok, risk free): permit2-transfer-unread-wrong, permit2-transfer-unread, reject-accepted-never-submitted, reject-risk-policy-after-submission
+ + G9 flipped (reject accepted+not_submitted):          permit2-transfer-unread-wrong, permit2-transfer-unread, reject-risk-policy-after-submission
+ + G8 authorization unknown allowed for transfer_leg_failed: reject-accepted-never-submitted, reject-risk-policy-after-submission
+ + G8 risk_policy_rejected/commercial_refusal forbid executed: permit2-transfer-unread-wrong, permit2-transfer-unread, reject-accepted-never-submitted
+ all three flipped: 0 disagreements
+
+PART B: planted mistakes against the fully agreeing reader (a mutant that survives = no vector pins that rule)
+ caught    transfer_leg_failed default = base ceiling chain_verifiable (the mistake the judge tests)   <- permit2-transfer-reverted-wrong, permit2-transfer-reverted
+ SURVIVES  insufficient_funds default = chain_verifiable
+ SURVIVES  duplicate_payment default = issuer_asserted
+ SURVIVES  invalid_signature default = issuer_asserted
+ SURVIVES  wrong_recipient default = chain_verifiable
+ SURVIVES  malformed_payload default = issuer_asserted
+ SURVIVES  authorization_expired default = issuer_asserted
+ SURVIVES  unknown reason defaults to chain_verifiable (not fail closed)
+ SURVIVES  nonce_already_used: no leg rule (any leg status passes)
+ SURVIVES  authorization_expired with an executed leg passes
+ SURVIVES  transfer_leg_failed accepts transfer=unknown (treats unknown as failed)
+ SURVIVES  transfer_leg_failed accepts transfer=not_reached
+ caught    transfer_leg_failed: missing leg is not an error   <- reject-transfer-not-observed
+ caught    transfer_leg_failed: no contradiction check at all   <- reject-transfer-ran-and-succeeded
+ SURVIVES  rejects every row with settlement=pending
+ SURVIVES  pending+final=true only rejected for facilitator_timeout
+ caught    final defaults to false when settlement=unknown   <- facilitator-timeout-auth-unread-wrong, facilitator-timeout-auth-unread
+ caught    final defaults to false when settlement=not_submitted   <- permit2-transfer-reverted-wrong, permit2-transfer-reverted
+ caught    caller-supplied evidence_class is ignored (ceiling used)   <- reject-overclaim-on-transfer-leg
+ SURVIVES  invalid decision value is accepted
+ SURVIVES  invalid settlement value is accepted
+
+21 planted mistakes, 15 survive all 25 vectors
+reasons appearing in any vector: facilitator_timeout, internal_error, nonce_already_used, risk_policy_rejected, transfer_leg_failed, wrong_amount
+reasons in the closed set without any vector: invalid_signature, wrong_recipient, malformed_payload, authorization_expired, authorization_not_yet_valid, duplicate_payment, insufficient_funds, commercial_refusal
+vectors with settlement=pending: reject-pending-claimed-final.json
+vectors that supply an evidence_class in the input: reject-overclaim-on-transfer-leg.json
+vectors with transfer=unknown: 0 | with transfer=not_reached: 0
