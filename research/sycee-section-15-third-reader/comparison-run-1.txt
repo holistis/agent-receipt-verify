@@ -1,0 +1,27 @@
+OK         accepted-settled-wrong                             R1 differs from its twin in: evidence_class
+OK         accepted-settled                                   
+OK         eip3009-nonce-spent-wrong                          R1 differs from its twin in: evidence_class
+OK         eip3009-nonce-spent                                
+OK         facilitator-timeout-auth-unread-wrong              R1 differs from its twin in: settlement
+OK         facilitator-timeout-auth-unread                    
+OK         internal-error-no-legs-wrong                       R1 differs from its twin in: evidence_class
+OK         internal-error-no-legs                             
+OK         permit2-transfer-reverted-wrong                    R1 differs from its twin in: evidence_class
+OK         permit2-transfer-reverted                          
+DISAGREES  permit2-transfer-unread-wrong                      expected ACCEPT, got REJECT leg_contradicts_reason | R1 differs from its twin in: evidence_class
+DISAGREES  permit2-transfer-unread                            expected ACCEPT, got REJECT leg_contradicts_reason
+DISAGREES  reject-accepted-never-submitted                    expected REJECT finality_accepted_not_submitted, got ACCEPT evidence_class=null settlement="not_submitted" final=true | twin=accepted-settled -> ACCEPT
+OK         reject-overclaim-on-transfer-leg                   twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-pending-claimed-final                       twin=facilitator-timeout-auth-unread -> ACCEPT
+DISAGREES  reject-risk-policy-after-submission                expected REJECT leg_contradicts_reason, got ACCEPT evidence_class="issuer_asserted" settlement="not_submitted" final=true | twin=risk-policy-not-reached -> ACCEPT
+OK         reject-transfer-not-observed                       twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-transfer-ran-and-succeeded                  twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-unknown-leg-status                          twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-unknown-leg                                 twin=permit2-transfer-reverted -> ACCEPT
+OK         reject-wrong-amount-with-executed-authorization    twin=wrong-amount-refused -> ACCEPT
+OK         risk-policy-not-reached-wrong                      R1 differs from its twin in: settlement
+OK         risk-policy-not-reached                            
+OK         wrong-amount-refused-wrong                         R1 differs from its twin in: evidence_class
+OK         wrong-amount-refused                               
+
+25 files, 4 disagreements
