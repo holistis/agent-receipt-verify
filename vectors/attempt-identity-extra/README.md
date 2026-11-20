@@ -19,7 +19,7 @@ Each right file has a wrong twin with the same input and a plausible wrong answe
 
 ## What is not pinned
 
-Four of the 8 are choices the text and these standards do not make for us, or need something these files do not have, and stay open: empty segments in a query (we drop them), the `x-gzip` alias (we accept it), a body that is not valid in its declared charset (we refuse it), and brotli (the second reader uses the Python standard library, which has no brotli).
+Four of the 8 stay open. Empty segments in a query (we drop them) and a body that is not valid in its declared charset (we refuse it) are choices that nothing we know of settles. The `x-gzip` alias is a legacy name that RFC 9110 says to treat as gzip, and we accept it, but no file pins that yet. Brotli needs a library that the second reader, which uses only the Python standard library, does not have.
 
 ## How to run
 
