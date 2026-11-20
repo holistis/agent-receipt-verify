@@ -6,7 +6,7 @@ Four pairs, eight files, next to the 22 frozen files in `vectors/attempt-identit
 
 ## Why they exist
 
-On 2026-11-20 we planted 23 plausible mistakes, one at a time, in a copy of our own `src/canonical-request.mjs`. The 22 files and the interop harness caught 11. 12 passed. Running the other tests of this repository on the same 12 caught four more, so 8 passed everything. Four of the 8 are rules the text of section 5.5 settles, and these eight files pin them:
+On 2026-11-20 we planted 23 plausible mistakes, one at a time, in a copy of our own `src/canonical-request.mjs`. The 22 files and the interop harness caught 11. 12 passed. Running the other tests of this repository on the same 12 caught four more, so 8 passed everything. Four of the 8 are rules that standards settle: RFC 9110 for deflate and for the order of several encodings, RFC 2978 for charset names that do not depend on case, and RFC 6839 for the +json suffix. Section 5.5 tells an implementation to reverse the content-encoding, decode the charset and canonicalize a JSON body; it does not spell out these four cases itself. These eight files pin them:
 
 | pair | the rule | the mistake it catches |
 |---|---|---|
@@ -19,7 +19,7 @@ Each right file has a wrong twin with the same input and a plausible wrong answe
 
 ## What is not pinned
 
-Four of the 8 are choices the text does not make, or need something these files do not have, and stay open: empty segments in a query (we drop them), the `x-gzip` alias (we accept it), a body that is not valid in its declared charset (we refuse it), and brotli (the second reader uses the Python standard library, which has no brotli).
+Four of the 8 are choices the text and these standards do not make for us, or need something these files do not have, and stay open: empty segments in a query (we drop them), the `x-gzip` alias (we accept it), a body that is not valid in its declared charset (we refuse it), and brotli (the second reader uses the Python standard library, which has no brotli).
 
 ## How to run
 
