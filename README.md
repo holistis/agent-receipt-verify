@@ -366,6 +366,14 @@ implementation of anything: it calls the commands above and puts their answers s
 implementation behaves like the published vectors and the recorded verdicts of others. It is not a certification of
 anyone else's endpoint, receipt or feedback.
 
+## How complete is your own vector set?
+
+A test set that every correct implementation passes tells you little unless a wrong one fails. Before you ask that, a cheaper question needs no implementation at all: of the values your specification allows, which ones appear in no vector? `tools/vector-coverage.mjs` counts that from the files, with a small profile that lists the declared values:
+
+    node tools/vector-coverage.mjs <vectors-dir> --profile=profiles/vector-coverage-sycee-refusal.json
+
+It reports declared values that no file uses, values that only a rejection file uses, wrong twins that do not differ from their right twin or have another input, and values that always occur in one context. It does not run an implementation and it is not a score: a value that appears in a vector is not thereby tested against every wrong reading of it. The profile for the refusal vectors of github.com/ruiruii/sycee (commit df240da) is included; those vectors are not copied here, because that repository shows no license. Cite as: github.com/holistis/agent-receipt-verify, tools/vector-coverage.mjs, 2026-11-20.
+
 ## Honest limits
 
 The format checks test the form of a receipt: signatures, content addressing,

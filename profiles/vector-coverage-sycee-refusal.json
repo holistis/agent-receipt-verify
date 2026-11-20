@@ -1,0 +1,103 @@
+{
+  "name": "ruiruii/sycee conformance/refusal (section 15 refusal row)",
+  "bron": "The declared sets are copied from the text of ruiruii/sycee at commit df240da: SPEC.md section 5 (reasons), specs/extensions/refusal-row.md sections 4, 6 and 15.4 (decision, settlement, leg statuses) and conformance/refusal/README.md (rejection codes). The vector files themselves are not copied here: that repository shows no license.",
+  "pattern": "^known-answer-.*\\.json$",
+  "wrongSuffix": "-wrong",
+  "rejectPrefix": "known-answer-reject-",
+  "dimensions": [
+    {
+      "path": "input.reason",
+      "label": "reason",
+      "closedSet": [
+        "invalid_signature",
+        "wrong_amount",
+        "wrong_recipient",
+        "malformed_payload",
+        "authorization_expired",
+        "authorization_not_yet_valid",
+        "insufficient_funds",
+        "duplicate_payment",
+        "nonce_already_used",
+        "transfer_leg_failed",
+        "facilitator_timeout",
+        "risk_policy_rejected",
+        "commercial_refusal",
+        "internal_error",
+        "replay_already_settled",
+        "replay_in_flight",
+        "could_not_compare"
+      ]
+    },
+    {
+      "path": "input.decision",
+      "label": "decision",
+      "closedSet": [
+        "accepted",
+        "refused"
+      ]
+    },
+    {
+      "path": "input.settlement",
+      "label": "settlement",
+      "closedSet": [
+        "not_submitted",
+        "pending",
+        "settled",
+        "unknown"
+      ]
+    },
+    {
+      "path": "input.legs.authorization",
+      "label": "auth. leg",
+      "closedSet": [
+        "not_reached",
+        "executed",
+        "failed",
+        "unknown"
+      ]
+    },
+    {
+      "path": "input.legs.transfer",
+      "label": "transfer leg",
+      "closedSet": [
+        "not_reached",
+        "executed",
+        "failed",
+        "unknown"
+      ]
+    },
+    {
+      "path": "expected.code",
+      "label": "rejection",
+      "closedSet": [
+        "leg_contradicts_reason",
+        "leg_not_observed",
+        "unknown_leg",
+        "unknown_leg_status",
+        "not_reproducible",
+        "finality_pending_is_not_final",
+        "bad_decision",
+        "bad_settlement",
+        "unreviewed_reason"
+      ],
+      "in": "reject"
+    }
+  ],
+  "context": [
+    {
+      "when": "input.settlement",
+      "is": "pending",
+      "vary": "input.reason"
+    },
+    {
+      "when": "input.settlement",
+      "is": "unknown",
+      "vary": "input.reason"
+    },
+    {
+      "when": "input.decision",
+      "is": "accepted",
+      "vary": "input.settlement"
+    }
+  ]
+}
