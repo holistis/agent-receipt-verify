@@ -1,0 +1,1825 @@
+{
+  "regel": "for the hosts whose first resource returned 404 or 410: the resource with the highest index position, one request each",
+  "controles": [
+    {
+      "url": "https://api.tokenizen.nl/api/paid/verify-ownership",
+      "methode": "POST",
+      "verwacht": 2,
+      "gemeten": 2,
+      "ok": true
+    },
+    {
+      "url": "https://example.com/",
+      "methode": "GET",
+      "verwacht": -1,
+      "gemeten": -1,
+      "ok": true
+    }
+  ],
+  "hostsPadWeg": 179,
+  "hostsMetEenAndereResource": 66,
+  "hostsMetEenResource": 113,
+  "antwoordtOpNieuwsteResource": 4,
+  "emmers": {
+    "pad_weg": 59,
+    "x402_ok": 4,
+    "geen_betaalmuur": 2,
+    "onbereikbaar": 1
+  },
+  "metingen": [
+    {
+      "host": "work-1-juowssqhjlstyycx.prod-runtime.all-hands.dev",
+      "url": "https://work-1-juowssqhjlstyycx.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-juowssqhjlstyycx.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 157,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-hdldvoujehvrpfak.prod-runtime.all-hands.dev",
+      "url": "https://work-1-hdldvoujehvrpfak.prod-runtime.all-hands.dev/csv_to_json",
+      "urlInIndex": "https://work-1-hdldvoujehvrpfak.prod-runtime.all-hands.dev/csv_to_json",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 879,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-okulfhnvmnshntgr.prod-runtime.all-hands.dev",
+      "url": "https://work-1-okulfhnvmnshntgr.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-okulfhnvmnshntgr.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 711,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "api.paysponge.com",
+      "url": "https://api.paysponge.com/x402/purchase/svc_d7y5tb8gh147se37m/url/onescales.com",
+      "urlInIndex": "https://api.paysponge.com/x402/purchase/svc_d7y5tb8gh147se37m/url/onescales.com",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 16679,
+      "registratiesVanDezeHost": 17,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0xE9740820225B3918b4ddd1292C7cA4Ca0e2C2F08",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xE9740820225B3918b4ddd1292C7cA4Ca0e2C2F08"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "work-1-sigtxbuzfmaynfua.prod-runtime.all-hands.dev",
+      "url": "https://work-1-sigtxbuzfmaynfua.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-sigtxbuzfmaynfua.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 829,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-fherinjdlsezgnhn.prod-runtime.all-hands.dev",
+      "url": "https://work-1-fherinjdlsezgnhn.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-fherinjdlsezgnhn.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 878,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "base-agent-preflight.bytoken2023.workers.dev",
+      "url": "https://base-agent-preflight.bytoken2023.workers.dev/x402/v1/value/convert",
+      "urlInIndex": "https://base-agent-preflight.bytoken2023.workers.dev/x402/v1/value/convert",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 15378,
+      "registratiesVanDezeHost": 64,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 402,
+        "t0": "exact on eip155:8453, 5012 to 0x94F751f04b98507D31b500b7Ed50bE68A1514873",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x94F751f04b98507D31b500b7Ed50bE68A1514873"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "work-1-hoqyvpxyplyjmafi.prod-runtime.all-hands.dev",
+      "url": "https://work-1-hoqyvpxyplyjmafi.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-hoqyvpxyplyjmafi.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 948,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-dkpogeohxaxigqls.prod-runtime.all-hands.dev",
+      "url": "https://work-1-dkpogeohxaxigqls.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-dkpogeohxaxigqls.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 1074,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-iguscruozhepdiyg.prod-runtime.all-hands.dev",
+      "url": "https://work-1-iguscruozhepdiyg.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-iguscruozhepdiyg.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 1124,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-pzknutesmmkuvmfw.prod-runtime.all-hands.dev",
+      "url": "https://work-1-pzknutesmmkuvmfw.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-pzknutesmmkuvmfw.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 1192,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-csavypdzndohebdd.prod-runtime.all-hands.dev",
+      "url": "https://work-1-csavypdzndohebdd.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-csavypdzndohebdd.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 1255,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "work-1-fxabvakdvifohzed.prod-runtime.all-hands.dev",
+      "url": "https://work-1-fxabvakdvifohzed.prod-runtime.all-hands.dev/paid/factory-price",
+      "urlInIndex": "https://work-1-fxabvakdvifohzed.prod-runtime.all-hands.dev/paid/factory-price",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 1337,
+      "registratiesVanDezeHost": 14,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "signal.authichain.com",
+      "url": "https://signal.authichain.com/api/x402/signal",
+      "urlInIndex": "https://signal.authichain.com/api/x402/signal",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 2237,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0x5db511706FB6317cd23A7655F67450c5AC6e6AA2",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0x5db511706FB6317cd23A7655F67450c5AC6e6AA2"
+        },
+        "t1": "no offer-receipt in extensions (bazaar, settlement)"
+      }
+    },
+    {
+      "host": "waste.regevidencehub.com",
+      "url": "https://waste.regevidencehub.com/api/v1/waste-rule-preflight",
+      "urlInIndex": "https://waste.regevidencehub.com/api/v1/waste-rule-preflight",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 8760,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "pjm-nowcast-production.up.railway.app",
+      "url": "https://pjm-nowcast-production.up.railway.app/v1/nowcast/latest",
+      "urlInIndex": "https://pjm-nowcast-production.up.railway.app/v1/nowcast/latest",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 3226,
+      "registratiesVanDezeHost": 9,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "conclavex402.pythonanywhere.com",
+      "url": "https://conclavex402.pythonanywhere.com/u/base64",
+      "urlInIndex": "https://conclavex402.pythonanywhere.com/u/base64",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 10586,
+      "registratiesVanDezeHost": 13,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "conclavex402p04.pythonanywhere.com",
+      "url": "https://conclavex402p04.pythonanywhere.com/u/base64",
+      "urlInIndex": "https://conclavex402p04.pythonanywhere.com/u/base64",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 10542,
+      "registratiesVanDezeHost": 13,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "api.exepal.com",
+      "url": "https://api.exepal.com/v1/south-asia/forex",
+      "urlInIndex": "https://api.exepal.com/v1/south-asia/forex",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 6231,
+      "registratiesVanDezeHost": 5,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 200,
+      "hoogsteTrede": -1,
+      "emmer": "geen_betaalmuur",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 200,
+        "t0": "status 200 instead of 402"
+      }
+    },
+    {
+      "host": "hardoz.eu.cc",
+      "url": "https://hardoz.eu.cc/x402/v1/fetch",
+      "urlInIndex": "https://hardoz.eu.cc/x402/v1/fetch",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 6063,
+      "registratiesVanDezeHost": 13,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "canonicalhash-production.up.railway.app",
+      "url": "https://canonicalhash-production.up.railway.app/v1/canonicalize/batch",
+      "urlInIndex": "https://canonicalhash-production.up.railway.app/v1/canonicalize/batch",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 10422,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "solana-x402-microtools-mainnet.valecity.workers.dev",
+      "url": "https://solana-x402-microtools-mainnet.valecity.workers.dev/api/preflight",
+      "urlInIndex": "https://solana-x402-microtools-mainnet.valecity.workers.dev/api/preflight",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 8869,
+      "registratiesVanDezeHost": 6,
+      "gedeclareerdeMethode": "GET",
+      "gebruikteMethode": "GET",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "ventis-production.up.railway.app",
+      "url": "https://ventis-production.up.railway.app/mcp/premium",
+      "urlInIndex": "https://ventis-production.up.railway.app/mcp/premium",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 8610,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "api.finnputerdex.com",
+      "url": "https://api.finnputerdex.com/scan",
+      "urlInIndex": "https://api.finnputerdex.com/scan",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13532,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "amber-maple-3b054208.tunnl.gg",
+      "url": "https://amber-maple-3b054208.tunnl.gg/x402/wallet-sanctions",
+      "urlInIndex": "https://amber-maple-3b054208.tunnl.gg/x402/wallet-sanctions",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 8972,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "wealth-agent.wealthagent-app.workers.dev",
+      "url": "https://wealth-agent.wealthagent-app.workers.dev/api/x402/diff",
+      "urlInIndex": "https://wealth-agent.wealthagent-app.workers.dev/api/x402/diff",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 9832,
+      "registratiesVanDezeHost": 9,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "defi-intel-agent-gateway.gg-neo15.workers.dev",
+      "url": "https://defi-intel-agent-gateway.gg-neo15.workers.dev/v1/text/token-counter-trimmer",
+      "urlInIndex": "https://defi-intel-agent-gateway.gg-neo15.workers.dev/v1/text/token-counter-trimmer",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 14858,
+      "registratiesVanDezeHost": 21,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "lumenworks-x402-decoder.onrender.com",
+      "url": "https://lumenworks-x402-decoder.onrender.com/v1/calldata/decode",
+      "urlInIndex": "https://lumenworks-x402-decoder.onrender.com/v1/calldata/decode",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 11616,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-gateway-production-1f21.up.railway.app",
+      "url": "https://x402-gateway-production-1f21.up.railway.app/payai/crypto/book",
+      "urlInIndex": "https://x402-gateway-production-1f21.up.railway.app/payai/crypto/book",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 11926,
+      "registratiesVanDezeHost": 10,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "batcave-x402-gateway.darriel9.workers.dev",
+      "url": "https://batcave-x402-gateway.darriel9.workers.dev/v1/run-python",
+      "urlInIndex": "https://batcave-x402-gateway.darriel9.workers.dev/v1/run-python",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 13353,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "metaclean-production.up.railway.app",
+      "url": "https://metaclean-production.up.railway.app/v1/clean",
+      "urlInIndex": "https://metaclean-production.up.railway.app/v1/clean",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": true,
+      "indexPositie": 13363,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": "POST",
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "agentoracle.co",
+      "url": "https://agentoracle.co/research/batch",
+      "urlInIndex": "https://agentoracle.co/research/batch",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 16444,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "subsidy-stylized-unaligned.ngrok-free.dev",
+      "url": "https://subsidy-stylized-unaligned.ngrok-free.dev/v1/audit-claims",
+      "urlInIndex": "https://subsidy-stylized-unaligned.ngrok-free.dev/v1/audit-claims",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13690,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "gambit.barrioenergy.com",
+      "url": "https://gambit.barrioenergy.com/x402/transcribe",
+      "urlInIndex": "https://gambit.barrioenergy.com/x402/transcribe",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13655,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "x402-agent.scope-research-api.workers.dev",
+      "url": "https://x402-agent.scope-research-api.workers.dev/answer",
+      "urlInIndex": "https://x402-agent.scope-research-api.workers.dev/answer",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13529,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "agent-diplomacy-production.up.railway.app",
+      "url": "https://agent-diplomacy-production.up.railway.app/tables/1cf154d0/join",
+      "urlInIndex": "https://agent-diplomacy-production.up.railway.app/tables/1cf154d0/join",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13725,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "base-pulse.annushka1190.workers.dev",
+      "url": "https://base-pulse.annushka1190.workers.dev/v1/wallet/intel",
+      "urlInIndex": "https://base-pulse.annushka1190.workers.dev/v1/wallet/intel",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13561,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "agentfx.fun",
+      "url": "https://agentfx.fun/api/public/s/alpha-read",
+      "urlInIndex": "https://agentfx.fun/api/public/s/alpha-read",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13780,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "svm402.com",
+      "url": "https://svm402.com/discover",
+      "urlInIndex": "https://svm402.com/discover",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 13805,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "x402-crypto-market-data.up.railway.app",
+      "url": "http://x402-crypto-market-data.up.railway.app/symbol-info",
+      "urlInIndex": "http://x402-crypto-market-data.up.railway.app/symbol-info",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 14849,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "delx.ai",
+      "url": "https://delx.ai/mcp/tools/util_dns_lookup",
+      "urlInIndex": "https://delx.ai/mcp/tools/util_dns_lookup",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 15071,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "1mpixels-one.vercel.app",
+      "url": "https://1mpixels-one.vercel.app/api/claim/3/0",
+      "urlInIndex": "https://1mpixels-one.vercel.app/api/claim/3/0",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 15075,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "cannastack.0x402.sh",
+      "url": "https://cannastack.0x402.sh/api/price-compare",
+      "urlInIndex": "https://cannastack.0x402.sh/api/price-compare",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 16056,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "www.quicknode.com",
+      "url": "https://www.quicknode.com/api/v1/agent/top_up",
+      "urlInIndex": "https://www.quicknode.com/api/v1/agent/top_up",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 16071,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": null,
+      "hoogsteTrede": -1,
+      "emmer": "onbereikbaar",
+      "treden": {
+        "t0": "ONGEMETEN"
+      },
+      "bewijs": {
+        "t0": "not reachable: The operation was aborted due to timeout"
+      }
+    },
+    {
+      "host": "tc-ai-premium.vercel.app",
+      "url": "https://tc-ai-premium.vercel.app/api/x402/nft-premium",
+      "urlInIndex": "https://tc-ai-premium.vercel.app/api/x402/nft-premium",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 16475,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "underscoredone.com",
+      "url": "https://underscoredone.com/domain_age_checker/lookup",
+      "urlInIndex": "https://underscoredone.com/domain_age_checker/lookup",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 16538,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 402,
+      "hoogsteTrede": 0,
+      "emmer": "x402_ok",
+      "treden": {
+        "t0": "HAALT",
+        "t1": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 402,
+        "t0": "exact on eip155:8453, 10000 to 0xE9740820225B3918b4ddd1292C7cA4Ca0e2C2F08",
+        "accepts0": {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "payTo": "0xE9740820225B3918b4ddd1292C7cA4Ca0e2C2F08"
+        },
+        "t1": "no offer-receipt in extensions (bazaar)"
+      }
+    },
+    {
+      "host": "infinite-flux2.bot.stream",
+      "url": "https://infinite-flux2.bot.stream/api/tip/100",
+      "urlInIndex": "https://infinite-flux2.bot.stream/api/tip/100",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17517,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "erc8004.heyanon.ai",
+      "url": "https://erc8004.heyanon.ai//mcp",
+      "urlInIndex": "https://erc8004.heyanon.ai//mcp",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17363,
+      "registratiesVanDezeHost": 16,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "api.shippingrates.org",
+      "url": "http://api.shippingrates.org/api/dd/compare",
+      "urlInIndex": "http://api.shippingrates.org/api/dd/compare",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17322,
+      "registratiesVanDezeHost": 7,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "moltbrain-x402-server-production-6c25.up.railway.app",
+      "url": "https://moltbrain-x402-server-production-6c25.up.railway.app/chat",
+      "urlInIndex": "https://moltbrain-x402-server-production-6c25.up.railway.app/chat",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17359,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "proxy.x402scan.com",
+      "url": "https://proxy.x402scan.com/x402/tools/get_available_resources",
+      "urlInIndex": "https://proxy.x402scan.com/x402/tools/get_available_resources",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17437,
+      "registratiesVanDezeHost": 6,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-x.madnodes.xyz",
+      "url": "http://x402-x.madnodes.xyz/twitter/user_by_screenname?twitter_screenname=Liminlin123",
+      "urlInIndex": "http://x402-x.madnodes.xyz/twitter/user_by_screenname?twitter_screenname=Liminlin123",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17460,
+      "registratiesVanDezeHost": 10,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "api.tweetx402.com",
+      "url": "http://api.tweetx402.com/api/action/tweet",
+      "urlInIndex": "http://api.tweetx402.com/api/action/tweet",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17504,
+      "registratiesVanDezeHost": 18,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "service402api-production.up.railway.app",
+      "url": "http://service402api-production.up.railway.app/sponsor/mint/BrBDg1AE8Dq8MZB1MZkNCCnbKm2tHLV4ysDJ24zZpump/execute",
+      "urlInIndex": "http://service402api-production.up.railway.app/sponsor/mint/BrBDg1AE8Dq8MZB1MZkNCCnbKm2tHLV4ysDJ24zZpump/execute",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17554,
+      "registratiesVanDezeHost": 6,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "api.orth.sh",
+      "url": "http://api.orth.sh/",
+      "urlInIndex": "http://api.orth.sh/",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17562,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 200,
+      "hoogsteTrede": -1,
+      "emmer": "geen_betaalmuur",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 200,
+        "t0": "status 200 instead of 402"
+      }
+    },
+    {
+      "host": "x402-launch.netlify.app",
+      "url": "https://x402-launch.netlify.app/api/mint",
+      "urlInIndex": "https://x402-launch.netlify.app/api/mint",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17577,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 410,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode": "POST",
+        "status": 410,
+        "t0": "status 410 instead of 402"
+      }
+    },
+    {
+      "host": "agnicbillo-proxy.asad-safari.workers.dev",
+      "url": "https://agnicbillo-proxy.asad-safari.workers.dev/v1/custom/toronto-main",
+      "urlInIndex": "https://agnicbillo-proxy.asad-safari.workers.dev/v1/custom/toronto-main",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17634,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-sushi.up.railway.app",
+      "url": "http://x402-sushi.up.railway.app/quote",
+      "urlInIndex": "http://x402-sushi.up.railway.app/quote",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17582,
+      "registratiesVanDezeHost": 3,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "perps-funding-agent-production.up.railway.app",
+      "url": "http://perps-funding-agent-production.up.railway.app/entrypoints/getFunding/invoke",
+      "urlInIndex": "http://perps-funding-agent-production.up.railway.app/entrypoints/getFunding/invoke",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17675,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "xinfos-x402-backend-production.up.railway.app",
+      "url": "http://xinfos-x402-backend-production.up.railway.app/api/news",
+      "urlInIndex": "http://xinfos-x402-backend-production.up.railway.app/api/news",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17683,
+      "registratiesVanDezeHost": 4,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "gongde-five.vercel.app",
+      "url": "https://gongde-five.vercel.app/api/mint",
+      "urlInIndex": "https://gongde-five.vercel.app/api/mint",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17695,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "pong-pay-production.up.railway.app",
+      "url": "https://pong-pay-production.up.railway.app/api/presale",
+      "urlInIndex": "https://pong-pay-production.up.railway.app/api/presale",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17728,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-ofpu0ew6t-howe813s-projects.vercel.app",
+      "url": "http://x402-ofpu0ew6t-howe813s-projects.vercel.app/",
+      "urlInIndex": "http://x402-ofpu0ew6t-howe813s-projects.vercel.app/",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17715,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-a6ejpb7i2-howe813s-projects.vercel.app",
+      "url": "http://x402-a6ejpb7i2-howe813s-projects.vercel.app/",
+      "urlInIndex": "http://x402-a6ejpb7i2-howe813s-projects.vercel.app/",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17718,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "x402-jco1fxiks-howe813s-projects.vercel.app",
+      "url": "http://x402-jco1fxiks-howe813s-projects.vercel.app/",
+      "urlInIndex": "http://x402-jco1fxiks-howe813s-projects.vercel.app/",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17723,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    },
+    {
+      "host": "bazaaro-agent.vercel.app",
+      "url": "https://bazaaro-agent.vercel.app/api/list",
+      "urlInIndex": "https://bazaaro-agent.vercel.app/api/list",
+      "sjabloonIngevuld": [],
+      "sjabloonNietIngevuld": [],
+      "lichaamUitIndex": false,
+      "indexPositie": 17733,
+      "registratiesVanDezeHost": 2,
+      "gedeclareerdeMethode": null,
+      "gebruikteMethode": "POST",
+      "status": 404,
+      "hoogsteTrede": -1,
+      "emmer": "pad_weg",
+      "treden": {
+        "t0": "HAALT_NIET"
+      },
+      "bewijs": {
+        "methode_opnieuw": {
+          "eerste": "POST",
+          "eerste_status": 404,
+          "tweede": "GET",
+          "bron": "guessed, the 404 carried no Allow header"
+        },
+        "methode": "GET",
+        "status": 404,
+        "t0": "status 404 instead of 402"
+      }
+    }
+  ]
+}
