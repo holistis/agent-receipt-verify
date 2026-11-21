@@ -1,0 +1,2 @@
+# Editie 2: de bytes van de ruwe bestanden mogen niet veranderen (de hashes in SHA256SUMS.txt gelden voor deze bytes)
+* -text
