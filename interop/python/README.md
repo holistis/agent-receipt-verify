@@ -1,5 +1,7 @@
 # An independent checker for the section 5.5 known-answer vectors
 
+Correction, 21 November 2026. The title above, the header comment of verify_known_answers.py and the pull request that added this directory call the checker independent. Its author also wrote section 5.5, so it is a second verifier by the same author. It catches drift between the section and its vectors. It cannot show that someone else can implement the section from the text alone. The author's own correction, left as a comment on the pull request: https://github.com/holistis/agent-receipt-verify/pull/110#issuecomment-7064988420
+
 This directory holds a checker for the known-answer vectors of x402 specification v2, section 5.5 (Settlement and Refusal Identity Invariant), written from the text of that section rather than from any implementation of it.
 
 Python 3 standard library only. No third-party packages, no network, no account. That constraint is the point: a checker that imports the same canonicalization library as the implementation it checks cannot show that the text alone determines the answer.
