@@ -10,6 +10,8 @@ The frame is the same as in edition 1: `facilitator.payai.network/discovery/reso
 
 Edition 1 measured a sample of 50 hosts. This edition sends one request to every host the index lists, 1,703 of them, so the live layer is a count and not an estimate. The same measurement was run twice, overlapping in time (21:11 to 22:38 UTC and 21:58 to 22:47 UTC), so the repeatability is a number too: the two measurements of one host are at most about 90 minutes apart.
 
+Related measurements. Other projects measure parts of the same space in other frames. [whawk46/x402-discovery-checks](https://github.com/whawk46/x402-discovery-checks) (MIT) published a census of 1,623 hosts from 15,263 Bazaar listings on 2026-08-24 and reports every count as an interval. [ForgeMesh](https://github.com/forgemeshlabs/x402-verified) publishes a list of x402 sellers built on the Bazaar index, with a score and a status from scheduled probes. This edition measures the PayAI index only. We did not check the other projects' methods or numbers, and nothing here compares results. This paragraph was added on 2026-11-21, after the first publication.
+
 ## Recount it
 
 ```
