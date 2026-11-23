@@ -16,7 +16,7 @@ const MAP = path.join(wortel, 'vectors', 'settlement-pending')
 const TWEEDE = path.join(MAP, 'draft-2-frozen')
 const EERSTE = path.join(MAP, 'draft-1-frozen')
 const CROSS = path.join(MAP, 'cross-run')
-const DRAFT3 = '197326abf7203f41d3c94211851bdcaf992680002ac3152750fe0f29f3a4121c'
+const DRAFT3 = '35cce5965c97d3cadde9e2f0e594f7b7f801dc625c596e1ccd10f53d3b4a3260'
 const DRAFT2 = '64568e264272738357d6a456265c20fac8a70c0768a4ccf4630f743e24ff9ae2'
 const DRAFT1 = 'fd234a28975569089227a19b3fb330f03e7794a5b45b1feec2a78cc4ff701270'
 
@@ -37,10 +37,15 @@ console.log('the three vectors.json files are frozen')
 const tekst3 = fs.readFileSync(path.join(MAP, 'vectors.json'), 'utf8')
 const tekst2 = fs.readFileSync(path.join(TWEEDE, 'vectors.json'), 'utf8')
 const tekst1 = fs.readFileSync(path.join(EERSTE, 'vectors.json'), 'utf8')
-t('draft 3 vectors.json is unchanged (197326abf720)', sha(tekst3) === DRAFT3, sha(tekst3).slice(0, 12))
+t('draft 3 vectors.json is unchanged (35cce5965c97)', sha(tekst3) === DRAFT3, sha(tekst3).slice(0, 12))
 t('draft 2 vectors.json is unchanged (64568e264272)', sha(tekst2) === DRAFT2, sha(tekst2).slice(0, 12))
 t('draft 1 vectors.json is unchanged (fd234a289755)', sha(tekst1) === DRAFT1, sha(tekst1).slice(0, 12))
 t('CONTROL: a copy with one space added has another hash', sha(tekst3 + ' ') !== DRAFT3)
+t('README names the fingerprint of draft 3 and no fingerprint other than those of the three drafts', (() => {
+  const hex = [...fs.readFileSync(path.join(MAP, 'README.md'), 'utf8').matchAll(/\b[0-9a-f]{12}\b/g)].map((m) => m[0])
+  const erkend = [DRAFT3, DRAFT2, DRAFT1].map((h) => h.slice(0, 12))
+  return hex.includes(DRAFT3.slice(0, 12)) && hex.every((h) => erkend.includes(h))
+})())
 t('draft 3 has 41 vectors, 5 of them open; draft 2 has 26 with 3 open; draft 1 has 17 with 1 open', (() => {
   const a = JSON.parse(tekst3).vectors, b = JSON.parse(tekst2).vectors, c = JSON.parse(tekst1).vectors
   const open = (x) => x.filter((v) => v.asserted === false).length

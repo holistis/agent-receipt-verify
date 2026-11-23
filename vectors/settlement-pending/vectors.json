@@ -7,7 +7,7 @@
   "provenance": [
     "x402 v2 specification section 9 (settlement_pending is non-terminal, hash and network must be present)",
     "@x402/core 2.29.0 settleWithPendingRetry (one retry, same payload)",
-    "mitaka7210 messages in the x402 Slack thread: 22 November 2026 (the 425 hold, adoption by nonce, the reverted case, the hash of another payment) and 23 November 2026 (the two rails, the payer binding on the proof rail, the durable one-hash-one-delivery claim)",
+    "mitaka7210 messages in the x402 Slack thread: an earlier message whose date our notes did not keep (the 425 hold, adoption by nonce), 22 November 2026 (the reverted case, the hash of another payment) and 23 November 2026 (the two rails, the payer binding on the proof rail, the durable one-hash-one-delivery claim)",
     "https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf : runnable decision logic of the chain check, published by mitaka7210, who calls it \"runnable, standard library only, MIT\" in his Slack message of 23 November 2026; the file itself names MIT only for the production source it was extracted from"
   ],
   "vectors": [

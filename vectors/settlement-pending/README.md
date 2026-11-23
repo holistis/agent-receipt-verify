@@ -2,7 +2,7 @@
 
 Cite as: github.com/holistis/agent-receipt-verify, vectors/settlement-pending, 2026-11-23.
 
-Status: draft 3. The fingerprint of vectors.json is 197326abf720 (first 12 characters of its sha256).
+Status: draft 3. The fingerprint of vectors.json is 35cce5965c97 (first 12 characters of its sha256).
 
 This set does not say who retries. Every vector, except six (two failures that are not pending and carry no hash, and four with a missing or unusable hash), starts after the seller holds a hash: named in a settle response, named in a buyer's proof, or found by the nonce of a payment that comes back. Whether the seller retries the settle, or answers 425 and lets the buyer retry the request, is not encoded, because a reader will otherwise assume one of the two. One rule is a field rule and not a specification rule: when the same signed payment comes back, the transaction is found by its nonce and the payment is not settled again.
 
@@ -39,7 +39,7 @@ Draft 2 had 26 vectors (3 open) and 15 wrong implementations. Draft 1 had 17 vec
 
 ## The cases and where they come from
 
-- From the Slack messages of mitaka7210 of 22 November 2026: the 425 hold, the same signed payment sent again with the transaction found by its nonce, a reverted transaction as a terminal refusal, a hash that settled another payment.
+- From Slack messages of mitaka7210 in the x402 community: the 425 hold and the same signed payment sent again with the transaction found by its nonce (an earlier message, its date was not kept in our notes); a reverted transaction as a terminal refusal and a hash that settled another payment (22 November 2026).
 - From his Slack message of 23 November 2026: the two rails with their own binding, the payer binding on the proof rail, the durable claim. His production code is Kristo Intelligence, which his gist names as MIT; he describes the gist, owned by hristovdimitri2-hub, as "runnable, standard library only, MIT".
 - The hold while the chain has not confirmed, the transfer checks and the number boundaries (one unit short, amounts above 2^53, 18 decimals, address letter case, near-miss addresses): this set, recommendations and not requirements of the specification. The basis of each vector is listed in vectors.json (spec, sdk, field, rec).
 

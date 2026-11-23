@@ -2,7 +2,7 @@
 
 Cite as: github.com/holistis/agent-receipt-verify, vectors/settle-before-serve, 2026-11-23.
 
-Status: draft 1. The fingerprint of vectors.json is d3fd378e0b39 (first 12 characters of its sha256).
+Status: draft 1. The fingerprint of vectors.json is 5c115ec59c59 (first 12 characters of its sha256).
 
 ## What this is
 
