@@ -9,7 +9,7 @@ The set was run against that logic. It was not verified by it, and he has not ch
 
 ## What was run
 
-- The gist file test_settlement_pending_chain_before_delivery.py, 22974 bytes, sha256 b432d082c1d79bb468e1106651c2347f1ca1bd7a31c2fead11c556aacf26f152. The file is not copied into this repository; kruisrun.py loads it from a path you give it.
+- The gist file test_settlement_pending_chain_before_delivery.py, 22973 bytes, sha256 d76537a70102c6399deb9b8be9e8ceae3a90728e2e7d6004cef5840edc4b524e. Gist revision e8867f7a92b29f9ddc2c0f2f37e55821af654d93 as listed by the GitHub API on 23 November 2026, raw bytes as served by gist.githubusercontent.com. The file is not copied into this repository; kruisrun.py loads it from a path you give it.
 - Python 3.12.10, started with `python -I`, on 23 November 2026.
 - The file imports only json, sys, dataclasses and typing, and its own seven tests pass.
 - Command: `python -I kruisrun.py ../vectors.json path/to/test_settlement_pending_chain_before_delivery.py`
@@ -30,7 +30,7 @@ The output of the run, byte for byte as kruisrun.py printed it (uitvoer.txt):
 
 ```
 cross-run: the vectors of draft 3 against the decision logic of the gist of mitaka7210
-gist file: test_settlement_pending_chain_before_delivery.py, 22974 bytes, sha256 b432d082c1d79bb468e1106651c2347f1ca1bd7a31c2fead11c556aacf26f152
+gist file: test_settlement_pending_chain_before_delivery.py, 22973 bytes, sha256 d76537a70102c6399deb9b8be9e8ceae3a90728e2e7d6004cef5840edc4b524e
 python: 3.12.10, started with -I
 vectors: 39, asserted 34, open 5
 asserted vectors, answer of his logic compared with ours:
