@@ -1,11 +1,11 @@
 cross-run: the vectors of draft 3 against the decision logic of the gist of mitaka7210
-gist file: test_settlement_pending_chain_before_delivery.py, 22973 bytes, sha256 d76537a70102c6399deb9b8be9e8ceae3a90728e2e7d6004cef5840edc4b524e
+gist file: test_settlement_pending_chain_before_delivery.py, 30900 bytes, sha256 558351e6daf4faaa6ffa8293bf3cf593e030ff0933c0eea00d7fa09e33a7a1e2
 python: 3.12.10, started with -I
 vectors: 41, asserted 36, open 5
 asserted vectors, answer of his logic compared with ours:
   same answer as the reference: 22
-  a different answer that the vector allows (refuse or hold): 8
-  outside what the vector allows: 6
+  a different answer that the vector allows (refuse or hold): 12
+  outside what the vector allows: 2
   of those, without an explanation in this adapter: 0
 open vectors (nothing is asserted, his answer is shown): 5
 
@@ -15,17 +15,17 @@ every vector where his answer is not the reference answer:
   allowed no-transfer-event-refuse                       reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
   open    pending-without-hash-open                      reference OPEN    his logic deny          (settlement_pending_without_transaction)  [open in this set; his file denies it]
   open    reverted-shallow-open                          reference OPEN    his logic deny          (receipt_reverted)  [open in this set; his file denies a reverted transaction at any depth]
-  outside old-payment-of-ours-refuse                     reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
-  outside old-payment-overpaid-refuse                    reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
-  open    transfer-nonce-unreadable-open                 reference OPEN    his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  outside old-payment-of-ours-refuse                     reference REFUSE  his logic allow         (no reason given)  [not in his file: the nonce binding of the authorization rail is described in his message and lives in his production code]
+  outside old-payment-overpaid-refuse                    reference REFUSE  his logic allow         (no reason given)  [not in his file: the nonce binding of the authorization rail is described in his message and lives in his production code]
+  open    transfer-nonce-unreadable-open                 reference OPEN    his logic allow         (no reason given)  [not in his file: the nonce binding of the authorization rail is described in his message and lives in his production code]
   allowed wrong-recipient-large-amount-refuse            reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
-  outside underpaid-beyond-safe-integer-refuse           reference REFUSE  his logic allow         (no reason given)  [his file compares amounts as floats and handles USDC with 6 decimals only]
-  outside proof-rail-other-payer-refuse                  reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  allowed underpaid-beyond-safe-integer-refuse           reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  allowed proof-rail-other-payer-refuse                  reference REFUSE  his logic indeterminate (payer_mismatch)
   allowed wrong-token-refuse                             reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
   open    malformed-hash-open                            reference OPEN    his logic deny          (settlement_pending_without_transaction)  [open in this set; his file denies it]
   allowed malformed-hash-not-held                        reference OPEN    his logic deny          (settlement_pending_without_transaction)
-  outside underpaid-18-decimals-refuse                   reference REFUSE  his logic allow         (no reason given)  [his file compares amounts as floats and handles USDC with 6 decimals only]
-  open    proof-rail-payer-unreadable-open               reference OPEN    his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
-  outside proof-rail-near-miss-payer-refuse              reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  allowed underpaid-18-decimals-refuse                   reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  open    proof-rail-payer-unreadable-open               reference OPEN    his logic allow         (no reason given)  [his file cannot express a sender that is unreadable: the adapter hands it the default sender]
+  allowed proof-rail-near-miss-payer-refuse              reference REFUSE  his logic indeterminate (payer_mismatch)
   allowed wrong-token-near-miss-proof-rail-refuse        reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
   allowed short-hash-not-held                            reference OPEN    his logic deny          (settlement_pending_without_transaction)

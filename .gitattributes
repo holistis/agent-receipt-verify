@@ -10,3 +10,4 @@ vectors/**/SHA256SUMS text eol=lf
 vectors/settlement-pending/**/*.md text eol=lf
 vectors/settle-before-serve/*.md text eol=lf
 vectors/settlement-pending/cross-run/uitvoer.txt text eol=lf
+vectors/settlement-pending/cross-run/history/*.txt text eol=lf

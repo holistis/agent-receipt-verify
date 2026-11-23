@@ -55,19 +55,23 @@ S = json.load(open(vectors_path, encoding='utf8'))
 HEAD = 1000
 BLOCK = {'shallow': 999, 'deep': 990, 'reverted': 990, 'reverted_shallow': 999}
 OUT = {m.ALLOW: 'DELIVER', m.DENY: 'REFUSE', m.PENDING: 'HOLD', m.INDETERMINATE: 'HOLD'}
+# Revisions of the gist from its second revision on compare amounts as integers in atomic units and take a payer. The first one
+# compared floats and had no payer. The adapter speaks both so that the run that led to the fix stays reproducible.
+ATOMIC_API = hasattr(m, 'PRICE_ATOMIC')
 
 # Why his answer may differ from ours, per vector. A difference without an entry here is reported as unexplained.
-OUTSIDE_FILE = 'not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code'
-FLOATS = 'his file compares amounts as floats and handles USDC with 6 decimals only'
+NONCE_BINDING = 'not in his file: the nonce binding of the authorization rail is described in his message and lives in his production code'
+FIRST_REVISION_BINDING = 'not in the first revision of his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) lived in his production code'
+FIRST_REVISION_FLOATS = 'the first revision of his file compared amounts as floats and handled USDC with 6 decimals only'
 WHY = {
-    'old-payment-of-ours-refuse': OUTSIDE_FILE,
-    'old-payment-overpaid-refuse': OUTSIDE_FILE,
-    'transfer-nonce-unreadable-open': OUTSIDE_FILE,
-    'proof-rail-other-payer-refuse': OUTSIDE_FILE,
-    'proof-rail-near-miss-payer-refuse': OUTSIDE_FILE,
-    'proof-rail-payer-unreadable-open': OUTSIDE_FILE,
-    'underpaid-beyond-safe-integer-refuse': FLOATS,
-    'underpaid-18-decimals-refuse': FLOATS,
+    'old-payment-of-ours-refuse': NONCE_BINDING if ATOMIC_API else FIRST_REVISION_BINDING,
+    'old-payment-overpaid-refuse': NONCE_BINDING if ATOMIC_API else FIRST_REVISION_BINDING,
+    'transfer-nonce-unreadable-open': NONCE_BINDING if ATOMIC_API else FIRST_REVISION_BINDING,
+    'proof-rail-other-payer-refuse': FIRST_REVISION_BINDING,
+    'proof-rail-near-miss-payer-refuse': FIRST_REVISION_BINDING,
+    'proof-rail-payer-unreadable-open': 'his file cannot express a sender that is unreadable: the adapter hands it the default sender' if ATOMIC_API else FIRST_REVISION_BINDING,
+    'underpaid-beyond-safe-integer-refuse': FIRST_REVISION_FLOATS,
+    'underpaid-18-decimals-refuse': FIRST_REVISION_FLOATS,
     'pending-without-hash-open': 'open in this set; his file denies it',
     'reverted-shallow-open': 'open in this set; his file denies a reverted transaction at any depth',
     'malformed-hash-open': 'open in this set; his file denies it',
@@ -89,7 +93,10 @@ def build(o):
         if t:
             token = m.USDC if t['token'].lower() == o['quote']['asset'].lower() else m.OTHER_TOKEN
             kw = {'sender': t['from']} if t.get('from') else {}
-            transfers = (m.Transfer(token=token, to=t['to'], amount_usdc=int(t['amount']) / 1e6, **kw),)
+            if ATOMIC_API:
+                transfers = (m.Transfer(token=token, to=t['to'], amount_atomic=int(t['amount']), **kw),)
+            else:
+                transfers = (m.Transfer(token=token, to=t['to'], amount_usdc=int(t['amount']) / 1e6, **kw),)
         tx = resp.get('transaction') or ''
         receipts[tx] = m.Receipt(tx_hash=tx, status=0 if receipt.startswith('reverted') else 1, block_number=BLOCK[receipt], transfers=transfers)
     chain = m.SyntheticChain(head=HEAD, receipts=receipts)
@@ -105,7 +112,13 @@ rows = []
 for v in S['vectors']:
     o = v['input']
     resp, chain, store = build(o)
-    d = m.handle(resp, chain, store, pay_to=o['quote']['payTo'], price=int(o['quote']['price']) / 1e6)
+    if ATOMIC_API:
+        # The proof rail binds a transfer by the payer that signed the proof. The authorization rail binds by a nonce, which his file does not have,
+        # so no payer is handed to it.
+        payer = o['payment'].get('payer') if o['payment']['rail'] == 'proof' else None
+        d = m.handle(resp, chain, store, pay_to=o['quote']['payTo'], price_atomic=int(o['quote']['price']), payer=payer)
+    else:
+        d = m.handle(resp, chain, store, pay_to=o['quote']['payTo'], price=int(o['quote']['price']) / 1e6)
     short = v['id'].replace('x402-settlement-pending-', '')
     exp = v['expected']
     allowed = exp.get('acceptable') or [exp['outcome']]
