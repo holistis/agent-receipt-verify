@@ -1,19 +1,48 @@
 #!/usr/bin/env node
 // Runs the reference and every wrong twin over vectors/settle-before-serve/vectors.json, then drops each vector in turn to see which ones carry weight.
+//
+//   node run.mjs                         the reference and every wrong twin
+//   node run.mjs --impl path/to/module   your own implementation: a module that exports decide(observation); exit 1 if an asserted vector fails
 // Cite as: github.com/holistis/agent-receipt-verify, vectors/settle-before-serve, 2026-11-23.
 import { readFileSync } from 'node:fs'
-import { decide } from './decide.mjs'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { decide, matches } from './decide.mjs'
 import { TWINS } from './twins.mjs'
 
 const set = JSON.parse(readFileSync(new URL('../../vectors/settle-before-serve/vectors.json', import.meta.url), 'utf8'))
-const same = (a, b) => ['status', 'delivers', 'callsFacilitator', 'builtBeforeSettle'].every((k) => a[k] === b[k])
 const short = (id) => id.replace('x402-settle-before-serve-', '')
 const asserted = set.vectors.filter((v) => v.asserted !== false)
 
+const implAt = process.argv.indexOf('--impl')
+if (implAt !== -1) {
+  const file = process.argv[implAt + 1]
+  if (!file) { console.error('usage: node run.mjs --impl <path to a module that exports decide(observation)>'); process.exit(2) }
+  let mod
+  try { mod = await import(pathToFileURL(resolve(file)).href) } catch (e) { console.error('cannot load ' + file + ': ' + String(e.message).split('\n')[0]); process.exit(2) }
+  if (typeof mod.decide !== 'function') { console.error(file + ' does not export a function decide(observation)'); process.exit(2) }
+  let failed = 0
+  for (const v of set.vectors) {
+    let got, err
+    try { got = await mod.decide(structuredClone(v.input)) } catch (e) { err = String(e.message).split('\n')[0] }
+    const answer = got && typeof got === 'object' ? got : undefined
+    if (v.asserted === false) {
+      console.log(`open  ${short(v.id)}: ${err ? 'threw ' + err : answer ? answer.status : 'no answer'} (nothing is asserted)`)
+      continue
+    }
+    const ok = !err && !!answer && matches(answer, v.expected)
+    if (!ok) failed++
+    console.log(`${ok ? 'pass' : 'FAIL'}  ${short(v.id)}${ok ? '' : err ? '  threw: ' + err : '  gave ' + JSON.stringify(answer || null) + ', expected ' + JSON.stringify(v.expected)}`)
+  }
+  console.log(`your implementation: ${asserted.length - failed} of ${asserted.length} asserted vectors pass, ${set.vectors.length - asserted.length} open vectors shown for information`)
+  process.exit(failed ? 1 : 0)
+}
+
 let bad = 0
 for (const v of set.vectors) {
-  const got = decide(v.input)
-  if (v.asserted !== false && !same(got, v.expected)) {
+  let got
+  try { got = decide(v.input) } catch (e) { bad++; console.log('REFERENCE THROWS', v.id, String(e.message).split('\n')[0]); continue }
+  if (v.asserted !== false && !matches(got, v.expected)) {
     bad++
     console.log('REFERENCE FAILS', v.id, JSON.stringify(got))
   }
@@ -25,7 +54,7 @@ for (const v of set.vectors) {
 console.log(`reference: ${set.vectors.length - bad} of ${set.vectors.length} vectors, ${set.vectors.length - asserted.length} recorded as open`)
 
 const caught = (fn, list) => list.filter((v) => {
-  try { return !same(fn(v.input), v.expected) } catch { return true }
+  try { return !matches(fn(v.input), v.expected) } catch { return true }
 })
 
 let survivors = 0

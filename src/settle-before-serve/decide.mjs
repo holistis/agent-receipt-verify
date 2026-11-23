@@ -13,8 +13,25 @@
 //   S05 nothing confirms (the facilitator refused, failed or did not answer, and the fallback did not confirm): 402, nothing delivered.
 //       A settle result that was logged and not acted on is the fault this family exists for.
 //   S06 an empty header value: open (absent or unparseable?), nothing delivered.
+// An observation that is not well formed is never guessed at: decide() throws an error that starts with "invalid observation:" and
+// names the field, so an unknown facilitator result or an unknown fallback state can never end in delivered data.
 // Cite as: github.com/holistis/agent-receipt-verify, vectors/settle-before-serve, 2026-11-23.
 export const TX_HASH = /^0x[0-9a-fA-F]{64}$/
+
+// The answer is the four fields below; an open vector is only compared on its status.
+export const matches = (got, expected) => ['status', 'delivers', 'callsFacilitator', 'builtBeforeSettle'].every((k) => got[k] === expected[k])
+
+const invalid = (field) => { throw new Error('invalid observation: ' + field) }
+// Fail closed: check every field the decision reads before reading it.
+export function validate(obs) {
+  if (!obs || typeof obs !== 'object') invalid('observation')
+  if (obs.paymentSignature !== undefined && obs.paymentSignature !== null && typeof obs.paymentSignature !== 'string') invalid('paymentSignature')
+  const f = obs.facilitator
+  if (!f || typeof f !== 'object') invalid('facilitator')
+  if (!['success', 'failed', 'error'].includes(f.result)) invalid('facilitator.result')
+  if (typeof f.latencyMs !== 'number' || !Number.isFinite(f.latencyMs) || f.latencyMs < 0) invalid('facilitator.latencyMs')
+  if (!['not_tried', 'failed', 'confirmed'].includes(obs.fallback)) invalid('fallback')
+}
 const out = (status, delivers, callsFacilitator, builtBeforeSettle, rule) => ({ status, delivers, callsFacilitator, builtBeforeSettle, rule })
 
 // 'absent', 'empty', 'unparseable' or 'wellformed'. Wellformed means a transaction hash or base64 JSON (standard or URL alphabet)
@@ -36,6 +53,7 @@ export const decide = (obs) => decideWith(obs, {})
 // decideWith is only for the wrong twins: each twin makes one mistake (relaxes one check or changes one behaviour). One behaviour can decide several situations, so a twin can show up under more than one rule id.
 // relax: unparseableIsPaid, facilitatorFirst, unparseableAs402, serveOnTimeout, buildFirst, errorIsSuccess, ignoreFallback, serveOnSettleFailure.
 export function decideWith(obs, relax) {
+  validate(obs)
   const h = parseHeader(obs.paymentSignature)
   if (h === 'absent') return out(402, false, false, false, 'S01')
   if (h === 'empty') return out('OPEN', false, false, false, 'S06')

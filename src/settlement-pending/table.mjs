@@ -5,7 +5,8 @@
 //   node table.mjs --write    also write vectors/settlement-pending/decision-table.md
 //   node table.mjs --check    also fail when decision-table.md is not what the grid and the vectors give now
 // The grid is a model made by the authors. A situation that is not in it is not covered by this check.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { decide, RULES } from './decide.mjs'
 
 const set = JSON.parse(readFileSync(new URL('../../vectors/settlement-pending/vectors.json', import.meta.url), 'utf8'))
@@ -134,7 +135,13 @@ if (process.argv.includes('--write') || process.argv.includes('--check')) {
     ...rows.map((r) => `| ${r.key} | ${r.outcome} | ${r.rule} | ${short(vecKey.get(r.key) || [])} |`), '']
   const tekst = lines.join(LF)
   const pad = new URL('../../vectors/settlement-pending/decision-table.md', import.meta.url)
-  if (process.argv.includes('--write')) { writeFileSync(pad, tekst, 'utf8'); console.log('decision-table.md written') }
+  if (process.argv.includes('--write')) {
+    // Written to a temporary file and renamed, so that a check that runs at the same moment never reads half a file.
+    const tmp = fileURLToPath(pad) + '.tmp-' + process.pid
+    writeFileSync(tmp, tekst, 'utf8')
+    renameSync(tmp, pad)
+    console.log('decision-table.md written')
+  }
   else {
     const staat = existsSync(pad) ? readFileSync(pad, 'utf8').split(CRLF).join(LF) : null
     if (staat !== tekst) { bad++; console.log('decision-table.md is missing or does not match what the grid and the vectors give now') }

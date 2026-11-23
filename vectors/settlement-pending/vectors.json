@@ -2,13 +2,13 @@
   "schema_version": "0.3.0",
   "protocol": "x402",
   "network": "eip155:84532",
-  "credit": "Cases and field behaviour: mitaka7210 (production code of Kristo Intelligence, which the gist file names as MIT; runnable gist owned by hristovdimitri2-hub, which mitaka7210 describes as MIT in his Slack message of 23 November 2026): the 425 hold, the same signed payment found by its nonce, the reverted case, the hash of another payment, the two payment rails, the payer binding on the proof rail and the durable one-hash-one-delivery claim. Format, wrong implementations, properties and runner: github.com/holistis. Draft 3, 23 November 2026.",
+  "credit": "Cases and field behaviour: mitaka7210, in messages in the x402 community Slack and in a runnable gist owned by hristovdimitri2-hub (the gist is the work of its author, its licence is his, and this set does not copy the file): the 425 hold, the same signed payment found by its nonce, the reverted case, the hash of another payment, the two payment rails, the payer binding on the proof rail and the durable one-hash-one-delivery claim. Format, wrong implementations, properties and runner: github.com/holistis. Draft 3, 23 November 2026.",
   "supersedes": "Draft 2 (sha256 of vectors.json starts with 64568e264272, kept unchanged in draft-2-frozen/) and draft 1 (starts with fd234a289755, kept unchanged in draft-1-frozen/).",
   "provenance": [
     "x402 v2 specification section 9 (settlement_pending is non-terminal, hash and network must be present)",
     "@x402/core 2.29.0 settleWithPendingRetry (one retry, same payload)",
-    "mitaka7210 messages in the x402 Slack thread: an earlier message whose date our notes did not keep (the 425 hold, adoption by nonce), 22 November 2026 (the reverted case, the hash of another payment) and 23 November 2026 (the two rails, the payer binding on the proof rail, the durable one-hash-one-delivery claim)",
-    "https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf : runnable decision logic of the chain check, published by mitaka7210, who calls it \"runnable, standard library only, MIT\" in his Slack message of 23 November 2026; the file itself names MIT only for the production source it was extracted from"
+    "mitaka7210, messages in the x402 community Slack: the 425 hold, adoption by nonce, the reverted case, the hash of another payment, the two payment rails, the payer binding on the proof rail and the durable one-hash-one-delivery claim",
+    "https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf : runnable decision logic of the chain check, published by mitaka7210; the file says it uses the standard library only and makes no network call; the licence of the gist is its author's"
   ],
   "vectors": [
     {
@@ -698,7 +698,7 @@
       "basis": [
         "spec"
       ],
-      "encodes": "Pending without the broadcast hash breaks the spec, which says the hash must be present. What a seller does then is not settled: x402 pull request 3437 would treat it as unresolved and not challenge again, while mitaka7210 refuses. Recorded as OPEN, asserted by nobody.",
+      "encodes": "Pending without the broadcast hash breaks the spec, which says the hash must be present. What a seller does then is not settled: x402 pull request 3437 would treat it as unresolved and not challenge again, while one deployed seller refuses today. Recorded as OPEN, asserted by nobody.",
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
@@ -732,7 +732,7 @@
       "asserted": false,
       "disputed": [
         "hold: do not challenge again (x402 pull request 3437, not merged)",
-        "refuse: no hash, nothing to reconcile (mitaka7210, kristo-intelligence-6)"
+        "refuse: no hash, nothing to reconcile (one deployed seller refuses today)"
       ]
     },
     {

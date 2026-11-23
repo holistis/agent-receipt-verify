@@ -5,16 +5,20 @@ Cite as: github.com/holistis/agent-receipt-verify, vectors/settlement-pending/cr
 This folder records one run: the vectors of draft 3 in the parent folder, answered by the decision logic that mitaka7210 published as a runnable gist (owner hristovdimitri2-hub):
 https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf
 
-The file calls itself a redacted extraction of the decision logic of the Kristo Intelligence production code, with the transport removed, and says it is not the production code. On licence: the file names MIT only for the production source it was extracted from; mitaka7210 describes the gist as "runnable, standard library only, MIT" in his Slack message of 23 November 2026.
+The gist is the work of its author and its licence is his. This repository does not contain the file. The file says that it is a redacted extraction of the decision logic of the Kristo Intelligence production code, with the transport removed, that it is not the production code, that it uses the standard library only and that it makes no network call.
 
 The set was run against that logic. It was not verified by it, and he has not checked this folder. The adapter is ours.
+
+This folder is in the repository but not in the npm package.
 
 ## What was run
 
 - The gist file test_settlement_pending_chain_before_delivery.py, 22973 bytes, sha256 d76537a70102c6399deb9b8be9e8ceae3a90728e2e7d6004cef5840edc4b524e. Gist revision e8867f7a92b29f9ddc2c0f2f37e55821af654d93 as listed by the GitHub API on 23 November 2026, raw bytes as served by gist.githubusercontent.com. The file is not copied into this repository; kruisrun.py loads it from a path you give it.
 - Python 3.12.10, started with `python -I`, on 23 November 2026.
 - The file imports only json, sys, dataclasses and typing, and its own seven tests pass.
-- Command: `python -I kruisrun.py ../vectors.json path/to/test_settlement_pending_chain_before_delivery.py`
+- Command: `python -I kruisrun.py ../vectors.json path/to/test_settlement_pending_chain_before_delivery.py --sha256 d76537a70102c6399deb9b8be9e8ceae3a90728e2e7d6004cef5840edc4b524e`
+
+The adapter runs the file you give it as Python code. Read it first. With --sha256 the adapter refuses a file with another hash and exits with code 2 without running it; without --sha256 it prints a warning on the error output and runs the file anyway.
 
 ## What the adapter assumes, and does not attribute to him
 
@@ -48,18 +52,18 @@ every vector where his answer is not the reference answer:
   allowed no-transfer-event-refuse                       reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
   open    pending-without-hash-open                      reference OPEN    his logic deny          (settlement_pending_without_transaction)  [open in this set; his file denies it]
   open    reverted-shallow-open                          reference OPEN    his logic deny          (receipt_reverted)  [open in this set; his file denies a reverted transaction at any depth]
-  DIFFERS old-payment-of-ours-refuse                     reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
-  DIFFERS old-payment-overpaid-refuse                    reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  outside old-payment-of-ours-refuse                     reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  outside old-payment-overpaid-refuse                    reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
   open    transfer-nonce-unreadable-open                 reference OPEN    his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
   allowed wrong-recipient-large-amount-refuse            reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
-  DIFFERS underpaid-beyond-safe-integer-refuse           reference REFUSE  his logic allow         (no reason given)  [his file compares amounts as floats and handles USDC with 6 decimals only]
-  DIFFERS proof-rail-other-payer-refuse                  reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  outside underpaid-beyond-safe-integer-refuse           reference REFUSE  his logic allow         (no reason given)  [his file compares amounts as floats and handles USDC with 6 decimals only]
+  outside proof-rail-other-payer-refuse                  reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
   allowed wrong-token-refuse                             reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
   open    malformed-hash-open                            reference OPEN    his logic deny          (settlement_pending_without_transaction)  [open in this set; his file denies it]
   allowed malformed-hash-not-held                        reference OPEN    his logic deny          (settlement_pending_without_transaction)
-  DIFFERS underpaid-18-decimals-refuse                   reference REFUSE  his logic allow         (no reason given)  [his file compares amounts as floats and handles USDC with 6 decimals only]
+  outside underpaid-18-decimals-refuse                   reference REFUSE  his logic allow         (no reason given)  [his file compares amounts as floats and handles USDC with 6 decimals only]
   open    proof-rail-payer-unreadable-open               reference OPEN    his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
-  DIFFERS proof-rail-near-miss-payer-refuse              reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
+  outside proof-rail-near-miss-payer-refuse              reference REFUSE  his logic allow         (no reason given)  [not in his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) is described in his message and lives in his production code]
   allowed wrong-token-near-miss-proof-rail-refuse        reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
   allowed short-hash-not-held                            reference OPEN    his logic deny          (settlement_pending_without_transaction)
 ```
@@ -81,3 +85,4 @@ A transfer that belongs to another payment is not in the class where his logic h
 - Not a verification of his production code. The binding by nonce, the binding by payer and the one-hash-one-delivery claim are described in his message and tested here only where his gist has them (the claim, through his EffectStore).
 - Not independent: the adapter, the vectors and this README were written by the same party, and he has not seen the adapter.
 - One run, one date, one version of the gist file (the hash above).
+- The numbers 22, 8 and 6 rest on a script that no automated test runs, because the continuous integration has no Python. A test only checks that this README contains the recorded output.

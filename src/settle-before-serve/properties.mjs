@@ -9,7 +9,9 @@ import { readFileSync } from 'node:fs'
 import { decide } from './decide.mjs'
 import { TWINS } from './twins.mjs'
 
-const N = Number(process.argv.find((a) => a.startsWith('--n='))?.slice(4) || 20000)
+const nArg = process.argv.find((a) => a.startsWith('--n='))
+const N = nArg === undefined ? 20000 : /^\d+$/.test(nArg.slice(4)) ? Number(nArg.slice(4)) : NaN
+if (!Number.isInteger(N) || N < 1) { console.error('--n must be a whole number of at least 1 and written in digits only, for example --n=100000'); process.exit(2) }
 function mulberry32(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 const rnd = mulberry32(20261123)
 const pick = (a) => a[Math.floor(rnd() * a.length)]
@@ -75,6 +77,36 @@ const ref = run(decide)
 const refBad = Object.entries(ref).filter(([, n]) => n)
 console.log('reference violations:', refBad.length ? refBad.map(([k, n]) => `${k}=${n}`).join(' ') : 'none')
 
+// Fail closed: an observation that is not well formed must make decide() throw "invalid observation: <field>", never answer and
+// never deliver. Each defect is planted in a copy of an observation that delivers.
+const vecs = JSON.parse(readFileSync(new URL('../../vectors/settle-before-serve/vectors.json', import.meta.url), 'utf8')).vectors
+const baseObs = () => structuredClone(vecs.find((v) => v.expected.delivers === true).input)
+const DEFECTS = [
+  ['paymentSignature', (o) => { o.paymentSignature = 5 }],
+  ['paymentSignature', (o) => { o.paymentSignature = [] }],
+  ['paymentSignature', (o) => { o.paymentSignature = {} }],
+  ['facilitator', (o) => { delete o.facilitator }],
+  ['facilitator.result', (o) => { o.facilitator.result = 'maybe' }],
+  ['facilitator.result', (o) => { o.facilitator.result = null }],
+  ['facilitator.latencyMs', (o) => { o.facilitator.latencyMs = -1 }],
+  ['facilitator.latencyMs', (o) => { o.facilitator.latencyMs = 'fast' }],
+  ['facilitator.latencyMs', (o) => { o.facilitator.latencyMs = NaN }],
+  ['fallback', (o) => { o.fallback = 'weird' }],
+  ['fallback', (o) => { delete o.fallback }],
+]
+let refused = 0
+for (const [field, plant] of DEFECTS) {
+  const o = baseObs()
+  plant(o)
+  let msg = ''
+  try { decide(o) } catch (e) { msg = String(e.message) }
+  if (msg === 'invalid observation: ' + field) refused++
+  else console.log(`NOT REFUSED: ${field}: ${msg || 'it answered'}`)
+}
+const controlOk = decide(baseObs()).delivers === true
+const invalidBad = refused !== DEFECTS.length || !controlOk
+console.log(`invalid observations: refused ${refused} of ${DEFECTS.length}; the observation they were planted in still delivers: ${controlOk ? 'yes' : 'NO'}`)
+
 const set = JSON.parse(readFileSync(new URL('../../vectors/settle-before-serve/vectors.json', import.meta.url), 'utf8'))
 const asserted = set.vectors.filter((v) => v.asserted !== false)
 const same = (a, b) => ['status', 'delivers', 'callsFacilitator', 'builtBeforeSettle'].every((k) => a[k] === b[k])
@@ -89,4 +121,4 @@ for (const [name, fn] of Object.entries(TWINS)) {
 }
 console.log(`twins: ${Object.keys(TWINS).length}. caught by both ${both}, by properties only ${propsOnly}, by vectors only ${vecOnly}, by neither ${neither}`)
 console.log('properties:'); for (const [k, [t]] of Object.entries(PROPS)) console.log(` ${k} ${t}`)
-process.exit(refBad.length || neither || N < 1 ? 1 : 0)
+process.exit(refBad.length || neither || invalidBad || N < 1 ? 1 : 0)

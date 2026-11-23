@@ -2,7 +2,9 @@
 # Cross-run: lets the decision logic of mitaka7210's runnable gist answer every vector of this family and compares the
 # answers with the reference of this set. Standard library only. No network. Reads only the two paths it is given.
 #
-#   python -I kruisrun.py ../vectors.json path/to/test_settlement_pending_chain_before_delivery.py
+#   python -I kruisrun.py ../vectors.json path/to/test_settlement_pending_chain_before_delivery.py --sha256 <sha256 of that file>
+#
+# This runs the file you give it as Python code. Read it first. With --sha256 the adapter refuses (exit 2) a file with another hash.
 #
 # This is our own adapter. It translates an observation of this set into the inputs of his decide() and translates his verdict
 # back (allow = DELIVER, deny = REFUSE, pending and indeterminate = HOLD). It does not copy his file into this repository.
@@ -13,9 +15,37 @@ import importlib.util
 import json
 import sys
 
-sys.stdout.reconfigure(newline='\n')  # the same bytes on every platform, so that uitvoer.txt can be compared
-vectors_path, gist_path = sys.argv[1], sys.argv[2]
-raw = open(gist_path, 'rb').read()
+USAGE = 'usage: python -I kruisrun.py <vectors.json> <gist file> [--sha256 <hex sha256 of the gist file>]'
+# The same bytes on every platform, so that uitvoer.txt can be compared; a file name outside the console code page must not crash it.
+sys.stdout.reconfigure(newline='\n', encoding='utf-8')
+sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
+
+def fail(message):
+    sys.stderr.write(message + '\n')
+    sys.exit(2)
+
+
+args = sys.argv[1:]
+expected = None
+if '--sha256' in args:
+    at = args.index('--sha256')
+    if at + 1 >= len(args):
+        fail(USAGE)
+    expected = args[at + 1].lower()
+    del args[at:at + 2]
+if len(args) != 2:
+    fail(USAGE)
+vectors_path, gist_path = args
+try:
+    raw = open(gist_path, 'rb').read()
+except OSError as error:
+    fail('cannot read the gist file: %s' % error)
+digest = hashlib.sha256(raw).hexdigest()
+if expected is not None and digest != expected:
+    fail('the gist file has sha256 %s and not %s: it was not run' % (digest, expected))
+if expected is None:
+    sys.stderr.write('WARNING: this runs the file you gave it as Python code. Read it first, or pass --sha256 with the hash of a file you have read.\n')
 spec = importlib.util.spec_from_file_location('gist', gist_path)
 m = importlib.util.module_from_spec(spec)
 sys.modules['gist'] = m  # the file uses dataclasses with postponed annotations, which need the module to be registered
@@ -94,8 +124,8 @@ for v in S['vectors']:
 asserted_rows = [r for r in rows if r[1]]
 count = lambda k: len([r for r in asserted_rows if r[7] == k])
 print('cross-run: the vectors of draft 3 against the decision logic of the gist of mitaka7210')
-print('gist file: %s, %d bytes, sha256 %s' % (gist_path.replace('\\', '/').split('/')[-1], len(raw), hashlib.sha256(raw).hexdigest()))
-print('python: %d.%d.%d, started with -I' % sys.version_info[:3])
+print('gist file: %s, %d bytes, sha256 %s' % (gist_path.replace('\\', '/').split('/')[-1], len(raw), digest))
+print('python: %d.%d.%d, %s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2], 'started with -I' if sys.flags.isolated else 'not started with -I'))
 print('vectors: %d, asserted %d, open %d' % (len(rows), len(asserted_rows), len(rows) - len(asserted_rows)))
 print('asserted vectors, answer of his logic compared with ours:')
 print('  same answer as the reference: %d' % count('same'))
@@ -109,7 +139,7 @@ print('every vector where his answer is not the reference answer:')
 for r in rows:
     if r[7] == 'same':
         continue
-    label = {'within': 'allowed', 'differs': 'DIFFERS', 'open': 'open   '}[r[7]]
+    label = {'within': 'allowed', 'differs': 'outside', 'open': 'open   '}[r[7]]
     why = ''
     if r[7] in ('differs', 'open') and r[0] in WHY:
         why = '  [' + WHY[r[0]] + ']'

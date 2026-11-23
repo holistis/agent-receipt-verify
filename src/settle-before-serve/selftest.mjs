@@ -20,10 +20,15 @@ const fresh = () => {
   for (const f of FILES) { mkdirSync(dirname(join(d, f)), { recursive: true }); copyFileSync(join(ROOT, f), join(d, f)) }
   return d
 }
+// A checkout with core.autocrlf=true has CRLF line ends. The text is searched with LF and written back in the style it was read in.
+const CR = String.fromCharCode(13), LF = String.fromCharCode(10)
 const edit = (d, f, fn) => {
-  const before = readFileSync(join(d, f), 'utf8'), after = fn(before)
+  const raw = readFileSync(join(d, f), 'utf8')
+  const crlf = raw.includes(CR + LF)
+  const before = crlf ? raw.split(CR + LF).join(LF) : raw
+  const after = fn(before)
   if (after === before) throw new Error(`planting did nothing in ${f}: the fault would not be a fault`)
-  writeFileSync(join(d, f), after)
+  writeFileSync(join(d, f), crlf ? after.split(LF).join(CR + LF) : after)
 }
 const vec = (d, fn) => edit(d, VEC, (t) => { const j = JSON.parse(t); fn(j); return JSON.stringify(j, null, 2) })
 const exits = (d, script) => spawnSync(process.execPath, [DIR + script, '--n=2000'], { cwd: d, encoding: 'utf8', timeout: 120000 }).status
@@ -38,6 +43,7 @@ const FAULTS = [
   ['truncate vectors.json', 'run.mjs', (d) => edit(d, VEC, (t) => t.slice(0, Math.floor(t.length / 2)))],
   ['reference delivers on an unparseable header', 'properties.mjs', (d) => edit(d, DIR + 'decide.mjs', (t) => t.replace("return out(relax.unparseableAs402 ? 402 : 400, false, !!relax.facilitatorFirst, false, 'S02')", "return out(200, true, false, false, 'S02')"))],
   ['reference delivers when nothing confirms', 'properties.mjs', (d) => edit(d, DIR + 'decide.mjs', (t) => t.replace("return out(402, false, true, false, 'S05')\n}", "return out(200, true, true, false, 'S05')\n}"))],
+  ['reference no longer refuses an unknown facilitator result', 'properties.mjs', (d) => edit(d, DIR + 'decide.mjs', (t) => t.replace("  if (!['success', 'failed', 'error'].includes(f.result)) invalid('facilitator.result')\n", ''))],
   ['reference builds the data before the settle result is in', 'properties.mjs', (d) => edit(d, DIR + 'decide.mjs', (t) => t.replace("(relax.errorIsSuccess && f === 'error')) return out(200, true, true, false, 'S03')", "(relax.errorIsSuccess && f === 'error')) return out(200, true, true, true, 'S03')"))],
 ]
 

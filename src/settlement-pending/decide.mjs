@@ -1,10 +1,13 @@
 // Reference decision for a seller that holds a named transaction hash and must choose: deliver, hold, refuse or leave open.
 // Pure function over one observation. No network, no clock, no randomness.
+// An observation that is not well formed is never guessed at: decide() throws an error that starts with "invalid observation:" and names the
+// field, so an unknown rail, an unknown claim status, an unknown chain state or a price that is not a string of digits can never end in DELIVER.
+// A missing claims object counts, explicitly, as claims.hash "none".
 //
 // Basis, per rule (see vectors.json for the basis of each case):
 //   spec   x402 v2 specification section 9: settlement_pending is non-terminal and must carry the broadcast hash.
 //   sdk    @x402/core 2.29.0 settleWithPendingRetry: one retry with the same payload, no delivery in between.
-//   field  mitaka7210 (Slack messages of 22 and 23 November 2026; production code of Kristo Intelligence, which his gist names as MIT; runnable gist owned by hristovdimitri2-hub): 425 hold,
+//   field  mitaka7210, in messages in the x402 community Slack and in a runnable gist owned by hristovdimitri2-hub (the licence of the gist is its author's): 425 hold,
 //          the same signed payment sent again with the transaction found by its nonce, a reverted transaction is terminal,
 //          a hash that settled another payment is refused, two payment rails with a different binding each, and a durable
 //          claim so that one hash gives one delivery.
@@ -31,6 +34,36 @@ const lower = (s) => String(s).toLowerCase()
 const out = (outcome, rule) => ({ outcome, secondSettle: false, rule })
 const HASH = /^0x[0-9a-fA-F]{64}$/
 const unreadable = (x) => x === undefined || x === null
+const RECEIPTS = ['absent', 'not_measured', 'shallow', 'deep', 'reverted', 'reverted_shallow']
+const invalid = (field) => { throw new Error('invalid observation: ' + field) }
+const text = (x) => typeof x === 'string' && x.length > 0
+const digits = (x) => typeof x === 'string' && /^\d+$/.test(x)
+
+// Fail closed: check every field the decision reads before reading it. Whether an amount, a hash or a nonce is the right one is decided
+// below; here it is only decided that the observation is something a decision can be taken on at all.
+export function validate(obs) {
+  if (!obs || typeof obs !== 'object') invalid('observation')
+  if (!obs.response || typeof obs.response !== 'object' || typeof obs.response.success !== 'boolean') invalid('response.success')
+  const q = obs.quote
+  if (!q || typeof q !== 'object') invalid('quote')
+  if (!text(q.payTo)) invalid('quote.payTo')
+  if (!digits(q.price)) invalid('quote.price')
+  if (!text(q.asset)) invalid('quote.asset')
+  const p = obs.payment
+  if (!p || typeof p !== 'object' || (p.rail !== 'authorization' && p.rail !== 'proof')) invalid('payment.rail')
+  if (p.rail === 'authorization' && !text(p.nonce)) invalid('payment.nonce')
+  if (p.rail === 'proof' && !text(p.payer)) invalid('payment.payer')
+  if (obs.claims !== undefined && (obs.claims === null || typeof obs.claims !== 'object' || (obs.claims.hash !== 'none' && obs.claims.hash !== 'delivered'))) invalid('claims.hash')
+  if (!obs.chain || typeof obs.chain !== 'object' || !RECEIPTS.includes(obs.chain.receipt)) invalid('chain.receipt')
+  const t = obs.chain.transfer
+  if (t !== null && t !== undefined) {
+    if (typeof t !== 'object') invalid('chain.transfer')
+    if (!text(t.to)) invalid('chain.transfer.to')
+    if (!text(t.token)) invalid('chain.transfer.token')
+    if (!digits(t.amount)) invalid('chain.transfer.amount')
+  }
+  if (obs.retry !== undefined && obs.retry !== null && typeof obs.retry !== 'object') invalid('retry')
+}
 
 // A vector may allow more than one answer (field acceptable): for a transfer that does not belong to this payment a seller
 // may refuse or keep holding, and delivering is wrong. The reference always gives expected.outcome.
@@ -43,6 +76,8 @@ export const decide = (obs) => decideWith(obs, {})
 // relax: skipTo, anyPositive, caseSensitive, floatAmounts, skipNonce, nonceOnProof, skipPayer, skipClaim, skipClaimOnRetry, skipToken, anyString.
 // The reference is decide(), never relaxed.
 export function decideWith(obs, relax) {
+  validate(obs)
+  if (obs.claims === undefined) obs = { ...obs, claims: { hash: 'none' } }
   const r = obs.response
   const isHash = (s) => (relax.anyString ? !!s : typeof s === 'string' && HASH.test(s))
   const pending = r.success === false && r.errorReason === PENDING

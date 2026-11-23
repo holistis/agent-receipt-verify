@@ -7,7 +7,9 @@ import { readFileSync } from 'node:fs'
 import { decide, matches, PENDING } from './decide.mjs'
 import { TWINS } from './twins.mjs'
 
-const N = Number(process.argv.find((a) => a.startsWith('--n='))?.slice(4) || 20000)
+const nArg = process.argv.find((a) => a.startsWith('--n='))
+const N = nArg === undefined ? 20000 : /^\d+$/.test(nArg.slice(4)) ? Number(nArg.slice(4)) : NaN
+if (!Number.isInteger(N) || N < 1) { console.error('--n must be a whole number of at least 1 and written in digits only, for example --n=100000'); process.exit(2) }
 const low = (s) => String(s).toLowerCase()
 const flip = (s) => String(s).replace(/[a-fA-F]/g, (c) => (c === c.toLowerCase() ? c.toUpperCase() : c.toLowerCase()))
 function mulberry32(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
@@ -112,6 +114,50 @@ const ref = run(decide)
 const refBad = Object.entries(ref).filter(([, n]) => n)
 console.log('reference violations:', refBad.length ? refBad.map(([k, n]) => `${k}=${n}`).join(' ') : 'none')
 
+// Fail closed: an observation that is not well formed must make decide() throw "invalid observation: <field>", never answer and
+// never deliver. Each defect is planted in a copy of an observation that delivers.
+const vecs = JSON.parse(readFileSync(new URL('../../vectors/settlement-pending/vectors.json', import.meta.url), 'utf8')).vectors
+const baseOf = (id) => structuredClone(vecs.find((v) => v.id === 'x402-settlement-pending-' + id).input)
+const DEFECTS = [
+  ['claims.hash', 'boolean-lies', (o) => { o.claims = { hash: 'claimed' } }],
+  ['claims.hash', 'boolean-lies', (o) => { o.claims = { hash: 'Delivered' } }],
+  ['claims.hash', 'boolean-lies', (o) => { o.claims = {} }],
+  ['claims.hash', 'boolean-lies', (o) => { o.claims = null }],
+  ['payment.rail', 'boolean-lies', (o) => { o.payment.rail = 'lightning' }],
+  ['payment.rail', 'proof-rail-deliver', (o) => { delete o.payment.rail }],
+  ['quote.price', 'boolean-lies', (o) => { o.quote.price = '' }],
+  ['quote.price', 'boolean-lies', (o) => { o.quote.price = '0x2710' }],
+  ['quote.price', 'boolean-lies', (o) => { o.quote.price = '+10000' }],
+  ['quote.price', 'boolean-lies', (o) => { o.quote.price = '1.5' }],
+  ['quote.price', 'boolean-lies', (o) => { o.quote.price = 10000 }],
+  ['quote.price', 'boolean-lies', (o) => { delete o.quote.price }],
+  ['chain.transfer.amount', 'boolean-lies', (o) => { o.chain.transfer.amount = '' }],
+  ['chain.transfer.amount', 'boolean-lies', (o) => { o.chain.transfer.amount = '1e4' }],
+  ['chain.transfer.amount', 'boolean-lies', (o) => { o.chain.transfer.amount = 10000 }],
+  ['quote.payTo', 'boolean-lies', (o) => { delete o.quote.payTo; delete o.chain.transfer.to }],
+  ['quote.asset', 'boolean-lies', (o) => { delete o.quote.asset; delete o.chain.transfer.token }],
+  ['payment.nonce', 'boolean-lies', (o) => { delete o.payment.nonce; delete o.chain.transfer.nonce }],
+  ['payment.payer', 'proof-rail-deliver', (o) => { delete o.payment.payer; delete o.chain.transfer.from }],
+  ['chain.receipt', 'boolean-lies', (o) => { o.chain.receipt = 'DEEP' }],
+  ['chain.receipt', 'boolean-lies', (o) => { o.chain.receipt = 'weird' }],
+  ['chain.receipt', 'boolean-lies', (o) => { o.chain.receipt = null }],
+  ['response.success', 'boolean-lies', (o) => { o.response.success = 'true' }],
+]
+let refused = 0
+for (const [field, id, plant] of DEFECTS) {
+  const o = baseOf(id)
+  plant(o)
+  let msg = ''
+  try { decide(o) } catch (e) { msg = String(e.message) }
+  if (msg === 'invalid observation: ' + field) refused++
+  else console.log(`NOT REFUSED: ${field} (${id}): ${msg || 'it answered'}`)
+}
+const noClaims = baseOf('boolean-lies')
+delete noClaims.claims
+const controlOk = decide(baseOf('boolean-lies')).outcome === 'DELIVER' && decide(noClaims).outcome === 'DELIVER'
+const invalidBad = refused !== DEFECTS.length || !controlOk
+console.log(`invalid observations: refused ${refused} of ${DEFECTS.length}; a missing claims object counts as none and still delivers: ${controlOk ? 'yes' : 'NO'}`)
+
 const set = JSON.parse(readFileSync(new URL('../../vectors/settlement-pending/vectors.json', import.meta.url), 'utf8'))
 const asserted = set.vectors.filter((v) => v.asserted !== false)
 let both = 0, propsOnly = 0, vecOnly = 0, neither = 0
@@ -125,4 +171,4 @@ for (const [name, fn] of Object.entries(TWINS)) {
 }
 console.log(`twins: ${Object.keys(TWINS).length}. caught by both ${both}, by properties only ${propsOnly}, by vectors only ${vecOnly}, by neither ${neither}`)
 console.log('properties:'); for (const [k, [t]] of Object.entries(PROPS)) console.log(` ${k} ${t}`)
-process.exit(refBad.length || neither || vecOnly || propsOnly ? 1 : 0)
+process.exit(refBad.length || neither || vecOnly || propsOnly || invalidBad ? 1 : 0)

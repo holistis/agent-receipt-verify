@@ -22,10 +22,15 @@ const fresh = () => {
   for (const f of FILES) { mkdirSync(dirname(join(d, f)), { recursive: true }); copyFileSync(join(ROOT, f), join(d, f)) }
   return d
 }
+// A checkout with core.autocrlf=true has CRLF line ends. The text is searched with LF and written back in the style it was read in.
+const CR = String.fromCharCode(13), LF = String.fromCharCode(10)
 const edit = (d, f, fn) => {
-  const before = readFileSync(join(d, f), 'utf8'), after = fn(before)
+  const raw = readFileSync(join(d, f), 'utf8')
+  const crlf = raw.includes(CR + LF)
+  const before = crlf ? raw.split(CR + LF).join(LF) : raw
+  const after = fn(before)
   if (after === before) throw new Error(`planting did nothing in ${f}: the fault would not be a fault`)
-  writeFileSync(join(d, f), after)
+  writeFileSync(join(d, f), crlf ? after.split(LF).join(CR + LF) : after)
 }
 const vec = (d, fn) => edit(d, VEC, (t) => { const j = JSON.parse(t); fn(j); return JSON.stringify(j, null, 2) })
 const without = (d, ...parts) => vec(d, (j) => { j.vectors = j.vectors.filter((v) => !parts.some((p) => v.id.includes(p))) })
@@ -51,6 +56,9 @@ const FAULTS = [
   ['reference compares amounts as numbers', 'properties.mjs', (d) => ref(d, 'relax.floatAmounts ? BigInt(Number(x))', 'true ? BigInt(Number(x))')],
   ['reference asks for a nonce on the proof rail', 'properties.mjs', (d) => ref(d, "obs.payment.rail === 'proof' && !relax.nonceOnProof", 'false')],
   ['reference takes any non-empty string for a hash', 'properties.mjs', (d) => ref(d, "typeof s === 'string' && HASH.test(s)", '!!s')],
+  ['reference no longer refuses an unknown rail', 'properties.mjs', (d) => ref(d, "(p.rail !== 'authorization' && p.rail !== 'proof')", 'false')],
+  ['reference no longer refuses an unknown claim status', 'properties.mjs', (d) => ref(d, "(obs.claims.hash !== 'none' && obs.claims.hash !== 'delivered')", 'false')],
+  ['reference no longer refuses a price that is not a string of digits', 'properties.mjs', (d) => ref(d, "  if (!digits(q.price)) invalid('quote.price')\n", '')],
 ]
 
 let blind = 0
