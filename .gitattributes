@@ -2,3 +2,5 @@
 # sha256sum -c op Windows dezelfde uitkomst als ons eigen commando.
 vectors/**/*.json text eol=lf
 vectors/*/SHA256SUMS text eol=lf
+# The refusal-row files are compared by hash, so they keep LF in a checkout on Windows with core.autocrlf=true.
+interop/refusal-row/* text eol=lf
