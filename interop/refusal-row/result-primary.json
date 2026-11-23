@@ -1,0 +1,837 @@
+{
+  "mode": "primary, registered implementation, vectors as they are",
+  "registered_implementation_sha256": "def9ffa708a9d542d5047efdc2aa1a8385898156d995611bc1b8c89088eff912",
+  "implementation_sha256": "def9ffa708a9d542d5047efdc2aa1a8385898156d995611bc1b8c89088eff912",
+  "vector_files": 76,
+  "vector_manifest_sha256": "b7309cc84c1b866bcc1997a758cbd41e5616bb2e58171d9de0070015e5e0aca8",
+  "accept": 46,
+  "reject": 30,
+  "outcome_same": 42,
+  "reject_code_same": 3,
+  "reject_code_different": 27,
+  "accepted_fields_checked": 18,
+  "accepted_fields_same": 11,
+  "twin_checks": 69,
+  "twin_checks_ok": 11,
+  "divergences": [
+    {
+      "file": "known-answer-accepted-never-submitted.json",
+      "kind": "field evidence_class",
+      "recorded": null
+    },
+    {
+      "file": "known-answer-accepted-never-submitted.json",
+      "kind": "field final",
+      "recorded": true,
+      "ours": false
+    },
+    {
+      "file": "known-answer-accepted-settled.json",
+      "kind": "field evidence_class",
+      "recorded": null
+    },
+    {
+      "file": "known-answer-accepted-settled.json",
+      "kind": "field final",
+      "recorded": true,
+      "ours": false
+    },
+    {
+      "file": "known-answer-authorization-expired-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-authorization-expired-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-authorization-not-yet-valid-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-authorization-not-yet-valid.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-commercial-refusal-auth-executed-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-commercial-refusal-auth-executed.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-could-not-compare-refused.json",
+      "kind": "field final",
+      "recorded": true,
+      "ours": false
+    },
+    {
+      "file": "known-answer-duplicate-payment-refused.json",
+      "kind": "field final",
+      "recorded": true,
+      "ours": false
+    },
+    {
+      "file": "known-answer-eip3009-nonce-spent-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-eip3009-nonce-spent.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-facilitator-timeout-auth-unread-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-facilitator-timeout-auth-unread.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-insufficient-funds-unread-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-insufficient-funds-unread.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-internal-error-no-legs.json",
+      "kind": "field final",
+      "recorded": true,
+      "ours": false
+    },
+    {
+      "file": "known-answer-internal-error-permit-ok-transfer-never-sent-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-internal-error-permit-ok-transfer-never-sent.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-internal-error-transfer-unread-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-internal-error-transfer-unread.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-invalid-signature-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-invalid-signature-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-malformed-payload-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-malformed-payload-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-nonce-spent-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-nonce-spent-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-pending-refusal-not-final-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-pending-refusal-not-final.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-permit2-transfer-reverted-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-permit2-transfer-reverted.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-authorization-expired-executed.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-bad-decision.json",
+      "kind": "code",
+      "recorded": "bad_decision",
+      "ours": "unknown_decision"
+    },
+    {
+      "file": "known-answer-reject-bad-settlement.json",
+      "kind": "code",
+      "recorded": "bad_settlement",
+      "ours": "unknown_settlement"
+    },
+    {
+      "file": "known-answer-reject-internal-error-transfer-executed.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-internal-error-transfer-failed.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-nonce-already-used-not-reached.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-overclaim-on-transfer-leg.json",
+      "kind": "code",
+      "recorded": "not_reproducible",
+      "ours": "evidence_not_reproducible"
+    },
+    {
+      "file": "known-answer-reject-pending-claimed-final.json",
+      "kind": "code",
+      "recorded": "finality_pending_is_not_final",
+      "ours": "pending_must_not_be_final"
+    },
+    {
+      "file": "known-answer-reject-pending-final-other-reason.json",
+      "kind": "code",
+      "recorded": "finality_pending_is_not_final",
+      "ours": "pending_must_not_be_final"
+    },
+    {
+      "file": "known-answer-reject-pending-transfer-not-reached.json",
+      "kind": "code",
+      "recorded": "settlement_contradicts_leg",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-replay-settled-auth-not-reached.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-replay-settled-claimed-not-submitted.json",
+      "kind": "code",
+      "recorded": "settlement_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-risk-policy-after-submission.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-settled-auth-never-ran.json",
+      "kind": "code",
+      "recorded": "settlement_contradicts_leg",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-settled-transfer-not-reached.json",
+      "kind": "code",
+      "recorded": "settlement_contradicts_leg",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-settled-transfer-unknown.json",
+      "kind": "code",
+      "recorded": "settlement_contradicts_leg",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-timeout-transfer-failed.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-transfer-leg-failed-auth-unknown.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-transfer-leg-failed-transfer-not-reached.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-transfer-leg-failed-transfer-unknown.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-transfer-not-observed.json",
+      "kind": "code",
+      "recorded": "leg_not_observed",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-transfer-ran-and-succeeded.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-transfer-submitted-after-auth-failed.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-unknown-leg-status.json",
+      "kind": "code",
+      "recorded": "unknown_leg_status",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-reject-unreviewed-reason-with-legs.json",
+      "kind": "code",
+      "recorded": "unreviewed_reason",
+      "ours": "unknown_reason"
+    },
+    {
+      "file": "known-answer-reject-unreviewed-reason.json",
+      "kind": "code",
+      "recorded": "unreviewed_reason",
+      "ours": "unknown_reason"
+    },
+    {
+      "file": "known-answer-reject-wrong-amount-with-executed-authorization.json",
+      "kind": "code",
+      "recorded": "leg_contradicts_reason",
+      "ours": "malformed_legs"
+    },
+    {
+      "file": "known-answer-replay-settled-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-replay-settled-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-risk-policy-not-reached-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-risk-policy-not-reached.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-wrong-amount-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-wrong-amount-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-wrong-recipient-refused-wrong.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    },
+    {
+      "file": "known-answer-wrong-recipient-refused.json",
+      "kind": "outcome",
+      "recorded": "ACCEPT",
+      "ours": "REJECT malformed_legs"
+    }
+  ],
+  "twin_failures": [
+    {
+      "file": "known-answer-accepted-never-submitted-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": null,
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-accepted-never-submitted-wrong.json",
+      "field": "final",
+      "ours": false,
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-accepted-settled-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": null,
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-accepted-settled-wrong.json",
+      "field": "final",
+      "ours": false,
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-authorization-expired-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "chain_verifiable",
+      "wrongRecords": "client_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-authorization-expired-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-authorization-expired-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-authorization-not-yet-valid-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "chain_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-authorization-not-yet-valid-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-authorization-not-yet-valid-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-commercial-refusal-auth-executed-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "client_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-commercial-refusal-auth-executed-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-commercial-refusal-auth-executed-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-could-not-compare-refused-wrong.json",
+      "field": "final",
+      "ours": false,
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-duplicate-payment-refused-wrong.json",
+      "field": "final",
+      "ours": false,
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-eip3009-nonce-spent-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "chain_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-eip3009-nonce-spent-wrong.json",
+      "field": "settlement",
+      "rightRecords": "settled",
+      "wrongRecords": "settled",
+      "ok": false
+    },
+    {
+      "file": "known-answer-eip3009-nonce-spent-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-facilitator-timeout-auth-unread-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-facilitator-timeout-auth-unread-wrong.json",
+      "field": "settlement",
+      "rightRecords": "unknown",
+      "wrongRecords": "settled",
+      "ok": false
+    },
+    {
+      "file": "known-answer-facilitator-timeout-auth-unread-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-insufficient-funds-unread-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "chain_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-insufficient-funds-unread-wrong.json",
+      "field": "settlement",
+      "rightRecords": "unknown",
+      "wrongRecords": "unknown",
+      "ok": false
+    },
+    {
+      "file": "known-answer-insufficient-funds-unread-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-no-legs-wrong.json",
+      "field": "final",
+      "ours": false,
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-permit-ok-transfer-never-sent-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "chain_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-permit-ok-transfer-never-sent-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-permit-ok-transfer-never-sent-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-transfer-unread-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "chain_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-transfer-unread-wrong.json",
+      "field": "settlement",
+      "rightRecords": "unknown",
+      "wrongRecords": "unknown",
+      "ok": false
+    },
+    {
+      "file": "known-answer-internal-error-transfer-unread-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-invalid-signature-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "client_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-invalid-signature-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-invalid-signature-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-malformed-payload-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "client_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-malformed-payload-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-malformed-payload-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-nonce-spent-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "chain_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-nonce-spent-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-nonce-spent-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-pending-refusal-not-final-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-pending-refusal-not-final-wrong.json",
+      "field": "settlement",
+      "rightRecords": "pending",
+      "wrongRecords": "pending",
+      "ok": false
+    },
+    {
+      "file": "known-answer-pending-refusal-not-final-wrong.json",
+      "field": "final",
+      "rightRecords": false,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-permit2-transfer-reverted-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "chain_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-permit2-transfer-reverted-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-permit2-transfer-reverted-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-replay-settled-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "chain_verifiable",
+      "ok": false
+    },
+    {
+      "file": "known-answer-replay-settled-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "settled",
+      "wrongRecords": "settled",
+      "ok": false
+    },
+    {
+      "file": "known-answer-replay-settled-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-risk-policy-not-reached-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "issuer_asserted",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-risk-policy-not-reached-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "pending",
+      "ok": false
+    },
+    {
+      "file": "known-answer-risk-policy-not-reached-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-wrong-amount-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "client_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-wrong-amount-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-wrong-amount-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    },
+    {
+      "file": "known-answer-wrong-recipient-refused-wrong.json",
+      "field": "evidence_class",
+      "rightRecords": "client_verifiable",
+      "wrongRecords": "issuer_asserted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-wrong-recipient-refused-wrong.json",
+      "field": "settlement",
+      "rightRecords": "not_submitted",
+      "wrongRecords": "not_submitted",
+      "ok": false
+    },
+    {
+      "file": "known-answer-wrong-recipient-refused-wrong.json",
+      "field": "final",
+      "rightRecords": true,
+      "wrongRecords": true,
+      "ok": false
+    }
+  ]
+}
