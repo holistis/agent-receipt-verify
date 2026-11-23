@@ -117,6 +117,8 @@ console.log('fail closed: an observation that is not well formed throws and neve
   weigert('a chain state that nobody knows does not deliver', 'chain.receipt', (o) => { o.chain.receipt = 'DEEP' })
   weigert('a recipient that is missing on both sides does not deliver', 'quote.payTo', (o) => { delete o.quote.payTo; delete o.chain.transfer.to })
   weigert('a nonce that is missing on both sides does not deliver', 'payment.nonce', (o) => { delete o.payment.nonce; delete o.chain.transfer.nonce })
+  weigert('a recipient of only a space does not deliver', 'quote.payTo', (o) => { o.quote.payTo = ' ' })
+  weigert('a retry that is a list does not deliver', 'retry', (o) => { o.retry = [] })
   const zonder = basis('boolean-lies')
   delete zonder.claims
   t('a missing claims object counts as none and still delivers', decide(zonder).outcome === 'DELIVER')

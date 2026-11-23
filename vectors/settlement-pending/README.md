@@ -24,7 +24,7 @@ Each vector is one observation (what the seller received, what the chain shows, 
 - Authorization rail (PAYMENT-SIGNATURE, EIP-3009). The signed payload carries the authorization, so a transfer is bound to this payment by its nonce.
 - Proof rail (X-Payment-Proof). For buyers whose wallet cannot sign EIP-3009 (smart wallets, exchange withdrawals, passkey signers) there is no authorization nonce. The transfer is bound to this payment by its payer, which must equal the address that signed the proof, and by a durable claim of the transaction hash: one hash, one delivery, also after a restart.
 
-X-Payment-Proof, and a bare transaction hash in PAYMENT-SIGNATURE, are the own extension of one deployed seller. They are not defined in x402 v2. They are in this set because a seller that wants to serve buyers who cannot sign has to decide what binds a transfer to a payment there.
+X-Payment-Proof is the own extension of one deployed seller, the one of mitaka7210. It is not defined in x402 v2. It is in this set because a seller that wants to serve buyers who cannot sign has to decide what binds a transfer to a payment there.
 
 A seller that asks for a nonce on the proof rail refuses every smart-wallet buyer; vector proof-rail-deliver and the wrong implementation that does it are there for that reason. On the proof rail the hash comes from the buyer's proof and not from a facilitator response; the observation models both as a named hash, and the decision after that is the same chain check with a different binding.
 

@@ -17,7 +17,7 @@ The hard invariant: paid data is never delivered without a confirmed settlement.
 Choices of this set, not requirements of any specification (basis "rec" in vectors.json):
 
 - A header that cannot be parsed gets 400 and no facilitator call, and a missing header gets 402. 400 against 402 is the choice of this set. It is not part of x402 v2 and not part of the hard rule, and the hard rule is: never deliver data without a confirmed settle. A seller that answers 402 for an unparseable header keeps the hard rule and still fails the vectors of row A, because this set records 400 there; the wrong implementation that always answers 402 is named as exactly that.
-- A bare transaction hash (0x and 64 hex digits) in PAYMENT-SIGNATURE counts as well-formed in this model. x402 v2 does not define a header like that; it is the extension of a deployed seller. A seller that follows the specification and refuses such a header fails vector facilitator-error-fallback-confirms-200, which uses one.
+- A bare transaction hash (0x and 64 hex digits) in PAYMENT-SIGNATURE counts as well-formed in this model. x402 v2 does not define a header like that; it is how the seller of github.com/holistis behaved, the seller that rows A to C of this set come from. A seller that follows the specification and refuses such a header fails vector facilitator-error-fallback-confirms-200, which uses one.
 - A settlement confirmed by the on-chain fallback counts like one confirmed by the facilitator.
 - An empty header value is open. Nothing is delivered either way.
 

@@ -36,7 +36,7 @@ const HASH = /^0x[0-9a-fA-F]{64}$/
 const unreadable = (x) => x === undefined || x === null
 const RECEIPTS = ['absent', 'not_measured', 'shallow', 'deep', 'reverted', 'reverted_shallow']
 const invalid = (field) => { throw new Error('invalid observation: ' + field) }
-const text = (x) => typeof x === 'string' && x.length > 0
+const text = (x) => typeof x === 'string' && x.trim().length > 0
 const digits = (x) => typeof x === 'string' && /^\d+$/.test(x)
 
 // Fail closed: check every field the decision reads before reading it. Whether an amount, a hash or a nonce is the right one is decided
@@ -62,7 +62,7 @@ export function validate(obs) {
     if (!text(t.token)) invalid('chain.transfer.token')
     if (!digits(t.amount)) invalid('chain.transfer.amount')
   }
-  if (obs.retry !== undefined && obs.retry !== null && typeof obs.retry !== 'object') invalid('retry')
+  if (obs.retry !== undefined && obs.retry !== null && (typeof obs.retry !== 'object' || Array.isArray(obs.retry))) invalid('retry')
 }
 
 // A vector may allow more than one answer (field acceptable): for a transfer that does not belong to this payment a seller
