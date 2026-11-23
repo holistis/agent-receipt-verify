@@ -4,7 +4,7 @@
 // Basis, per rule (see vectors.json for the basis of each case):
 //   spec   x402 v2 specification section 9: settlement_pending is non-terminal and must carry the broadcast hash.
 //   sdk    @x402/core 2.29.0 settleWithPendingRetry: one retry with the same payload, no delivery in between.
-//   field  mitaka7210 (production code of Kristo Intelligence, MIT; runnable gist owned by hristovdimitri2-hub): 425 hold,
+//   field  mitaka7210 (Slack messages of 22 and 23 November 2026; production code of Kristo Intelligence, which his gist names as MIT; runnable gist owned by hristovdimitri2-hub): 425 hold,
 //          the same signed payment sent again with the transaction found by its nonce, a reverted transaction is terminal,
 //          a hash that settled another payment is refused, two payment rails with a different binding each, and a durable
 //          claim so that one hash gives one delivery.
@@ -39,8 +39,8 @@ export const matches = (got, expected) =>
 
 export const decide = (obs) => decideWith(obs, {})
 
-// decideWith is only for the wrong twins: each twin relaxes exactly one check, so it breaks exactly one rule.
-// relax: skipTo, anyPositive, caseSensitive, floatAmounts, skipNonce, nonceOnProof, skipPayer, skipClaim, skipToken, anyString.
+// decideWith is only for the wrong twins: each twin makes one mistake (relaxes one check or changes one behaviour). One behaviour can decide several situations, so a twin can show up under more than one rule id.
+// relax: skipTo, anyPositive, caseSensitive, floatAmounts, skipNonce, nonceOnProof, skipPayer, skipClaim, skipClaimOnRetry, skipToken, anyString.
 // The reference is decide(), never relaxed.
 export function decideWith(obs, relax) {
   const r = obs.response
@@ -71,7 +71,7 @@ export function decideWith(obs, relax) {
     if (unreadable(t.nonce)) return out('OPEN', 'R11')
     if (lower(t.nonce) !== lower(obs.payment.nonce)) return out('REFUSE', 'R10')
   }
-  if (!relax.skipClaim && obs.claims && obs.claims.hash === 'delivered') return out('REFUSE', 'R13')
+  if (!relax.skipClaim && !(relax.skipClaimOnRetry && !named) && obs.claims && obs.claims.hash === 'delivered') return out('REFUSE', 'R13')
   return out('DELIVER', 'R12')
 }
 

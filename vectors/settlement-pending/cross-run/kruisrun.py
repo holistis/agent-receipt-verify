@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Cross-run: lets the decision logic of mitaka7210's runnable gist judge every vector of this family and compares the
+# Cross-run: lets the decision logic of mitaka7210's runnable gist answer every vector of this family and compares the
 # answers with the reference of this set. Standard library only. No network. Reads only the two paths it is given.
 #
 #   python -I kruisrun.py ../vectors.json path/to/test_settlement_pending_chain_before_delivery.py

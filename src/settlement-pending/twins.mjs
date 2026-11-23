@@ -1,5 +1,6 @@
-// Wrong twins: plausible seller implementations that each break exactly one rule. A vector set that
-// cannot tell the reference from one of them is not testing that rule.
+// Wrong twins: plausible seller implementations that each make one mistake (relax one check or change one behaviour).
+// One behaviour can decide several situations, so a twin can show up under more than one rule id.
+// A vector set that cannot tell the reference from one of them is not testing that behaviour.
 import { decide, decideWith, PENDING } from './decide.mjs'
 const lower = (s) => String(s).toLowerCase()
 const keep = (d, outcome) => ({ outcome, secondSettle: false, rule: d.rule })
@@ -45,6 +46,7 @@ export const TWINS = {
   'asks for a nonce on the proof rail (refuses every smart-wallet buyer)': (o) => decideWith(o, { nonceOnProof: true }),
   'does not check the payer on the proof rail': (o) => decideWith(o, { skipPayer: true }),
   'does not claim the hash (delivers twice for one transfer)': (o) => decideWith(o, { skipClaim: true }),
+  'does not claim the hash when the same payment comes back and the hash is found by nonce': (o) => decideWith(o, { skipClaimOnRetry: true }),
   'does not check the token': (o) => decideWith(o, { skipToken: true }),
   'takes any non-empty string for a hash': (o) => decideWith(o, { anyString: true }),
 }

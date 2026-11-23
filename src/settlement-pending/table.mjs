@@ -85,10 +85,11 @@ for (const resp of RESP) for (const retry of RETRY) for (const receipt of RECEIP
   }
 }
 
-const vecRule = new Map(), vecKey = new Map()
+const vecRule = new Map(), vecKey = new Map(), vecRuleKeys = new Map()
 for (const v of set.vectors) {
   const d = decide(v.input), k = classOf(v.input), id = v.id.replace('x402-settlement-pending-', '')
   vecRule.set(d.rule, [...(vecRule.get(d.rule) || []), id])
+  vecRuleKeys.set(d.rule, [...(vecRuleKeys.get(d.rule) || []), k])
   vecKey.set(k, [...(vecKey.get(k) || []), id])
 }
 
@@ -109,6 +110,16 @@ for (const id of Object.keys(RULES)) {
   if (n === 0) { bad++; console.log(`${id} | 0 | ${vs.length}  RULE NEVER REACHED BY THE GRID`) }
   else if (vs.length === 0) { bad++; console.log(`${id} | ${n} | 0  NO VECTOR REACHES THIS RULE`) }
   else console.log(`${id} | ${n} | ${vs.length}`)
+}
+// The rules that deliver (R12) or refuse a replay (R13) must be reached on every way a hash is adopted and on every rail the grid
+// has for them: named in the response, or found by the nonce of a payment that comes back; authorization rail or proof rail.
+const pathOf = (key) => { const p = key.split(' | '); return (p[0] === 'pending+hash' ? 'named in the response' : 'found by nonce') + ', ' + p[5] + ' rail' }
+for (const id of ['R12', 'R13']) {
+  const need = [...new Set(rows.filter((r) => r.rule === id).map((r) => pathOf(r.key)))].sort()
+  const have = new Set((vecRuleKeys.get(id) || []).map(pathOf))
+  const missing = need.filter((p) => !have.has(p))
+  if (missing.length) { bad++; console.log(`${id}: NO VECTOR ON THESE WAYS IN: ${missing.join(' | ')}`) }
+  else console.log(`${id}: a vector on every way in (${need.length}): ${need.join(' | ')}`)
 }
 const touched = rows.filter((r) => vecKey.has(r.key)).length
 console.log(`situations touched by a vector: ${touched} of ${rows.length}. This is a map of blind spots, not a score: situations that share a rule are equivalent for the reference.`)

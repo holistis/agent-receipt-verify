@@ -2,13 +2,13 @@
   "schema_version": "0.3.0",
   "protocol": "x402",
   "network": "eip155:84532",
-  "credit": "Cases and field behaviour: mitaka7210 (production code of Kristo Intelligence, MIT; runnable gist owned by hristovdimitri2-hub): the 425 hold, the same signed payment found by its nonce, the reverted case, the hash of another payment, the two payment rails, the payer binding on the proof rail and the durable one-hash-one-delivery claim. Format, wrong implementations, properties and runner: github.com/holistis. Draft 3, 23 November 2026.",
+  "credit": "Cases and field behaviour: mitaka7210 (production code of Kristo Intelligence, which the gist file names as MIT; runnable gist owned by hristovdimitri2-hub, which mitaka7210 describes as MIT in his Slack message of 23 November 2026): the 425 hold, the same signed payment found by its nonce, the reverted case, the hash of another payment, the two payment rails, the payer binding on the proof rail and the durable one-hash-one-delivery claim. Format, wrong implementations, properties and runner: github.com/holistis. Draft 3, 23 November 2026.",
   "supersedes": "Draft 2 (sha256 of vectors.json starts with 64568e264272, kept unchanged in draft-2-frozen/) and draft 1 (starts with fd234a289755, kept unchanged in draft-1-frozen/).",
   "provenance": [
     "x402 v2 specification section 9 (settlement_pending is non-terminal, hash and network must be present)",
     "@x402/core 2.29.0 settleWithPendingRetry (one retry, same payload)",
-    "mitaka7210 messages in the x402 Slack thread (the 425 hold, adoption by nonce, the reverted case, the hash of another payment, the two rails)",
-    "https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf (MIT): runnable decision logic of the chain check, published by mitaka7210"
+    "mitaka7210 messages in the x402 Slack thread: 22 November 2026 (the 425 hold, adoption by nonce, the reverted case, the hash of another payment) and 23 November 2026 (the two rails, the payer binding on the proof rail, the durable one-hash-one-delivery claim)",
+    "https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf : runnable decision logic of the chain check, published by mitaka7210, who calls it \"runnable, standard library only, MIT\" in his Slack message of 23 November 2026; the file itself names MIT only for the production source it was extracted from"
   ],
   "vectors": [
     {
@@ -1399,7 +1399,7 @@
         "spec",
         "field"
       ],
-      "encodes": "Same family: 0x followed by 64 characters that are not all hex digits is no hash. The seller must not adopt it and keep holding on it; leaving it open or refusing are both fine.",
+      "encodes": "Same family: 0x followed by 64 characters that are not all hex digits is no hash. The seller must not hold on it and must not deliver; leaving it open or refusing are both fine.",
       "input": {
         "claims": {
           "hash": "none"
@@ -1661,7 +1661,7 @@
         "spec",
         "field"
       ],
-      "encodes": "A transaction string that is one byte short (62 hex digits) is no hash. The seller must not adopt it and keep holding on it; leaving it open or refusing are both fine.",
+      "encodes": "A transaction string that is one byte short (62 hex digits) is no hash. The seller must not hold on it and must not deliver; leaving it open or refusing are both fine.",
       "input": {
         "claims": {
           "hash": "none"
@@ -1695,6 +1695,100 @@
           "OPEN",
           "REFUSE"
         ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-retry-adopted-by-nonce-hash-already-delivered-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "The same signed payment comes back and the transaction is found by its nonce, but that hash was already delivered. The claim is checked on this path too: refused, never delivered a second time.",
+      "input": {
+        "claims": {
+          "hash": "delivered"
+        },
+        "retry": {
+          "sameAuthorization": true,
+          "hashFromNonceLookup": "0x2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "invalid_transaction_state",
+          "errorMessage": "authorization already used",
+          "transaction": "",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
+            "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-retry-pending-without-named-hash-already-delivered-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "The settle response says pending but names no hash; the same signed payment comes back and the transaction is found by its nonce, and that hash was already delivered. Refused, never delivered a second time.",
+      "input": {
+        "claims": {
+          "hash": "delivered"
+        },
+        "retry": {
+          "sameAuthorization": true,
+          "hashFromNonceLookup": "0x3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
+            "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false
       }
     }
   ]

@@ -12,7 +12,7 @@ import { controleerSuiteMap } from '../src/suite-integriteit.mjs'
 
 const wortel = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const MAP = path.join(wortel, 'vectors', 'settle-before-serve')
-const VINGERAFDRUK = 'd3fd378e0b3969e7ca2de8c24bd60097513ed82f5fb1a9596bc1648f34fbc6bf'
+const VINGERAFDRUK = '5c115ec59c59e4b2f76e0a9e3c10251218492d4916daf72675eefdf01439a51f'
 
 let goed = 0
 let fout = 0
@@ -27,7 +27,7 @@ const draai = (script, ...args) => {
 
 console.log('vectors.json is frozen')
 const tekst = fs.readFileSync(path.join(MAP, 'vectors.json'), 'utf8')
-t('vectors.json is unchanged (d3fd378e0b39)', sha(tekst) === VINGERAFDRUK, sha(tekst).slice(0, 12))
+t('vectors.json is unchanged (5c115ec59c59)', sha(tekst) === VINGERAFDRUK, sha(tekst).slice(0, 12))
 t('CONTROL: a copy with one space added has another hash', sha(tekst + ' ') !== VINGERAFDRUK)
 t('15 vectors, 1 of them open', (() => { const v = JSON.parse(tekst).vectors; return v.length === 15 && v.filter((x) => x.asserted === false).length === 1 })())
 t('every vector id is unique', (() => { const v = JSON.parse(tekst).vectors.map((x) => x.id); return new Set(v).size === v.length })())

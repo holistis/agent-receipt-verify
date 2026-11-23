@@ -33,7 +33,7 @@ export function parseHeader(v) {
 
 export const decide = (obs) => decideWith(obs, {})
 
-// decideWith is only for the wrong twins: each twin relaxes exactly one thing, so it breaks exactly one rule.
+// decideWith is only for the wrong twins: each twin makes one mistake (relaxes one check or changes one behaviour). One behaviour can decide several situations, so a twin can show up under more than one rule id.
 // relax: unparseableIsPaid, facilitatorFirst, unparseableAs402, serveOnTimeout, buildFirst, errorIsSuccess, ignoreFallback, serveOnSettleFailure.
 export function decideWith(obs, relax) {
   const h = parseHeader(obs.paymentSignature)

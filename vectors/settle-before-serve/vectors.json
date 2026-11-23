@@ -2,10 +2,10 @@
   "schema_version": "0.1.0",
   "protocol": "x402",
   "network": "eip155:84532",
-  "credit": "Rows A, B and C come from a production fault in the seller of github.com/holistis (August 2026): the settle result was logged and never acted on, and an unrecognized payment header was treated as paid. The three-row table and the race row (row D) come from slowe89 in the x402 community (reply in modelcontextprotocol/modelcontextprotocol discussion 2436, 15 September 2026). Format, wrong implementations and runner: github.com/holistis. Draft 1, 23 Nov 2026.",
+  "credit": "Rows A, B and C come from a production fault in the seller of github.com/holistis (August 2026): the settle result was logged and never acted on, and an unrecognized payment header was treated as paid. Rows A and B were supplied by github.com/holistis in discussion 2436 of modelcontextprotocol/modelcontextprotocol (4 August and 15 September 2026). slowe89 (reply of 15 September 2026 in the same discussion) mapped them into a table under the name of a settle-before-serve bar, and added the race row (row D: serving before the settle returns). Format, wrong implementations and runner: github.com/holistis. Draft 1, 23 Nov 2026.",
   "provenance": [
     "github.com/holistis comments of 4 August and 15 and 16 September 2026 in modelcontextprotocol/modelcontextprotocol discussion 2436: junk header expects 400, forged signature expects 402, the 400 comes from local parsing before any facilitator call",
-    "slowe89, same discussion, 15 September 2026: the settle-before-serve table (reject unparseable, reject failed settle, await the settle object before building the response) and the race cell",
+    "slowe89, same discussion, 15 September 2026: a table that maps the two cases above (the rows that github.com/holistis had supplied) and the race cell, serving before the settle returns, under the name of a settle-before-serve bar (reject unparseable, reject failed settle, await the settle object before building the response)",
     "The signature bytes in the headers are placeholders. What the facilitator and the fallback return is given in the observation, it is not computed."
   ],
   "vectors": [

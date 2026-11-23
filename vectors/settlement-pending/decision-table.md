@@ -18,7 +18,7 @@ Binding is the authorization nonce on the authorization rail and the payer addre
 - R10: transfer to us for enough, but it belongs to another payment (other nonce on the authorization rail, other payer on the proof rail): refuse or keep holding, never deliver. Vectors: old-payment-of-ours-refuse, old-payment-overpaid-refuse, proof-rail-other-payer-refuse, proof-rail-near-miss-payer-refuse
 - R11: authorization rail: transfer fine but its nonce cannot be read, so it cannot be bound to this payment: open. Vectors: transfer-nonce-unreadable-open
 - R12: confirmed, in the quoted token, to us, enough, bound to this payment and not delivered before: deliver. Vectors: boolean-lies, overpaid-deliver, address-case-deliver, match-on-code-not-message, retry-adopted-by-nonce-deliver, address-case-reverse-deliver, exact-large-amount-deliver, proof-rail-deliver
-- R13: this hash was already delivered (durable claim): refuse, never a second delivery. Vectors: proof-rail-hash-already-delivered-refuse, authorization-hash-already-delivered-refuse
+- R13: this hash was already delivered (durable claim): refuse, never a second delivery. Vectors: proof-rail-hash-already-delivered-refuse, authorization-hash-already-delivered-refuse, retry-adopted-by-nonce-hash-already-delivered-refuse, retry-pending-without-named-hash-already-delivered-refuse
 - R14: transfer is in another token than the quote: refuse or keep holding, never deliver. Vectors: wrong-token-refuse, wrong-token-near-miss-proof-rail-refuse
 - R15: proof rail: transfer fine but its payer cannot be read, so it cannot be bound to this payment: open. Vectors: proof-rail-payer-unreadable-open
 
@@ -252,7 +252,7 @@ Binding is the authorization nonce on the authorization rail and the payer addre
 | pending-without-hash | same-payment-again | deep | exact | this-payment | authorization | none | DELIVER | R12 |  |
 | pending-without-hash | same-payment-again | deep | exact | other-payment | authorization | none | REFUSE | R10 |  |
 | pending-without-hash | same-payment-again | deep | exact | unreadable | authorization | none | OPEN | R11 |  |
-| pending-without-hash | same-payment-again | deep | exact | this-payment | authorization | delivered | REFUSE | R13 |  |
+| pending-without-hash | same-payment-again | deep | exact | this-payment | authorization | delivered | REFUSE | R13 | retry-pending-without-named-hash-already-delivered-refuse |
 | pending-without-hash | same-payment-again | deep | exact-other-case | this-payment | authorization | none | DELIVER | R12 |  |
 | pending-without-hash | same-payment-again | deep | exact-other-case | other-payment | authorization | none | REFUSE | R10 |  |
 | pending-without-hash | same-payment-again | deep | exact-other-case | unreadable | authorization | none | OPEN | R11 |  |
@@ -299,7 +299,7 @@ Binding is the authorization nonce on the authorization rail and the payer addre
 | other-error | same-payment-again | deep | exact | this-payment | authorization | none | DELIVER | R12 | retry-adopted-by-nonce-deliver |
 | other-error | same-payment-again | deep | exact | other-payment | authorization | none | REFUSE | R10 |  |
 | other-error | same-payment-again | deep | exact | unreadable | authorization | none | OPEN | R11 |  |
-| other-error | same-payment-again | deep | exact | this-payment | authorization | delivered | REFUSE | R13 |  |
+| other-error | same-payment-again | deep | exact | this-payment | authorization | delivered | REFUSE | R13 | retry-adopted-by-nonce-hash-already-delivered-refuse |
 | other-error | same-payment-again | deep | exact-other-case | this-payment | authorization | none | DELIVER | R12 |  |
 | other-error | same-payment-again | deep | exact-other-case | other-payment | authorization | none | REFUSE | R10 |  |
 | other-error | same-payment-again | deep | exact-other-case | unreadable | authorization | none | OPEN | R11 |  |

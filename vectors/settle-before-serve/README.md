@@ -10,7 +10,7 @@ A paid endpoint receives a request with a PAYMENT-SIGNATURE header, asks a facil
 
 ## The hard invariant and the choices
 
-The hard invariant: paid data is never delivered without a confirmed settlement. Every wrong implementation in src/settle-before-serve/twins.mjs breaks it or breaks one of the rules below.
+The hard invariant: paid data is never delivered without a confirmed settlement. Every wrong implementation in src/settle-before-serve/twins.mjs makes a mistake against it or against one of the rules below.
 
 Choices of this set, not requirements of any specification (basis "rec" in vectors.json):
 
@@ -34,7 +34,7 @@ Choices of this set, not requirements of any specification (basis "rec" in vecto
 
 Rows A, B and C come from a production fault in the seller of github.com/holistis (August 2026): the settle result was logged and never acted on, and an unrecognized payment header was treated as though payment had succeeded. Both were fixed. The request was a 400 for the junk header and a 402 for the forged signature, with the 400 coming from local parsing before any facilitator call.
 
-The table of three rows (reject the unparseable, reject the failed settle, await the settle object before building the response) and the race row come from slowe89 in the x402 community, in a reply to the cases above in modelcontextprotocol/modelcontextprotocol discussion 2436 (15 September 2026). That table is one reply in a thread. It is not a published matrix, and nothing here claims that the discussion adopted it.
+Rows A and B are the two cases that github.com/holistis supplied in that discussion (4 August and 15 September 2026). slowe89 mapped them into a table in a reply of 15 September 2026 under the name of a settle-before-serve bar (reject the unparseable, reject the failed settle, await the settle object before building the response), and added the race row (row D, serving before the settle returns); the bar and row D are his. That table is one reply in a thread. It is not a published matrix, and nothing here claims that the discussion adopted it.
 
 ## How to run
 

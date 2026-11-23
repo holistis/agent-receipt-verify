@@ -1,5 +1,6 @@
-// Wrong twins: plausible seller implementations that each break exactly one rule. A vector set that
-// cannot tell the reference from one of them is not testing that rule.
+// Wrong twins: plausible seller implementations that each make one mistake (relax one check or change one behaviour).
+// One behaviour can decide several situations, so a twin can show up under more than one rule id.
+// A vector set that cannot tell the reference from one of them is not testing that behaviour.
 // Cite as: github.com/holistis/agent-receipt-verify, vectors/settle-before-serve, 2026-11-23.
 import { decideWith } from './decide.mjs'
 export const TWINS = {
