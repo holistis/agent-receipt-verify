@@ -37,7 +37,7 @@ Choices of this set, not requirements of any specification (basis "rec" in vecto
 
 Rows A, B and C come from a production fault in the seller of github.com/holistis (August 2026): the settle result was logged and never acted on, and an unrecognized payment header was treated as though payment had succeeded. Both were fixed. The request was a 400 for the junk header and a 402 for the forged signature, with the 400 coming from local parsing before any facilitator call.
 
-Rows A and B are the two cases that github.com/holistis supplied in that discussion (4 August and 15 September 2026). slowe89 mapped them into a table in a reply of 15 September 2026 under the name of a settle-before-serve bar (reject the unparseable, reject the failed settle, await the settle object before building the response), and added the race row (row D, serving before the settle returns); the bar and row D are his. That table is one reply in a thread. It is not a published matrix, and nothing here claims that the discussion adopted it.
+Rows A and B are the two cases that github.com/holistis supplied in discussion 2436 of modelcontextprotocol/modelcontextprotocol (https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2436) on 4 August and 15 September 2026. slowe89 mapped them into a table in a reply of 15 September 2026 under the name of a settle-before-serve bar (reject the unparseable, reject the failed settle, await the settle object before building the response), and added the race row (row D, serving before the settle returns); the bar and row D are his. That table is one reply in a thread. It is not a published matrix, and nothing here claims that the discussion adopted it.
 
 ## What the basis field means
 
