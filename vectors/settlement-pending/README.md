@@ -1,38 +1,53 @@
-# x402 settlement_pending: decision vectors for a seller (draft 2)
+# x402 settlement_pending: decision vectors for a seller (draft 3)
 
 Cite as: github.com/holistis/agent-receipt-verify, vectors/settlement-pending, 2026-11-23.
 
-Status: draft 2. The fingerprint of vectors.json is 64568e264272 (first 12 characters of its sha256). Draft 1 had the fingerprint fd234a289755 and is kept unchanged in draft-1-frozen/ with its own SHA256SUMS, so that anyone who noted that number can check it. The credit line inside vectors.json says "nothing published" because it was written on 22 November 2026, before this directory existed; the file is kept byte for byte so that the fingerprint stays valid.
+Status: draft 3. The fingerprint of vectors.json is e59fd5017b32 (first 12 characters of its sha256).
+
+This set does not say who retries. Every vector starts after the seller holds a named transaction hash, from a settle response or from a buyer's proof. Whether the seller retries the settle, or answers 425 and lets the buyer retry the request, is not encoded, because a reader will otherwise assume one of the two. One rule is a field rule and not a specification rule: when the same signed payment comes back, the transaction is found by its nonce and the payment is not settled again.
+
+Two earlier drafts are kept unchanged next to this one, each with its own SHA256SUMS, so that anyone who noted their numbers can still check them:
+
+- draft-2-frozen/ has the fingerprint 64568e264272
+- draft-1-frozen/ has the fingerprint fd234a289755
 
 ## What this is
 
 A seller that asks a facilitator to settle a payment can get back "settlement_pending": the transaction was broadcast and may still confirm. The x402 v2 specification (section 9) says this is not terminal and that the broadcast hash must be present. It does not say what the seller owes the payer in the meantime. Two open pull requests in the x402 repo (3437 and 3545) ask exactly that.
 
-Each vector is one observation (what the seller received, what the chain shows) and the answer a careful seller gives: DELIVER, HOLD or REFUSE. A case that nobody has settled is recorded as OPEN and is not asserted.
+Each vector is one observation (what the seller received, what the chain shows, which rail paid, whether the hash was already delivered) and the answer a careful seller gives: DELIVER, HOLD or REFUSE. A case that nobody has settled is recorded as OPEN and is not asserted.
 
-## What changed from draft 1
+## Two rails, because the evidence differs
 
-Draft 1 had 17 vectors and 12 wrong implementations (not republished here as a family; only its vectors.json is kept, frozen). A message from mitaka7210 on 22 November 2026 showed two gaps in it, both measured here:
+- Authorization rail (PAYMENT-SIGNATURE, EIP-3009). The signed payload carries the authorization, so a transfer is bound to this payment by its nonce.
+- Proof rail (X-Payment-Proof). For buyers whose wallet cannot sign EIP-3009 (smart wallets, exchange withdrawals, passkey signers) there is no authorization nonce. The transfer is bound to this payment by its payer, which must equal the address that signed the proof, and by a durable claim of the transaction hash: one hash, one delivery, also after a restart.
 
-1. A transaction that was mined and reverted is terminal and must be refused. The reference of draft 1 knew no such state and would have held it.
-2. A hash that names a real, confirmed transfer to the seller for the right amount can still belong to another payment. Checking recipient and amount only, as draft 1 did, would deliver. Draft 2 also requires that the transfer carries the authorization nonce of this payment.
+A seller that asks for a nonce on the proof rail refuses every smart-wallet buyer; vector proof-rail-deliver and the wrong implementation that does it are there for that reason. On the proof rail the hash comes from the buyer's proof and not from a facilitator response; the observation models both as a named hash, and the decision after that is the same chain check with a different binding.
 
-Draft 2 has 26 vectors (3 open) and 15 wrong implementations.
+## What changed from draft 2
+
+Two things, both found by running a second implementation over the same text (see cross-run/):
+
+1. The binding differs per rail (above). Draft 2 knew only the nonce, and so would have left every proof-rail buyer open.
+2. Several vectors now allow more than one answer (field acceptable in expected). For a transfer that is to someone else, in another token, too small, or that belongs to another payment, the reference refuses, and a seller that keeps holding is also fine. Delivering is wrong. The two implementations that were compared differ exactly here (the reference refuses, the deployed seller holds), and the specification does not decide it, so asserting one would claim more than is known. The reference always gives expected.outcome; a vector can never allow a delivery that the reference does not make (run.mjs fails on that).
+
+New in draft 3: rules R13 (a hash that was already delivered is refused), R14 (another token than the quote), R15 (proof rail with an unreadable payer, open); a transaction string that is not 0x and 64 hex digits is no hash and is treated as missing (R03); 13 new vectors; 5 new wrong implementations (nonce asked on the proof rail, payer not checked, hash not claimed, token not checked, any non-empty string taken for a hash).
+
+Draft 2 had 26 vectors (3 open) and 15 wrong implementations. Draft 1 had 17 vectors (1 open) and 12.
 
 ## The cases and where they come from
 
-- 425 hold, the same signed payment sent again, the transaction found by its nonce: mitaka7210 / kristo-intelligence-6 (MIT), field behaviour of a deployed seller.
-- A hash that settled another payment, and a reverted transaction as a terminal refusal: mitaka7210, same source.
-- The hold while the chain has not confirmed, the transfer checks and the number boundaries (one unit short, amounts above 2^53, address letter case): this set, recommendations and not requirements of the specification. The basis of each vector is listed in vectors.json (spec, sdk, field, rec).
+- 425 hold, the same signed payment sent again, the transaction found by its nonce; a reverted transaction as a terminal refusal; a hash that settled another payment; the two rails with their own binding; the durable claim: mitaka7210 (production code of Kristo Intelligence, MIT; runnable gist owned by hristovdimitri2-hub), field behaviour of a deployed seller.
+- The hold while the chain has not confirmed, the transfer checks and the number boundaries (one unit short, amounts above 2^53, 18 decimals, address letter case, near-miss addresses): this set, recommendations and not requirements of the specification. The basis of each vector is listed in vectors.json (spec, sdk, field, rec).
 
 ## Assumptions and open cases
 
-- A plain success without a named hash is delivered at face value. The facilitator is trusted for that path. Nothing here tests a facilitator that lies about success.
-- Pending without any hash (rule R03): open. Pull request 3437 would hold, one deployed seller refuses today. The specification does not decide it, so this set does not either.
-- Reverted but only a few blocks deep (R05): open. A reorganisation could still change the result.
-- Transfer fine, but its nonce cannot be read from the transaction (R11): open.
+- A plain success without a named hash is delivered at face value (rule R01). The facilitator is trusted for that path. One deployed seller verifies the chain on success as well; this set does not require that. Nothing here tests a facilitator that lies about success.
+- Pending without a usable hash (R03, including a string that is not a hash): open. Pull request 3437 would hold, one deployed seller refuses. The specification does not decide it, so this set does not either. Two vectors for a malformed hash assert only that the seller does not adopt it and keep holding on it.
+- Reverted but only a few blocks deep (R05): open. A reorganisation could still change the result. One deployed seller refuses at any depth.
+- Authorization rail with a nonce that cannot be read (R11) and proof rail with a payer that cannot be read (R15): open.
 - The nonce is read from the same transaction, for example from the AuthorizationUsed event of an EIP-3009 token. That is not checked here against a live token.
-- Who retries the settle is not encoded. Every vector starts after the seller received a settle response. One rule is a field rule and not a specification rule: when the same signed payment comes back, the seller finds the transaction by its nonce and does not settle again.
+- Recovery of a lost response (the effect ran, the buyer never got the answer) is outside this set. A deployed seller handles it with a cached result; here a hash that was delivered is simply refused.
 
 ## Known deviation
 
@@ -42,22 +57,23 @@ mitaka7210 reported in the x402 Slack thread that their seller delivers after 8 
 
     node src/settlement-pending/run.mjs                the reference against all vectors, then every wrong implementation
     node src/settlement-pending/table.mjs --check      the decision table; fails if a rule has no vector or decision-table.md is out of date (--write regenerates it)
-    node src/settlement-pending/properties.mjs         11 properties over 20000 seeded random situations (--n=100000 for more)
-    node src/settlement-pending/selftest.mjs          plants 9 faults and checks that the three scripts above notice them
+    node src/settlement-pending/properties.mjs         12 properties over 20000 seeded random situations (--n=100000 for more)
+    node src/settlement-pending/selftest.mjs          plants 15 faults and checks that the three scripts above notice them
     npm run settlement-pending                         all of the above in one go; npm test runs it as well
 
-Tested with Node 24. No dependencies, no network.
+Tested with Node 24. No dependencies, no network. The cross-run needs Python 3.12 and a copy of the gist file, and is not part of npm test: see cross-run/README.md.
 
-## What was measured (22 November 2026)
+## What was measured (23 November 2026)
 
-- 26 vectors, 23 asserted, 3 open. The reference answers all 23 as expected.
-- 15 wrong implementations, all caught by the vectors (13 by 2 or more vectors, 2 by one vector each: reverted treated as pending, amounts compared as floating point).
-- The same 15 are also caught by the properties, which do not use the vectors.
-- The decision table has 196 situations and 12 rules. Every rule is reached by at least one vector. Only 20 of the 196 situations are hit by a vector. Situations that share a rule are equivalent for the reference, so this is a map of blind spots and not a score.
-- The self test plants 9 faults (removed vector, changed answer, empty list, truncated file, three faults in the reference). All 9 are caught.
+- 39 vectors, 34 asserted, 5 open, 14 of them allowing more than one answer. The reference answers all 39 as expected.
+- 20 wrong implementations, all caught by the vectors, none resting on a single vector. The same 20 are also caught by the properties, which do not use the vectors.
+- The decision table has 284 situations and 15 rules. Every rule is reached by at least one vector. Only 30 of the 284 situations are hit by a vector. Situations that share a rule are equivalent for the reference, so this is a map of blind spots and not a score.
+- The self test plants 15 faults (removed vector, changed answer, an answer widened to allow a delivery, empty list, truncated file, and eight faults in the reference: nonce binding, payer binding, claim, token, reverted, amounts as numbers, nonce asked on the proof rail, hash taken from any string). All 15 are caught.
+- The cross-run (cross-run/README.md): 34 asserted vectors judged by the decision logic of the gist of mitaka7210: 20 get the same answer, 8 get a different answer that the vector allows, 6 get a delivery that the vector does not allow, all 6 about things that his file does not contain (the binding of a transfer to a payment, and float amounts). 5 open vectors, nothing asserted.
 
 ## What this does not show
 
-- It was written and checked by one party. It is not an independent verification. The port into this repository changed no vector and no number.
-- The grid of situations and the properties are a model made by the same authors. A situation that is not in the model is not covered. Running other implementations over the same vectors is how that gets tested, and nobody has done it yet.
-- The nonce binding and the amounts are not checked against a live token or live transactions.
+- It was written and checked by one party. The cross-run is one run of one adapter that we wrote; it is not an independent verification, and it is not a verification of the production code of the seller whose gist was used.
+- The grid of situations and the properties are a model made by the same authors. A situation that is not in the model is not covered.
+- The nonce binding, the payer binding and the amounts are not checked against a live token or live transactions.
+- The set tests the decision after a hash is named. It does not test the facilitator, the chain reader, or what a seller does after delivering.

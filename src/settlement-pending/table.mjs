@@ -12,53 +12,72 @@ const set = JSON.parse(readFileSync(new URL('../../vectors/settlement-pending/ve
 const low = (s) => String(s).toLowerCase()
 const LF = String.fromCharCode(10)
 const CRLF = String.fromCharCode(13, 10)
+const HASH = /^0x[0-9a-fA-F]{64}$/
 const PAYTO = '0xAbCdEf0123456789aBcDeF0123456789AbCdEf01'
+const ASSET = '0x036CbD53842c5426634e7929541eC2318f3dCF7e', OTHER_TOKEN = '0x00000000000000000000000000000000000000d4'
+const PAYER = '0x00000000000000000000000000000000000000c3', OTHER_PAYER = '0x00000000000000000000000000000000000000e5'
 const N1 = '0x' + 'a1'.repeat(32), N2 = '0x' + 'b2'.repeat(32), H = '0x' + '1'.repeat(64), H2 = '0x' + '2'.repeat(64)
 
-const RESP = ['success', 'pending+hash', 'pending-without-hash', 'other-error']
+const RESP = ['success', 'pending+hash', 'pending-malformed-hash', 'pending-without-hash', 'other-error']
 const RETRY = ['none', 'same-payment-again']
 const RECEIPT = ['absent', 'not_measured', 'shallow', 'deep', 'reverted', 'reverted_shallow']
-const TRANS = ['none', 'wrong-recipient', 'too-little', 'exact', 'exact-other-case', 'too-much']
-const NONCE = ['this-payment', 'other-payment', 'unreadable']
+const TRANS = ['none', 'wrong-recipient', 'wrong-token', 'too-little', 'exact', 'exact-other-case', 'too-much']
+const BIND = ['this-payment', 'other-payment', 'unreadable']
+const RAIL = ['authorization', 'proof']
+const CLAIM = ['none', 'delivered']
 
 const classOf = (o) => {
   const r = o.response, t = o.chain.transfer, q = o.quote
-  const resp = r.success === true ? 'success' : r.errorReason === 'settlement_pending' ? (r.transaction ? 'pending+hash' : 'pending-without-hash') : 'other-error'
+  const resp = r.success === true ? 'success' : r.errorReason === 'settlement_pending' ? (!r.transaction ? 'pending-without-hash' : HASH.test(r.transaction) ? 'pending+hash' : 'pending-malformed-hash') : 'other-error'
   const retry = o.retry ? 'same-payment-again' : 'none'
-  let tr = 'none', nc = '-'
+  let tr = 'none', bind = '-'
   if (t) {
-    tr = low(t.to) !== low(q.payTo) ? 'wrong-recipient' : BigInt(t.amount) < BigInt(q.price) ? 'too-little' : BigInt(t.amount) > BigInt(q.price) ? 'too-much' : t.to !== q.payTo ? 'exact-other-case' : 'exact'
-    nc = t.nonce === undefined || t.nonce === null ? 'unreadable' : low(t.nonce) === low(o.payment.nonce) ? 'this-payment' : 'other-payment'
+    tr = low(t.token) !== low(q.asset) ? 'wrong-token' : low(t.to) !== low(q.payTo) ? 'wrong-recipient' : BigInt(t.amount) < BigInt(q.price) ? 'too-little' : BigInt(t.amount) > BigInt(q.price) ? 'too-much' : t.to !== q.payTo ? 'exact-other-case' : 'exact'
+    const proof = o.payment.rail === 'proof'
+    const seen = proof ? t.from : t.nonce, want = proof ? o.payment.payer : o.payment.nonce
+    bind = seen === undefined || seen === null ? 'unreadable' : low(seen) === low(want) ? 'this-payment' : 'other-payment'
   }
-  return [resp, retry, o.chain.receipt, tr, nc].join(' | ')
+  return [resp, retry, o.chain.receipt, tr, bind, o.payment.rail, o.claims.hash].join(' | ')
 }
 
-const feasible = (resp, retry, receipt, tr) => {
+// Which combinations exist at all. A chain that shows nothing has no transfer; a response without a usable hash and without
+// a retry has no chain to look at; the proof rail has no facilitator response and no retry; a claim only matters once
+// everything else would deliver. A plain success is delivered at face value (rule R01), so the chain is only sampled there.
+const feasible = (resp, retry, receipt, tr, rail, claim) => {
+  const adopt = resp === 'pending+hash' || retry === 'same-payment-again'
   if (['absent', 'not_measured', 'reverted', 'reverted_shallow'].includes(receipt) && tr !== 'none') return false
-  if ((resp === 'pending-without-hash' || resp === 'other-error') && retry === 'none' && !['absent', 'not_measured'].includes(receipt)) return false
-  // A plain success is delivered at face value (rule R01), so the chain is only sampled, not enumerated.
+  if (resp === 'pending-malformed-hash' && retry !== 'none') return false
+  if (!adopt && ['pending-malformed-hash', 'pending-without-hash', 'other-error'].includes(resp) && !['absent', 'not_measured'].includes(receipt)) return false
   if (resp === 'success' && retry === 'none' && !(tr === 'none' || tr === 'exact')) return false
+  if (rail === 'proof' && !(resp === 'pending+hash' && retry === 'none')) return false
+  if (claim === 'delivered' && !(adopt && receipt === 'deep' && ['exact', 'exact-other-case', 'too-much'].includes(tr))) return false
   return true
 }
 
-const build = (resp, retry, receipt, tr, nc) => {
+const build = (resp, retry, receipt, tr, bind, rail, claim) => {
   const response = resp === 'success'
     ? { success: true, errorReason: null, errorMessage: null, transaction: H, network: 'eip155:84532' }
     : resp === 'other-error'
       ? { success: false, errorReason: 'invalid_transaction_state', errorMessage: 'authorization already used', transaction: '', network: 'eip155:84532' }
-      : { success: false, errorReason: 'settlement_pending', errorMessage: 'Receipt not found before timeout', transaction: resp === 'pending+hash' ? H : '', network: 'eip155:84532' }
+      : { success: false, errorReason: 'settlement_pending', errorMessage: 'Receipt not found before timeout', transaction: resp === 'pending+hash' ? H : resp === 'pending-malformed-hash' ? 'not-a-hash' : '', network: 'eip155:84532' }
   const to = tr === 'wrong-recipient' ? '0x' + '2'.repeat(40) : tr === 'exact-other-case' ? PAYTO.toLowerCase() : PAYTO
   const amount = tr === 'too-little' ? '9999' : tr === 'too-much' ? '10001' : '10000'
-  const nonce = nc === 'this-payment' ? N1 : nc === 'other-payment' ? N2 : undefined
-  const transfer = tr === 'none' ? null : { to, amount, ...(nonce ? { nonce } : {}) }
-  return { quote: { payTo: PAYTO, price: '10000' }, payment: { nonce: N1 }, response, chain: { receipt, transfer }, retry: retry === 'none' ? null : { sameAuthorization: true, hashFromNonceLookup: H2 } }
+  const proof = rail === 'proof'
+  const seen = proof ? (bind === 'this-payment' ? PAYER : bind === 'other-payment' ? OTHER_PAYER : undefined) : (bind === 'this-payment' ? N1 : bind === 'other-payment' ? N2 : undefined)
+  const transfer = tr === 'none' ? null : { to, amount, token: tr === 'wrong-token' ? OTHER_TOKEN : ASSET, ...(seen ? (proof ? { from: seen } : { nonce: seen }) : {}) }
+  return {
+    quote: { payTo: PAYTO, price: '10000', asset: ASSET }, payment: proof ? { rail, payer: PAYER } : { rail, nonce: N1 }, response,
+    chain: { receipt, transfer }, retry: retry === 'none' ? null : { sameAuthorization: true, hashFromNonceLookup: H2 }, claims: { hash: claim },
+  }
 }
 
 const rows = []
-for (const resp of RESP) for (const retry of RETRY) for (const receipt of RECEIPT) for (const tr of TRANS) {
-  if (!feasible(resp, retry, receipt, tr)) continue
-  for (const nc of tr === 'none' ? ['-'] : NONCE) {
-    const obs = build(resp, retry, receipt, tr, nc)
+for (const resp of RESP) for (const retry of RETRY) for (const receipt of RECEIPT) for (const tr of TRANS) for (const rail of RAIL) for (const claim of CLAIM) {
+  if (!feasible(resp, retry, receipt, tr, rail, claim)) continue
+  const adopt = resp === 'pending+hash' || retry === 'same-payment-again'
+  for (const bind of tr === 'none' ? ['-'] : adopt ? BIND : ['this-payment']) {
+    if (claim === 'delivered' && bind !== 'this-payment') continue
+    const obs = build(resp, retry, receipt, tr, bind, rail, claim)
     const key = classOf(obs)
     let d
     try { d = decide(obs) } catch (e) { d = { outcome: 'THROWS ' + e.message, rule: '??' } }
@@ -76,7 +95,9 @@ for (const v of set.vectors) {
 let bad = 0
 const throwing = rows.filter((r) => r.outcome.startsWith('THROWS'))
 if (throwing.length) { bad++; console.log('REFERENCE THROWS on', throwing.length, 'situations, first:', throwing[0].key, throwing[0].outcome) }
-const gridKeys = new Set(rows.map((r) => r.key))
+const keys = rows.map((r) => r.key)
+if (new Set(keys).size !== keys.length) { bad++; console.log('the grid lists the same situation twice') }
+const gridKeys = new Set(keys)
 const outside = [...vecKey.keys()].filter((k) => !gridKeys.has(k))
 if (outside.length) { bad++; console.log('vectors outside the grid (the grid is incomplete):', outside) }
 
@@ -95,7 +116,8 @@ console.log(`situations touched by a vector: ${touched} of ${rows.length}. This 
 if (process.argv.includes('--write') || process.argv.includes('--check')) {
   const short = (a) => a.map((x) => x).join(', ')
   const lines = ['# Decision table (generated by src/settlement-pending/table.mjs --write, do not edit)', '',
-    'Columns: response | same payment again | chain state | transfer | nonce. Vectors listed are those whose situation matches exactly.', '',
+    'Columns: response | same payment again | chain state | transfer | binding to this payment | rail | claim. Vectors listed are those whose situation matches exactly.', '',
+    'Binding is the authorization nonce on the authorization rail and the payer address on the proof rail. A claim is a durable record that the hash was already delivered.', '',
     '## Rules', '', ...Object.entries(RULES).map(([id, t]) => `- ${id}: ${t}. Vectors: ${short(vecRule.get(id) || []) || 'none'}`), '',
     '## Situations', '', '| situation | answer | rule | vectors |', '|---|---|---|---|',
     ...rows.map((r) => `| ${r.key} | ${r.outcome} | ${r.rule} | ${short(vecKey.get(r.key) || [])} |`), '']

@@ -16,7 +16,8 @@ export const TWINS = {
   },
   'adopts the hash and delivers without looking at the chain': (o) => {
     const d = decide(o)
-    return d.outcome === 'HOLD' || d.outcome === 'REFUSE' ? (o.response.transaction || o.retry?.hashFromNonceLookup ? keep(d, 'DELIVER') : d) : d
+    const hash = (s) => typeof s === 'string' && /^0x[0-9a-fA-F]{64}$/.test(s)
+    return d.outcome === 'HOLD' || d.outcome === 'REFUSE' ? (hash(o.response.transaction) || hash(o.retry?.hashFromNonceLookup) ? keep(d, 'DELIVER') : d) : d
   },
   'refuses instead of holding while unconfirmed': (o) => {
     const d = decide(o)
@@ -35,10 +36,15 @@ export const TWINS = {
     const d = decide(o)
     return d.outcome === 'HOLD' && o.chain.receipt === 'not_measured' ? keep(d, 'REFUSE') : d
   },
-  'does not check that the transfer belongs to this payment (recipient and amount only)': (o) => decideWith(o, { skipNonce: true }),
+  'does not check the authorization nonce (recipient and amount only)': (o) => decideWith(o, { skipNonce: true }),
   'holds on a reverted transaction as if it were still pending': (o) => {
     const d = decide(o)
     return d.rule === 'R04' ? keep(d, 'HOLD') : d
   },
   'compares amounts as floating point numbers': (o) => decideWith(o, { floatAmounts: true }),
+  'asks for a nonce on the proof rail (refuses every smart-wallet buyer)': (o) => decideWith(o, { nonceOnProof: true }),
+  'does not check the payer on the proof rail': (o) => decideWith(o, { skipPayer: true }),
+  'does not claim the hash (delivers twice for one transfer)': (o) => decideWith(o, { skipClaim: true }),
+  'does not check the token': (o) => decideWith(o, { skipToken: true }),
+  'takes any non-empty string for a hash': (o) => decideWith(o, { anyString: true }),
 }

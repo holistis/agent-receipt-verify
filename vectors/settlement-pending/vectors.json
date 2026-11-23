@@ -1,14 +1,14 @@
 {
-  "schema_version": "0.2.0",
+  "schema_version": "0.3.0",
   "protocol": "x402",
   "network": "eip155:84532",
-  "credit": "Cases and field behaviour: mitaka7210 / kristo-intelligence-6 (MIT), including the reverted case and the hash of another payment. Format, wrong twins and runner: github.com/holistis. Draft 2, nothing published, 22 Nov 2026.",
-  "supersedes": "Draft 1, sha256 of vectors.json starts with fd234a289755, kept unchanged in v0-bevroren/.",
+  "credit": "Cases and field behaviour: mitaka7210 (production code of Kristo Intelligence, MIT; runnable gist owned by hristovdimitri2-hub): the 425 hold, the same signed payment found by its nonce, the reverted case, the hash of another payment, the two payment rails, the payer binding on the proof rail and the durable one-hash-one-delivery claim. Format, wrong implementations, properties and runner: github.com/holistis. Draft 3, 23 November 2026.",
+  "supersedes": "Draft 2 (sha256 of vectors.json starts with 64568e264272, kept unchanged in draft-2-frozen/) and draft 1 (starts with fd234a289755, kept unchanged in draft-1-frozen/).",
   "provenance": [
     "x402 v2 specification section 9 (settlement_pending is non-terminal, hash and network must be present)",
     "@x402/core 2.29.0 settleWithPendingRetry (one retry, same payload)",
-    "mitaka7210 Slack account of the 425 hold and adoption by nonce",
-    "mitaka7210 Slack message of 22 Nov 2026: a hash that settled another payment, and a reverted transaction as a terminal refusal"
+    "mitaka7210 messages in the x402 Slack thread (the 425 hold, adoption by nonce, the reverted case, the hash of another payment, the two rails)",
+    "https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf (MIT): runnable decision logic of the chain check, published by mitaka7210"
   ],
   "vectors": [
     {
@@ -21,7 +21,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -35,12 +36,18 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -59,7 +66,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -74,7 +82,11 @@
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -92,7 +104,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -106,12 +119,18 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -128,7 +147,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -143,7 +163,11 @@
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -160,7 +184,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -174,17 +199,27 @@
           "transfer": {
             "to": "0x2222222222222222222222222222222222222222",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -196,7 +231,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -210,17 +246,27 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "9999",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -232,7 +278,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -246,12 +293,18 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10001",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -268,7 +321,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -283,12 +337,20 @@
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -300,7 +362,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -314,12 +377,18 @@
           "transfer": {
             "to": "0xabcdef0123456789abcdef0123456789abcdef01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -337,7 +406,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -351,12 +421,18 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -374,7 +450,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -389,7 +466,11 @@
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -407,7 +488,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -421,6 +503,8 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
@@ -429,7 +513,11 @@
           "hashFromNonceLookup": "0x2222222222222222222222222222222222222222222222222222222222222222"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -447,7 +535,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -461,6 +550,8 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
@@ -469,7 +560,11 @@
           "hashFromNonceLookup": "0x2222222222222222222222222222222222222222222222222222222222222222"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -487,7 +582,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -505,7 +601,11 @@
           "hashFromNonceLookup": "0x2222222222222222222222222222222222222222222222222222222222222222"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -522,7 +622,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -537,7 +638,11 @@
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -554,7 +659,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": true,
@@ -568,12 +674,18 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -590,7 +702,8 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "response": {
           "success": false,
@@ -605,7 +718,11 @@
         },
         "retry": null,
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "claims": {
+          "hash": "none"
         }
       },
       "expected": {
@@ -628,9 +745,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -644,7 +763,10 @@
           "receipt": "reverted",
           "transfer": null
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "REFUSE",
@@ -661,9 +783,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -677,7 +801,10 @@
           "receipt": "reverted_shallow",
           "transfer": null
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "OPEN",
@@ -694,9 +821,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -711,14 +840,23 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -731,9 +869,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -748,14 +888,23 @@
           "transfer": {
             "to": "0xabcdef0123456789abcdef0123456789abcdef01",
             "amount": "25000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -768,9 +917,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -784,10 +935,15 @@
           "receipt": "deep",
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-            "amount": "10000"
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "OPEN",
@@ -803,9 +959,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -820,14 +978,23 @@
           "transfer": {
             "to": "0x3333333333333333333333333333333333333333",
             "amount": "50000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -839,9 +1006,11 @@
       "input": {
         "quote": {
           "payTo": "0xabcdef0123456789abcdef0123456789abcdef01",
-          "price": "10000"
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -856,10 +1025,15 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "DELIVER",
@@ -875,9 +1049,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "9007199254740993"
+          "price": "9007199254740993",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -892,14 +1068,23 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "9007199254740992",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "REFUSE",
-        "secondSettle": false
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
       }
     },
     {
@@ -911,9 +1096,11 @@
       "input": {
         "quote": {
           "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
-          "price": "9007199254740993"
+          "price": "9007199254740993",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
         },
         "payment": {
+          "rail": "authorization",
           "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
         },
         "response": {
@@ -928,14 +1115,586 @@
           "transfer": {
             "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
             "amount": "9007199254740993",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
             "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
           }
         },
-        "retry": null
+        "retry": null,
+        "claims": {
+          "hash": "none"
+        }
       },
       "expected": {
         "outcome": "DELIVER",
         "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-proof-rail-deliver",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "Proof rail (X-Payment-Proof, for buyers whose wallet cannot sign EIP-3009): there is no authorization nonce. The transfer to us, in the quoted token, for enough, from the address that signed the proof, and not delivered before, is delivered. A seller that asks for a nonce here refuses every smart-wallet buyer.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x5555555555555555555555555555555555555555555555555555555555555555",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "DELIVER",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-proof-rail-other-payer-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "Proof rail: a real, confirmed transfer to us for the right amount, but from another payer than the one who signed the proof, so it paid for another payment. It must not be delivered; refusing or holding are both fine.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x6666666666666666666666666666666666666666666666666666666666666666",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000e5"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-proof-rail-hash-already-delivered-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "Proof rail: everything matches, but this hash was already delivered once. The claim is durable (one hash, one delivery, also after a restart), so it is refused, never delivered a second time.",
+      "input": {
+        "claims": {
+          "hash": "delivered"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x5555555555555555555555555555555555555555555555555555555555555555",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-authorization-hash-already-delivered-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "Authorization rail: the nonce matches and the transfer is right, but this hash was already delivered once. Refused, never delivered a second time.",
+      "input": {
+        "claims": {
+          "hash": "delivered"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
+            "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-wrong-token-refuse",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "The transfer goes to us for the right amount but moved another token than the quote asks for. It must not be delivered; refusing or holding are both fine.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x00000000000000000000000000000000000000d4",
+            "from": "0x00000000000000000000000000000000000000c3",
+            "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-malformed-hash-open",
+      "basis": [
+        "spec",
+        "field"
+      ],
+      "encodes": "The settle response says pending but its transaction is not a hash (not 0x and 64 hex digits). A string that is not a hash is no hash: there is nothing to adopt. Recorded as open because the specification does not say whether to hold or refuse; one deployed seller refuses.",
+      "asserted": false,
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "not-a-hash",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "absent",
+          "transfer": null
+        }
+      },
+      "expected": {
+        "outcome": "OPEN",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-malformed-hash-not-held",
+      "basis": [
+        "spec",
+        "field"
+      ],
+      "encodes": "Same family: 0x followed by 64 characters that are not all hex digits is no hash. The seller must not adopt it and keep holding on it; leaving it open or refusing are both fine.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0xzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "absent",
+          "transfer": null
+        }
+      },
+      "expected": {
+        "outcome": "OPEN",
+        "secondSettle": false,
+        "acceptable": [
+          "OPEN",
+          "REFUSE"
+        ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-proof-rail-reverted-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "Proof rail: the transaction named in the proof was mined and reverted, so the money did not move. Terminal, refuse.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x7777777777777777777777777777777777777777777777777777777777777777",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "reverted",
+          "transfer": null
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-underpaid-18-decimals-refuse",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "A token with 18 decimals: one unit short of a price of one whole token. Floating point arithmetic reads the two amounts as equal; refusing or holding are both fine, delivering is wrong.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "1000000000000000000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "999999999999999999",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c3",
+            "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-proof-rail-payer-unreadable-open",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "Proof rail: the transfer looks right but its payer cannot be read, so it cannot be bound to this payment. Recorded as open, not asserted.",
+      "asserted": false,
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x8888888888888888888888888888888888888888888888888888888888888888",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "10000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "OPEN",
+        "secondSettle": false
+      }
+    },
+    {
+      "id": "x402-settlement-pending-proof-rail-near-miss-payer-refuse",
+      "basis": [
+        "field",
+        "rec"
+      ],
+      "encodes": "Proof rail: the payer differs from the signer of the proof in the last hex digit only. An address is compared whole; a near miss is another payer, so it must not be delivered (refusing or holding are both fine).",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0x9999999999999999999999999999999999999999999999999999999999999999",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "25000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "from": "0x00000000000000000000000000000000000000c4"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-wrong-token-near-miss-proof-rail-refuse",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "Proof rail: the token address differs from the quoted asset in the last hex digit only, and the amount is more than enough. Another token is another token; it must not be delivered (refusing or holding are both fine).",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "proof",
+          "payer": "0x00000000000000000000000000000000000000c3"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "deep",
+          "transfer": {
+            "to": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+            "amount": "50000",
+            "token": "0x036CbD53842c5426634e7929541eC2318f3dCF70",
+            "from": "0x00000000000000000000000000000000000000c3"
+          }
+        }
+      },
+      "expected": {
+        "outcome": "REFUSE",
+        "secondSettle": false,
+        "acceptable": [
+          "REFUSE",
+          "HOLD"
+        ]
+      }
+    },
+    {
+      "id": "x402-settlement-pending-short-hash-not-held",
+      "basis": [
+        "spec",
+        "field"
+      ],
+      "encodes": "A transaction string that is one byte short (62 hex digits) is no hash. The seller must not adopt it and keep holding on it; leaving it open or refusing are both fine.",
+      "input": {
+        "claims": {
+          "hash": "none"
+        },
+        "retry": null,
+        "quote": {
+          "payTo": "0xAbCdEf0123456789aBcDeF0123456789AbCdEf01",
+          "price": "10000",
+          "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        },
+        "payment": {
+          "rail": "authorization",
+          "nonce": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+        },
+        "response": {
+          "success": false,
+          "errorReason": "settlement_pending",
+          "errorMessage": "Receipt not found before timeout",
+          "transaction": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+          "network": "eip155:84532"
+        },
+        "chain": {
+          "receipt": "absent",
+          "transfer": null
+        }
+      },
+      "expected": {
+        "outcome": "OPEN",
+        "secondSettle": false,
+        "acceptable": [
+          "OPEN",
+          "REFUSE"
+        ]
       }
     }
   ]
