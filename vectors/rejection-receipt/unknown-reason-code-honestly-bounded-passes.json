@@ -36,6 +36,8 @@
       "signature": "0xsig"
     },
     "context": {
+      "payToAdres": "0x9999999999999999999999999999999999999999",
+      "sleutelAdres": "0x1111111111111111111111111111111111111111",
       "handtekeningKlopt": true
     }
   },

@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "verifies": "rejection-receipt",
+  "provenance": [
+    "Ons eigen ontwerp voor een x402 Rejection Receipt, versie 1, nog geen x402-spec-tekst.",
+    "Gebaseerd op een red-team-benchmark via ChatGPT (10 nov 2026), zelf nagelezen en versmald tot wat wij kunnen uitleggen en bouwen.",
+    "Zie vectors/rejection-receipt/README.md voor wat dit wel en niet bewijst."
+  ],
+  "id": "rejection-receipt-payto-address-missing-signature-fails-still-fails",
+  "clause": "dedicated-signing-key-not-payto",
+  "encodes": "Een gemeten FAIL gaat voor een NOT_MEASURED: de handtekening klopt niet, ook als het payTo-adres ontbreekt.",
+  "description": "Een bon met een foute handtekening mag niet als niet gemeten door de beoordeling komen omdat een ander adres ontbrak.",
+  "input": {
+    "receipt": {
+      "type": "x402-rejection-receipt",
+      "version": 1,
+      "attempt_binding": {
+        "payment_payload_hash": "0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+        "payment_requirements_hash": "0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+      },
+      "issuer": {
+        "resource_origin": "https://api.example.com",
+        "key_id": "did:web:api.example.com#rejection-key"
+      },
+      "decision": {
+        "outcome": "REJECTED",
+        "reason_code": "insufficient_funds",
+        "evidence_class": "CHAIN_VERIFIABLE"
+      },
+      "payment_observation": {
+        "state": "NOT_SUBMITTED",
+        "network": "eip155:8453",
+        "transaction": "",
+        "block_number": 23000000
+      },
+      "issued_at": "2026-11-10T15:00:00.000Z",
+      "receipt_id": "55a91b6b5b11f96d31d426eb02fe6a33473b06849c4db49e57b2ef923a32c815",
+      "signature": "0xsig"
+    },
+    "context": {
+      "sleutelAdres": "0x1111111111111111111111111111111111111111",
+      "handtekeningKlopt": false
+    }
+  },
+  "expected": {
+    "outcome": "FAIL",
+    "reason_code": "SIGNATURE_VERIFIES_AGAINST_RESOLVED_KEY"
+  },
+  "limits": [
+    "Dit legt alleen de rangorde vast: een gemeten afkeuring gaat voor een niet-gemeten controle."
+  ]
+}

@@ -28,7 +28,7 @@ Nine clauses, each with at least one acceptance and one rejection:
 | Clause | Vectors |
 | --- | --- |
 | `decision-outcome-and-binding-present` | 3 (two rejections: a non-`REJECTED` outcome, and a missing `attempt_binding`) |
-| `dedicated-signing-key-not-payto` | 2 |
+| `dedicated-signing-key-not-payto` | 9 (seven added 24 Nov 2026: a missing, an empty and a blank `payTo` address, a missing signing address, a measured failure that outranks an unmeasured check, an address that differs only in capitals, and an address with whitespace around it) |
 | `reason-code-bounded-fail-closed` | 3 (the third shows the fail-closed default itself passing: an unknown reason honestly bounded at `ISSUER_ASSERTED`) |
 | `evidence-class-not-overclaimed` | 4 (two added 11 Nov 2026: `duplicate_payment_internal_record` honestly bounded at `ISSUER_ASSERTED`, and the same code failing when it overclaims `CHAIN_VERIFIABLE`) |
 | `payment-observation-vocabulary-bounded` | 2 |
@@ -61,7 +61,7 @@ From the root of this repository: `npm run rejection-receipt`. It needs no accou
 Before proposing this to x402-foundation/x402, three more separate internal passes checked the design and this README's own claims: one re-verified every factual claim against the live code and a fresh GitHub search, one played an adversarial maintainer, one read both documents as a confused or careless reader would. Between them they found:
 
 - `#3148` was mischaracterized as merged in an earlier draft of the proposal text; it is a still-open issue. Fixed.
-- The proposal's worked example showed a receipt as fully verified when, in fact, the `dedicated-signing-key-not-payto` check was never evaluated for it, because this checker only runs that check when a caller supplies both the resolved signing address and the seller's `payTo` address, and silently skips it otherwise, unlike the signature-verification check right next to it, which does return `NOT_MEASURED` in the equivalent situation. Not fixed yet (see Limits below); the proposal text now says so plainly instead of calling it an unqualified "checked rule."
+- The proposal's worked example showed a receipt as fully verified when, in fact, the `dedicated-signing-key-not-payto` check was never evaluated for it, because this checker only runs that check when a caller supplies both the resolved signing address and the seller's `payTo` address, and silently skips it otherwise, unlike the signature-verification check right next to it, which does return `NOT_MEASURED` in the equivalent situation. Fixed on 24 November 2026 (see the section before the citation); the proposal text now says so plainly instead of calling it an unqualified "checked rule."
 - A real design gap, not a documentation issue: nothing here checks that a receipt's `issuer.key_id` host matches its `issuer.resource_origin` host. A receipt could sign truthfully for one host while falsely claiming to speak for a different `resource_origin`, and nothing in this design catches that. Disclosed in the x402 proposal's security considerations; not fixed in this version.
 - ruiruii independently sketched a server-internal, unsigned row for the same underlying gap (`gates-spec v0.1`) on the same day this proposal was opened, on the same x402-foundation/x402#3776 thread. That citation describes their own sketch as they scoped it, not an endorsement of this package.
 
@@ -76,6 +76,16 @@ We ran our own pass, asking a strong general-purpose AI assistant to attack the 
 A final reasoning pass made the call on scope for one night's work: build the two-field design (not the single-nonce version), write five real tests plus one test proving the design choice matters (see `test/rejection-receipt.mjs`, "waarom client_attempt_id/server_observation_id NOOIT in de binding-vergelijking horen"), fix the `duplicate_payment` evidence-class gap in its own small change, name the remaining ~60 test scenarios that pass listed as openly deferred rather than built, and publish all of it in the shared proposal text rather than holding any part of it back: an open-standard proposal that hides its own core mechanism reads as incomplete to a careful reviewer, and authorship stays attached to the public record regardless of who else later implements it.
 
 **Deferred, named, not built:** timeout-and-retry semantics (does a timed-out buyer retry keep the same `client_attempt_id` or mint a new one); a reference back to an earlier `server_observation_id` inside a later receipt (and the privacy question that raises if a different party replays the lookup); server restart with an in-memory attempt table; multiple resource servers behind one `resource_origin`; the size and shape of the two new identifiers; and the remainder of roughly 60 scenarios that pass listed. None of these are solved by this version.
+
+## Fixed on 24 November 2026: a missing address is not a pass
+
+NSPG13 ran the checker pinned at `539de8bd77581923263d9b483454ba8dbbe24920` and reported on x402-foundation/x402#4215 that `toetsAfwijzingsBon` returned `PASS` when the `payTo` address was absent, and also when it was empty or when the signing address was absent. That contradicted what we had written in the same thread: a verifier without the `payTo` address should report `NOT_MEASURED`, not `PASS`. We reproduced it.
+
+What changed in `src/rejection-receipt.mjs`: the comparison needs two addresses. If one is missing, empty or blank, the check returns `NOT_MEASURED` with the reason code `DEDICATED_SIGNING_KEY_NOT_PAYTO`, never `PASS`. Both addresses are compared after removing whitespace around them and ignoring capitals. A measured `FAIL` still comes first: two equal addresses fail, and a signature that does not verify fails even when an address is missing. Where the signature observation is missing too, `NOT_MEASURED` keeps the signature reason code, as before.
+
+What changed in the vectors: eleven `PASS` vectors carried no addresses at all, so their `PASS` had never earned the address check. They now carry two different addresses (the same pair as `dedicated-key-differs-from-payto`). Seven vectors are new: `payto-address-missing-not-measured`, `payto-address-empty-not-measured`, `payto-address-blank-not-measured`, `signing-address-missing-not-measured`, `payto-address-missing-signature-fails-still-fails`, `signing-key-equals-payto-address-case-insensitive` and `signing-key-equals-payto-address-with-whitespace`. We checked that the new vectors can fail: against the checker as it was before the change, five of the new vectors (the four not-measured ones and the whitespace one) report `PASS` and are marked as not behaving as recorded.
+
+The set now has 35 vectors. A review pin of this state is the tag `rejection-receipt-review-pin-2026-11-24`; the earlier pin tags stay as they are.
 
 ## Cite
 

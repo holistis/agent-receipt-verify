@@ -435,18 +435,26 @@ export function toetsAfwijzingsBon(receipt, context = {}) {
     return { outcome: 'FAIL', reason_code: 'RECEIPT_ID_RECOMPUTES' }
   }
 
-  // dedicated-signing-key-not-payto
-  if (context.payToAdres && context.sleutelAdres &&
-    String(context.payToAdres).toLowerCase() === String(context.sleutelAdres).toLowerCase()) {
+  // dedicated-signing-key-not-payto: de vergelijking heeft twee adressen nodig. Ontbreekt er een
+  // (of is het leeg), dan is de uitkomst NOT_MEASURED en nooit PASS: een controle die niet kon
+  // kijken heeft niets goedgekeurd. Een gemeten FAIL gaat altijd voor een NOT_MEASURED.
+  const normaal = (a) => (typeof a === 'string' ? a.trim().toLowerCase() : '')
+  const payToNormaal = normaal(context.payToAdres)
+  const sleutelNormaal = normaal(context.sleutelAdres)
+  const adressenBeschikbaar = payToNormaal !== '' && sleutelNormaal !== ''
+  if (adressenBeschikbaar && payToNormaal === sleutelNormaal) {
     return { outcome: 'FAIL', reason_code: 'DEDICATED_SIGNING_KEY_NOT_PAYTO' }
   }
 
   // signature-verifies-against-resolved-key
+  if (context.handtekeningKlopt !== undefined && context.handtekeningKlopt !== true) {
+    return { outcome: 'FAIL', reason_code: 'SIGNATURE_VERIFIES_AGAINST_RESOLVED_KEY' }
+  }
   if (context.handtekeningKlopt === undefined) {
     return { outcome: 'NOT_MEASURED', reason_code: 'SIGNATURE_VERIFIES_AGAINST_RESOLVED_KEY' }
   }
-  if (context.handtekeningKlopt !== true) {
-    return { outcome: 'FAIL', reason_code: 'SIGNATURE_VERIFIES_AGAINST_RESOLVED_KEY' }
+  if (!adressenBeschikbaar) {
+    return { outcome: 'NOT_MEASURED', reason_code: 'DEDICATED_SIGNING_KEY_NOT_PAYTO' }
   }
 
   return { outcome: 'PASS' }

@@ -361,7 +361,7 @@ console.log('review 17 nov 2026: envelop, binding-recept, EIP-712-type, plafonds
     const r = { ...basis, decision: { outcome: 'REJECTED', reason_code: 'facilitator_timeout', evidence_class: 'ISSUER_ASSERTED' }, payment_observation: { state: 'UNKNOWN' } }
     if (final !== undefined) r.decision.final = final
     r.receipt_id = berekenReceiptId(r)
-    return toetsAfwijzingsBon(r, { handtekeningKlopt: true })
+    return toetsAfwijzingsBon(r, { payToAdres: '0x9999999999999999999999999999999999999999', sleutelAdres: '0x1111111111111111111111111111111111111111', handtekeningKlopt: true })
   }
   t('UNKNOWN met final true faalt', onbekend(true).reason_code === 'PAYMENT_OUTCOME_UNKNOWN_NOT_FINAL')
   t('UNKNOWN zonder final faalt ook (final MOET aanwezig en false zijn)', onbekend(undefined).reason_code === 'PAYMENT_OUTCOME_UNKNOWN_NOT_FINAL')
