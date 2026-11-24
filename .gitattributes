@@ -2,3 +2,12 @@
 # sha256sum -c op Windows dezelfde uitkomst als ons eigen commando.
 vectors/**/*.json text eol=lf
 vectors/*/SHA256SUMS text eol=lf
+# The sources and vector files of the two seller families are searched and rewritten as text by their own self tests and checked
+# against hash lists, so they keep LF in a checkout on Windows with core.autocrlf=true.
+src/settlement-pending/*.mjs text eol=lf
+src/settle-before-serve/*.mjs text eol=lf
+vectors/**/SHA256SUMS text eol=lf
+vectors/settlement-pending/**/*.md text eol=lf
+vectors/settle-before-serve/*.md text eol=lf
+vectors/settlement-pending/cross-run/uitvoer.txt text eol=lf
+vectors/settlement-pending/cross-run/history/*.txt text eol=lf

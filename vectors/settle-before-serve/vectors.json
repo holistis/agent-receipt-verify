@@ -1,0 +1,330 @@
+{
+  "schema_version": "0.1.0",
+  "protocol": "x402",
+  "network": "eip155:84532",
+  "credit": "Rows A, B and C come from a production fault in the seller of github.com/holistis (August 2026): the settle result was logged and never acted on, and an unrecognized payment header was treated as paid. Rows A and B were supplied by github.com/holistis in discussion 2436 of modelcontextprotocol/modelcontextprotocol (4 August and 15 September 2026). slowe89 (reply of 15 September 2026 in the same discussion) mapped them into a table under the name of a settle-before-serve bar, and added the race row (row D: serving before the settle returns). Format, wrong implementations and runner: github.com/holistis. Draft 1, 23 Nov 2026.",
+  "provenance": [
+    "github.com/holistis comments of 4 August and 15 and 16 September 2026 in modelcontextprotocol/modelcontextprotocol discussion 2436: junk header expects 400, forged signature expects 402, the 400 comes from local parsing before any facilitator call",
+    "slowe89, same discussion, 15 September 2026: a table that maps the two cases above (the rows that github.com/holistis had supplied) and the race cell, serving before the settle returns, under the name of a settle-before-serve bar (reject unparseable, reject failed settle, await the settle object before building the response)",
+    "The signature bytes in the headers are placeholders. What the facilitator and the fallback return is given in the observation, it is not computed."
+  ],
+  "vectors": [
+    {
+      "id": "x402-settle-before-serve-no-header-402",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "No payment header at all: 402, nothing delivered, the facilitator is not called.",
+      "input": {
+        "paymentSignature": null,
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 0
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 402,
+        "delivers": false,
+        "callsFacilitator": false,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-junk-header-400",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row A. A string that is not a payment (not a transaction hash, not base64 JSON) is rejected locally with 400 and nothing is delivered, even when the facilitator would have said yes. The fault: it was treated as though payment had succeeded.",
+      "input": {
+        "paymentSignature": "this-is-not-a-payment",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 0
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 400,
+        "delivers": false,
+        "callsFacilitator": false,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-junk-header-short-hash-400",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row A. Something that looks like a transaction hash but is too short is unparseable: 400, nothing delivered.",
+      "input": {
+        "paymentSignature": "0x1234abcd",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 0
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 400,
+        "delivers": false,
+        "callsFacilitator": false,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-junk-header-base64-not-json-400",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row A. Valid base64 that decodes to text that is not JSON is unparseable: 400, nothing delivered.",
+      "input": {
+        "paymentSignature": "bm90IGpzb24=",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 0
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 400,
+        "delivers": false,
+        "callsFacilitator": false,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-junk-header-json-without-payload-400",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row A. Base64 JSON without a payload is not a payment proof: 400, nothing delivered.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6Mn0=",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 0
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 400,
+        "delivers": false,
+        "callsFacilitator": false,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-forged-signature-402",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row B. A structurally valid transferWithAuthorization with a forged signature: the facilitator refuses and the on-chain fallback fails on signature recovery (non-canonical s, not amount or counterparty). 402, nothing delivered. The fault: data was returned anyway.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTFmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "failed",
+          "latencyMs": 40
+        },
+        "fallback": "failed",
+        "detail": "facilitator answered 400; on-chain fallback failed on signature recovery (non-canonical s)"
+      },
+      "expected": {
+        "status": 402,
+        "delivers": false,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-settle-failed-logged-only-402",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row C. The facilitator says the settlement failed and the fallback does not confirm. The result may be logged, it must also be acted on: 402, nothing delivered. This was the production fault of August 2026.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "failed",
+          "latencyMs": 40
+        },
+        "fallback": "failed"
+      },
+      "expected": {
+        "status": 402,
+        "delivers": false,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-settle-unknown-timeout-402",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row C. The facilitator did not answer (an error or a timeout) and the fallback was not tried: an unknown result is not a success. 402, nothing delivered.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "error",
+          "latencyMs": 5000
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 402,
+        "delivers": false,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-both-paths-fail-402",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row C. The facilitator call errors and the on-chain fallback fails too. Both paths failing must still end in 402 and no data. The production server returned 200 with the real data here.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "error",
+          "latencyMs": 120
+        },
+        "fallback": "failed"
+      },
+      "expected": {
+        "status": 402,
+        "delivers": false,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-facilitator-fails-fallback-confirms-200",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "The facilitator fails but the on-chain fallback confirms the settlement: 200 with data, built after the confirmation.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "failed",
+          "latencyMs": 40
+        },
+        "fallback": "confirmed"
+      },
+      "expected": {
+        "status": 200,
+        "delivers": true,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-facilitator-error-fallback-confirms-200",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "The facilitator errors and the on-chain fallback confirms the settlement: 200 with data.",
+      "input": {
+        "paymentSignature": "0xabababababababababababababababababababababababababababababababab",
+        "facilitator": {
+          "result": "error",
+          "latencyMs": 300
+        },
+        "fallback": "confirmed"
+      },
+      "expected": {
+        "status": 200,
+        "delivers": true,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-valid-settle-success-200",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "The ordinary case: a well-formed payment and a confirmed settlement. 200 with data, built after the settle result.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 80
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 200,
+        "delivers": true,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-late-settle-success-200",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row D. The settlement succeeds but the answer comes late (1500 ms). The data is still built only after the settle result is in, never before.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 1500
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": 200,
+        "delivers": true,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-late-settle-failure-402",
+      "basis": [
+        "field"
+      ],
+      "encodes": "Row D. The settle answer comes late (1500 ms) and says it failed. A seller that built and sent the answer while it waited has already given the data away: 402, nothing delivered, nothing built before the result.",
+      "input": {
+        "paymentSignature": "eyJ4NDAyVmVyc2lvbiI6MiwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMyIiwiYXNzZXQiOiIweDAzNkNiRDUzODQyYzU0MjY2MzRlNzkyOTU0MWVDMjMxOGYzZENGN2UiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweEFiQ2RFZjAxMjM0NTY3ODlhQmNEZUYwMTIzNDU2Nzg5QWJDZEVmMDEifSwicGF5bG9hZCI6eyJzaWduYXR1cmUiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMWIiLCJhdXRob3JpemF0aW9uIjp7ImZyb20iOiIweDExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJ0byI6IjB4QWJDZEVmMDEyMzQ1Njc4OWFCY0RlRjAxMjM0NTY3ODlBYkNkRWYwMSIsInZhbHVlIjoiMTAwMCIsInZhbGlkQWZ0ZXIiOiIwIiwidmFsaWRCZWZvcmUiOiI5OTk5OTk5OTk5Iiwibm9uY2UiOiIweGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2QifX19",
+        "facilitator": {
+          "result": "failed",
+          "latencyMs": 1500
+        },
+        "fallback": "failed"
+      },
+      "expected": {
+        "status": 402,
+        "delivers": false,
+        "callsFacilitator": true,
+        "builtBeforeSettle": false
+      }
+    },
+    {
+      "id": "x402-settle-before-serve-empty-header-open",
+      "basis": [
+        "rec"
+      ],
+      "encodes": "An empty header value: is that no header (402) or an unparseable one (400)? Not settled. Recorded as open; the invariant holds either way, nothing is delivered.",
+      "asserted": false,
+      "input": {
+        "paymentSignature": "",
+        "facilitator": {
+          "result": "success",
+          "latencyMs": 0
+        },
+        "fallback": "not_tried"
+      },
+      "expected": {
+        "status": "OPEN",
+        "delivers": false,
+        "callsFacilitator": false,
+        "builtBeforeSettle": false
+      }
+    }
+  ]
+}

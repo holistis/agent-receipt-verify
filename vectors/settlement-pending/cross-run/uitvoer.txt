@@ -1,0 +1,31 @@
+cross-run: the vectors of draft 3 against the decision logic of the gist of mitaka7210
+gist file: test_settlement_pending_chain_before_delivery.py, 37862 bytes, sha256 3d76d8030efc10cbbfcfe3a739078ee5fa4a8af417712a583b934789f37d170a
+python: 3.12.10, started with -I
+vectors: 41, asserted 36, open 5
+asserted vectors, answer of his logic compared with ours:
+  same answer as the reference: 22
+  a different answer that the vector allows (refuse or hold): 14
+  outside what the vector allows: 0
+  of those, without an explanation in this adapter: 0
+open vectors (nothing is asserted, his answer is shown): 5
+
+every vector where his answer is not the reference answer:
+  allowed wrong-recipient-refuse                         reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  allowed underpaid-by-one-refuse                        reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  allowed no-transfer-event-refuse                       reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  open    pending-without-hash-open                      reference OPEN    his logic deny          (settlement_pending_without_transaction)  [open in this set; his file denies it]
+  open    reverted-shallow-open                          reference OPEN    his logic deny          (receipt_reverted)  [open in this set; his file denies a reverted transaction at any depth]
+  allowed old-payment-of-ours-refuse                     reference REFUSE  his logic indeterminate (nonce_not_consumed_here)
+  allowed old-payment-overpaid-refuse                    reference REFUSE  his logic indeterminate (nonce_not_consumed_here)
+  open    transfer-nonce-unreadable-open                 reference OPEN    his logic indeterminate (nonce_not_consumed_here)  [his nonce check needs a receipt that names an authorization; this vector has none to name, so it is never the one that consumed the nonce]
+  allowed wrong-recipient-large-amount-refuse            reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  allowed underpaid-beyond-safe-integer-refuse           reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  allowed proof-rail-other-payer-refuse                  reference REFUSE  his logic indeterminate (payer_mismatch)
+  allowed wrong-token-refuse                             reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  open    malformed-hash-open                            reference OPEN    his logic deny          (settlement_pending_without_transaction)  [open in this set; his file denies it]
+  allowed malformed-hash-not-held                        reference OPEN    his logic deny          (settlement_pending_without_transaction)
+  allowed underpaid-18-decimals-refuse                   reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  open    proof-rail-payer-unreadable-open               reference OPEN    his logic allow         (no reason given)  [his file cannot express a sender that is unreadable: the adapter hands it the default sender]
+  allowed proof-rail-near-miss-payer-refuse              reference REFUSE  his logic indeterminate (payer_mismatch)
+  allowed wrong-token-near-miss-proof-rail-refuse        reference REFUSE  his logic indeterminate (no_matching_usdc_transfer)
+  allowed short-hash-not-held                            reference OPEN    his logic deny          (settlement_pending_without_transaction)
