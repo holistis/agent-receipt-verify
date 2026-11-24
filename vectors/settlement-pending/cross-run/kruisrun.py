@@ -60,13 +60,19 @@ OUT = {m.ALLOW: 'DELIVER', m.DENY: 'REFUSE', m.PENDING: 'HOLD', m.INDETERMINATE:
 ATOMIC_API = hasattr(m, 'PRICE_ATOMIC')
 
 # Why his answer may differ from ours, per vector. A difference without an entry here is reported as unexplained.
+# The revision of 24 November adds decide(nonce=...); earlier revisions (including the one the README calls
+# "the revision run here", 23 November) have no nonce parameter at all, and ATOMIC_API alone does not tell them apart.
+import inspect
+HAS_NONCE = ATOMIC_API and 'nonce' in inspect.signature(m.decide).parameters
+
 NONCE_BINDING = 'not in his file: the nonce binding of the authorization rail is described in his message and lives in his production code'
+NONCE_UNREADABLE = 'his nonce check needs a receipt that names an authorization; this vector has none to name, so it is never the one that consumed the nonce'
 FIRST_REVISION_BINDING = 'not in the first revision of his file: the binding of a transfer to a payment (nonce on the authorization rail, payer on the proof rail) lived in his production code'
 FIRST_REVISION_FLOATS = 'the first revision of his file compared amounts as floats and handled USDC with 6 decimals only'
 WHY = {
-    'old-payment-of-ours-refuse': NONCE_BINDING if ATOMIC_API else FIRST_REVISION_BINDING,
-    'old-payment-overpaid-refuse': NONCE_BINDING if ATOMIC_API else FIRST_REVISION_BINDING,
-    'transfer-nonce-unreadable-open': NONCE_BINDING if ATOMIC_API else FIRST_REVISION_BINDING,
+    'old-payment-of-ours-refuse': (None if HAS_NONCE else NONCE_BINDING) if ATOMIC_API else FIRST_REVISION_BINDING,
+    'old-payment-overpaid-refuse': (None if HAS_NONCE else NONCE_BINDING) if ATOMIC_API else FIRST_REVISION_BINDING,
+    'transfer-nonce-unreadable-open': (NONCE_UNREADABLE if HAS_NONCE else NONCE_BINDING) if ATOMIC_API else FIRST_REVISION_BINDING,
     'proof-rail-other-payer-refuse': FIRST_REVISION_BINDING,
     'proof-rail-near-miss-payer-refuse': FIRST_REVISION_BINDING,
     'proof-rail-payer-unreadable-open': 'his file cannot express a sender that is unreadable: the adapter hands it the default sender' if ATOMIC_API else FIRST_REVISION_BINDING,
@@ -90,15 +96,24 @@ def build(o):
     if receipt not in ('absent', 'not_measured'):
         t = c.get('transfer')
         transfers = ()
+        authorizations = ()
         if t:
             token = m.USDC if t['token'].lower() == o['quote']['asset'].lower() else m.OTHER_TOKEN
             kw = {'sender': t['from']} if t.get('from') else {}
             if ATOMIC_API:
                 transfers = (m.Transfer(token=token, to=t['to'], amount_atomic=int(t['amount']), **kw),)
+                # The authorization this receipt actually consumed, if the vector's chain data names one.
+                # On the authorization rail, this is what his nonce check compares the vector's own
+                # payment.nonce against (build of the Receipt's authorizations, not the Transfer's sender).
+                if t.get('nonce') and t.get('from'):
+                    authorizations = ((t['from'], t['nonce']),)
             else:
                 transfers = (m.Transfer(token=token, to=t['to'], amount_usdc=int(t['amount']) / 1e6, **kw),)
         tx = resp.get('transaction') or ''
-        receipts[tx] = m.Receipt(tx_hash=tx, status=0 if receipt.startswith('reverted') else 1, block_number=BLOCK[receipt], transfers=transfers)
+        receipt_kwargs = dict(tx_hash=tx, status=0 if receipt.startswith('reverted') else 1, block_number=BLOCK[receipt], transfers=transfers)
+        if ATOMIC_API:
+            receipt_kwargs['authorizations'] = authorizations
+        receipts[tx] = m.Receipt(**receipt_kwargs)
     chain = m.SyntheticChain(head=HEAD, receipts=receipts)
     store = m.EffectStore()
     if o.get('claims', {}).get('hash') == 'delivered':
@@ -113,10 +128,17 @@ for v in S['vectors']:
     o = v['input']
     resp, chain, store = build(o)
     if ATOMIC_API:
-        # The proof rail binds a transfer by the payer that signed the proof. The authorization rail binds by a nonce, which his file does not have,
-        # so no payer is handed to it.
-        payer = o['payment'].get('payer') if o['payment']['rail'] == 'proof' else None
-        d = m.handle(resp, chain, store, pay_to=o['quote']['payTo'], price_atomic=int(o['quote']['price']), payer=payer)
+        # The proof rail binds a transfer by the payer that signed the proof. The authorization rail binds
+        # by the nonce of the authorization that pays for THIS call (his decide(nonce=...), added in the
+        # gist revision of 24 November) -- the payer named by the receipt's own transfer is what his nonce
+        # check keys the consumed-authorizations lookup by, so it is passed on this rail too.
+        rail = o['payment']['rail']
+        if rail == 'proof':
+            payer, nonce = o['payment'].get('payer'), None
+        else:
+            t = o['chain'].get('transfer')
+            payer, nonce = (t.get('from') if t else None), o['payment'].get('nonce')
+        d = m.handle(resp, chain, store, pay_to=o['quote']['payTo'], price_atomic=int(o['quote']['price']), payer=payer, nonce=nonce)
     else:
         d = m.handle(resp, chain, store, pay_to=o['quote']['payTo'], price=int(o['quote']['price']) / 1e6)
     short = v['id'].replace('x402-settlement-pending-', '')
