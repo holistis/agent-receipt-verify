@@ -69,7 +69,7 @@ Every vector in vectors.json lists where its case comes from:
 
 ## Where a deployed seller differs from the recommendation of this set
 
-mitaka7210 reported in the x402 community Slack that their seller delivers after about 8 seconds when the settlement has still not confirmed, as a deliberate choice. This set records hold as its recommendation (vector receipt-absent-hold), and the wrong implementation "fail-open", which delivers while the chain has not confirmed, is caught by 5 vectors. That is a difference between one deployed seller and this set, not a statement about conformance.
+mitaka7210 reported in the x402 community Slack that his seller delivers after about 8 seconds when the settlement has still not confirmed, as a deliberate choice. This set records hold as its recommendation (vector receipt-absent-hold), and the wrong implementation "fail-open", which delivers while the chain has not confirmed, is caught by 5 vectors. That is a difference between one deployed seller and this set, not a statement about conformance.
 
 His gist also verifies the chain on a plain success; this set does not require that (rule R01 delivers a plain success at face value, trusting the facilitator for that path). That is a deviation of the same kind: a choice one implementation makes beyond what this set asks for, not a statement about conformance.
 
@@ -101,7 +101,7 @@ The answer is { outcome, secondSettle }, where outcome is DELIVER, HOLD, REFUSE 
 
 Tested with Node 24. No dependencies, no network. The cross-run needs Python 3.12 and a copy of the gist file, and is not part of npm test or of the npm package; it is in the repository (cross-run/README.md). The scripts are run from the root of the package or the repository.
 
-## What was measured (23 November 2026)
+## What was measured (23 and 24 November 2026)
 
 - 41 vectors, 36 asserted, 5 open, 14 of them allowing more than one answer. The reference answers all 41 as expected.
 - 21 wrong implementations, all caught by the vectors, none resting on a single vector. The same 21 are also caught by the properties, which do not use the vectors. Each wrong implementation makes one mistake (it relaxes one check or changes one behaviour); one behaviour can decide several situations, so a wrong implementation can show up under more than one rule id.

@@ -7,7 +7,7 @@ https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf
 
 The gist is the work of its author and its licence is his: the current revision of the file starts with an SPDX-License-Identifier: MIT line and says that this is the licence of the file itself. This repository does not contain the file. The file says that it is a redacted extraction of the decision logic of the Kristo Intelligence production code, with the transport removed, that it is not the production code, that it uses the standard library only and that it makes no network call.
 
-The set was run against that logic. It was not verified by it. The adapter is ours.
+The set was run against that logic. It was not confirmed by it. The adapter is ours.
 
 This folder is in the repository but not in the npm package.
 
@@ -17,7 +17,7 @@ This folder is in the repository but not in the npm package.
 2. Revision of the file run here (23 November): gist revision 6ba3a8e404b39095bffa2545f7cfb4c46927ddf3, 30900 bytes, sha256 558351e6daf4faaa6ffa8293bf3cf593e030ff0933c0eea00d7fa09e33a7a1e2, nine tests. The output is in history/uitvoer-second-revision.txt.
 3. Revision of 24 November: gist revision c1cd82cc059b9b8141e6aae40f7f68655985eeec, 37862 bytes, sha256 3d76d8030efc10cbbfcfe3a739078ee5fa4a8af417712a583b934789f37d170a, eleven tests. The adapter passes the nonce of the authorization rail into decide(). Of the 36 asserted vectors, 22 got the answer of the reference, 14 a different answer that the vector allows and 0 a delivery that the vector does not allow. This is the run recorded below.
 
-Between the first and second the file was revised; the gist history lists revisions c9f5612e at 15:29 UTC and 6ba3a8e4 at 15:37 UTC on 23 November 2026. Between the second and third it was revised twice more: 34e58207 at 05:51 UTC on 24 November added the nonce binding (146 lines changed), and c1cd82cc at 06:22 UTC the same day fixed one line of its own REVISIONS block, a date it had recorded for itself as 24 November that mitaka7210 found should read 23 November; nothing about the decision logic or the two new tests changed between those two. The file has a REVISIONS block of its own. It says that the first revision had two defects found by a later external review (the decision function never checked the sender, and amounts were compared as floats), that the second revision adds the payer binding and a comparison in atomic units, and that the third adds the nonce binding of the authorization rail and its two tests. The hash that the block gives for the first revision is the hash that was measured here. The intermediate revisions (c9f5612e and 34e58207) were not run separately.
+Between the first and second the file was revised; the gist history lists revisions c9f5612e at 15:29 UTC and 6ba3a8e4 at 15:37 UTC on 23 November 2026. Between the second and third it was revised twice more: 34e58207 at 05:51 UTC on 24 November added the nonce binding (146 lines added), and c1cd82cc at 06:22 UTC the same day fixed one line of its own REVISIONS block, a date it had recorded for itself as 24 November that mitaka7210 found should read 23 November; nothing about the decision logic or the two new tests changed between those two. The file has a REVISIONS block of its own. It says that the first revision had two defects found by a later external review (the decision function never checked the sender, and amounts were compared as floats), that the second revision adds the payer binding and a comparison in atomic units, and that the third adds the nonce binding of the authorization rail and its two tests. The hash that the block gives for the first revision is the hash that was measured here. The intermediate revisions (c9f5612e and 34e58207) were not run separately.
 
 ## What was run
 
@@ -30,7 +30,7 @@ The adapter runs the file you give it as Python code. Read it first. With --sha2
 
 ## What the adapter assumes, and does not attribute to him
 
-- The revision run here has no adoption by nonce. For a vector where the same signed payment comes back, the adapter hands his decide() the hash that the nonce lookup found, as a pending response. From the revision of 24 November the file takes the nonce itself: the adapter passes the nonce of the authorization rail into decide(nonce=...), and the file requires the receipt to be the one that consumed it.
+- The revision of 23 November has no adoption by nonce. For a vector where the same signed payment comes back, the adapter hands his decide() the hash that the nonce lookup found, as a pending response. From the revision of 24 November the file takes the nonce itself: the adapter passes the nonce of the authorization rail into decide(nonce=...), and the file requires the receipt to be the one that consumed it.
 - His file has no unreadable-chain state. A chain that was not measured is given to him as a chain without a receipt, which his file answers with a hold.
 - Depth: a deep receipt is 11 confirmations and a shallow one is 2; his file asks for 3.
 - Amounts: the current revision takes integers in atomic units, so the adapter hands over the base units unchanged. The first revision took floats, so for that revision the adapter divides by 1e6. The quote asset is not a parameter of his decide(): the right token is given as his USDC constant and any other token as a synthetic address.
@@ -91,7 +91,7 @@ On 19 of the 41 vectors the answer of his logic is not the answer of the referen
 - 5 are open vectors, where nothing is asserted: his logic denies a pending response without a hash, a malformed hash and a reverted transaction at any depth, holds a transfer whose nonce cannot be read, and delivers when a payer cannot be read.
 - 0 are outside what the vector allows: in the revision of 24 November his logic no longer delivers on any vector the reference does not also allow.
 
-A transfer that belongs to another payment is held by his gist on the proof rail. On the authorization rail the revision run here delivers, because it has no nonce binding, and the vectors for that class allow a hold only because the specification does not decide between refusing and holding. The revision of 24 November holds on it as well, so a seller that holds on that class on both rails is now measured.
+A transfer that belongs to another payment is held by his gist on the proof rail. On the authorization rail the revision of 23 November delivers, because it has no nonce binding, and the vectors for that class allow a hold only because the specification does not decide between refusing and holding. The revision of 24 November holds on it as well, so a seller that holds on that class on both rails is now measured.
 
 ## What this does not show
 
