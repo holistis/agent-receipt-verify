@@ -2,6 +2,8 @@
 
 Independent verification of payment- and outcome-proof receipts used by AI agents.
 
+[![holistis/agent-receipt-verify MCP server](https://glama.ai/mcp/servers/holistis/agent-receipt-verify/badges/score.svg)](https://glama.ai/mcp/servers/holistis/agent-receipt-verify)
+
 ## Run it, one line
 
 ```
