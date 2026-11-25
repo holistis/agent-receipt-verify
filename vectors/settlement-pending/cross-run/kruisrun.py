@@ -61,7 +61,7 @@ ATOMIC_API = hasattr(m, 'PRICE_ATOMIC')
 
 # Why his answer may differ from ours, per vector. A difference without an entry here is reported as unexplained.
 # The revision of 24 November adds decide(nonce=...); earlier revisions (including the one the README calls
-# "the revision run here", 23 November) have no nonce parameter at all, and ATOMIC_API alone does not tell them apart.
+# "the revision of 23 November") have no nonce parameter at all, and ATOMIC_API alone does not tell them apart.
 import inspect
 HAS_NONCE = ATOMIC_API and 'nonce' in inspect.signature(m.decide).parameters
 
