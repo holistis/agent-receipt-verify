@@ -2,6 +2,16 @@
 
 Runs of our vector sets by other people, written down the way they reported them. "Ran against" means what it says: the set was run and gave this answer. A run here is not a verification of the other party's production system, and it is not an audit of this repository.
 
+## Who ran what
+
+| Who | Set | Date | In one line | Link |
+|---|---|---|---|---|
+| mitaka7210 | settlement_pending, through our adapter | 2026-11-25 | 22 same as the reference, 14 a different answer the vector allows, 0 outside, 5 open | [gist revision ab695407b220](https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf/ab695407b220b176207e29789de41aec6291c91d) |
+| mitaka7210 | settlement_pending, through their own reader | 2026-11-25 | the same four numbers; the reader also found a defect in their own file | [gist revision af6af9ee149f](https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf/af6af9ee149faf5e976b6664c0296bb9f46c5150) |
+| Aron (jrosgren), Polkulab | attempt-identity, with their own rule and with an adapter for section 5.5 | 2026-11-24 | their own rule differs from the right value on 12 of 15 known answers by design, their adapter agrees on 30 of 30 | [crossruns/holistis-2026-11-24, commit 250813bdd619](https://github.com/jrosgren/x402-decision-record/tree/250813bdd6196aa0f9fa63076981d8c28d4adccd/crossruns/holistis-2026-11-24) |
+
+Every line is the other party's own run, with their limits written below in the section of its set. Every link opens without an account. Two other projects mention this repository in their own documentation; that is not a run and is not listed here.
+
 ## settlement_pending (vectors/settlement-pending)
 
 Set: vectors.json with fingerprint 94b07672bfd9 (sha256 94b07672bfd9be9335d52ac3bedd4f59bc663b30b2978d32f4bfcb1d83c1bbfe), draft 3, 41 vectors of which 36 are asserted and 5 are open.
