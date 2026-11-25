@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use these vectors or this checker, please cite them as below."
+title: "agent-receipt-verify"
+type: software
+authors:
+  - name: "holistis"
+    website: "https://github.com/holistis"
+repository-code: "https://github.com/holistis/agent-receipt-verify"
+url: "https://github.com/holistis/agent-receipt-verify"
+license: Apache-2.0
+abstract: "Checks x402 endpoint conformance before an agent pays, and links the receipt to its settlement. Includes open test vectors and the recorded runs of other people against them."
