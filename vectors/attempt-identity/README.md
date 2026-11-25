@@ -2,7 +2,7 @@
 
 Since 0.2.22 these vectors follow the query bullet of section 5.5 at commit 2819ed7 of pull request 3776: the canonical query keeps the pairs in the order they arrived instead of sorting them. A reviewer (NSPG13) pointed out that sorting makes `?q=a&q=b` and `?q=b&q=a` one identity, and every library we measured (24 of 24 rows, see research/repeated-query-matrix) answers differently for them. The author of the section took the replacement text, and her own implementation agrees with all 22 known-answer files (pull request 3958, comment 6424707421).
 
-Seventy-one vectors over the twelve clauses of section 5.5, the Settlement and Refusal Identity Invariant, plus one vector that states a property of the checker. They follow the text of the section as proposed in [x402-foundation/x402 pull request 3776](https://github.com/x402-foundation/x402/pull/3776), checked on 26 October 2026 against the text at the head of that pull request, commit `2819ed7`. The 22 known-answer files were recomputed against that text by two people outside this project, each with their own implementation: [ruiruii](https://github.com/x402-foundation/x402/pull/3958#issuecomment-6424707421) and [NSPG13](https://github.com/x402-foundation/x402/pull/3958#issuecomment-6427311341). We know of no outside recompute of the other 50 vectors. The first set was written by Abdellah Ouadoudi ([github.com/holistis](https://github.com/holistis)) on 18 October 2026, before any test for this section existed. It was rebuilt on 26 October when the section was rewritten, and corrected the same day after a review pass of our own (see the end of this file).
+Seventy-two vectors over the twelve clauses of section 5.5, the Settlement and Refusal Identity Invariant, plus one vector that states a property of the checker. They follow the text of the section as proposed in [x402-foundation/x402 pull request 3776](https://github.com/x402-foundation/x402/pull/3776), checked on 26 October 2026 against the text at the head of that pull request, commit `2819ed7`. The 22 known-answer files were recomputed against that text by two people outside this project, each with their own implementation: [ruiruii](https://github.com/x402-foundation/x402/pull/3958#issuecomment-6424707421) and [NSPG13](https://github.com/x402-foundation/x402/pull/3958#issuecomment-6427311341). We know of no outside recompute of the other 50 vectors. The first set was written by Abdellah Ouadoudi ([github.com/holistis](https://github.com/holistis)) on 18 October 2026, before any test for this section existed. It was rebuilt on 26 October when the section was rewritten, and corrected the same day after a review pass of our own (see the end of this file).
 
 ## What is here
 
@@ -13,7 +13,7 @@ Each clause carries at least one acceptance and at least one rejection:
 | `derive-once-at-ingress` | 2 |
 | `ingress-snapshot-complete` | 2 |
 | `all-paths-same-artifact` | 2 |
-| `changed-request-different-artifact` | 5 |
+| `changed-request-different-artifact` | 6 |
 | `own-identity-from-decoded-fields` | 2 |
 | `normalization-applied` | 2 |
 | `canonical-members` | 35 |
@@ -49,6 +49,10 @@ Cite a tag, not `main`. The 22 `known-answer-` files, eleven right values and el
 ## Audit, 26 October 2026
 
 A review pass that we ran ourselves, with AI reviewers that did not write the vectors, read them against the section and the checker. It is our own check and not an outside audit. It found defects: a collapsed identity could still pass overall, missing data counted as compliance, the three-identifiers check demanded a canonicalized form that the text says a reference must not be required to take, address lowercasing applied to every address, ISO-8859-1 was decoded as windows-1252, duplicate JSON keys escaped detection, and an implementation that replaced every identity by another hash still passed all vectors. Each of these now has a regression test in `test/attempt-identity.mjs`, and the last one is why the known-answer vectors exist.
+
+## 25 November 2026
+
+Added `changed-body-established-at-ingress`, the positive control the body half of `changed-request-different-artifact` did not have: query and amount each already had a vector showing a changed field correctly producing a different, ingress-established identity, body had only the silent-collapse negative. Found by mapping this set against the four negative conformance cases named in pull request 3776's own description (NEG-1 through NEG-4); the other three were already covered, two of them (NEG-3) by more than one vector. 73 vectors now, the twelve-clause table above and the npm-run line in the root README updated to match.
 
 ## Cite
 
