@@ -7,7 +7,7 @@ https://gist.github.com/hristovdimitri2-hub/0d2f4436cc73a14d837c39f88168a5bf
 
 The gist is the work of its author and its licence is his: the current revision of the file starts with an SPDX-License-Identifier: MIT line and says that this is the licence of the file itself. This repository does not contain the file. The file says that it is a redacted extraction of the decision logic of the Kristo Intelligence production code, with the transport removed, that it is not the production code, that it uses the standard library only and that it makes no network call.
 
-The set was run against that logic. It was not confirmed by it. The adapter is ours.
+The set was run against that logic. It was not verified by it. The adapter is ours.
 
 This folder is in the repository but not in the npm package.
 
@@ -81,7 +81,7 @@ In words: of the 36 asserted vectors, 22 get the answer of the reference, 14 get
 
 ## What changed between the first two runs
 
-The four vectors about the binding on the proof rail and the amounts above what a float holds now get an answer that the vector allows: his file holds a transfer from another payer (payer_mismatch) and holds an amount that is one unit short, also above 2^53. The two vectors about the nonce on the authorization rail were outside what the vector allows in the revision run here, as that revision has no nonce binding. The revision of 24 November adds it and the adapter passes the nonce, so that class is measured from the third run on. The first run showed six deliveries that the vectors do not allow: four about the binding of a transfer to a payment and two about floats. Four of them are gone (the two on the proof rail and the two about floats). The remaining two sat on the rail whose binding the second revision did not yet carry.
+The four vectors about the binding on the proof rail and the amounts above what a float holds now get an answer that the vector allows: his file holds a transfer from another payer (payer_mismatch) and holds an amount that is one unit short, also above 2^53. The two vectors about the nonce on the authorization rail were outside what the vector allows in the revision of 23 November, as that revision has no nonce binding. The revision of 24 November adds it and the adapter passes the nonce, so that class is measured from the third run on. The first run showed six deliveries that the vectors do not allow: four about the binding of a transfer to a payment and two about floats. Four of them are gone (the two on the proof rail and the two about floats). The remaining two sat on the rail whose binding the second revision did not yet carry.
 
 ## Where the two answers differ
 
