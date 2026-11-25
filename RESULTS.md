@@ -16,6 +16,16 @@ The same day we reproduced it ourselves from the raw bytes of main with the same
 
 Our own earlier runs against earlier revisions of their file are recorded in vectors/settlement-pending/cross-run/.
 
+## attempt-identity (vectors/attempt-identity and vectors/attempt-identity-extra)
+
+Set: the folders vectors/attempt-identity (72 files, including the 22 frozen known-answer files) and vectors/attempt-identity-extra (8 files), at commit 0280039f00d8. They hold 30 known-answer vectors (15 right values and 15 wrong twins) and 13 canonical variants.
+
+| Date | Who | What ran | Result | Link |
+|---|---|---|---|---|
+| 2026-11-24 (published 2026-11-25) | Aron (jrosgren), Polkulab (Payvetted) | Their script crossrun_holistis.py against x402-decision-record v1.0.1 (tag v1.0.1, ee2a6e9), twice: with their own rule (the request hashed as it was sent) and with an adapter they wrote for the canonical-member rules of section 5.5. Their own tests 29 of 29 OK. No network at run time. | Their own rule: 3 of the 15 right values match, 12 differ, 4 of their values equal our wrong twins, and on the 13 canonical variants 6 agree and 7 differ. Their adapter: 30 of 30 known answers agree and 13 of 13 canonical variants. | [crossruns/holistis-2026-11-24, commit 250813bdd619](https://github.com/jrosgren/x402-decision-record/tree/250813bdd6196aa0f9fa63076981d8c28d4adccd/crossruns/holistis-2026-11-24) |
+
+What this run does not show. In their words: with their own rule the two designs differ on purpose, because theirs hashes what was sent and section 5.5 hashes canonical members, so the differences are a design choice and not an implementation bug; the adapter is not part of their spec v1.0.1; the other 50 or so vectors, which record what an implementation did across paths, were not run because their verifier checks one signed record after the fact and has nothing to feed them into; the request hashes they printed for the 15 raw requests have not been checked by anyone else; and the data is example data, not a production record. In ours: on 24 November we rebuilt their own rule from their v1.0.1 spec and got the same numbers for the known answers and the canonical variants, which is our own check of those numbers and not a second run; we did not rebuild their adapter, so the 30 of 30 is their number.
+
 ## Adding a run
 
 Open an issue or a pull request with the date, the fingerprint you ran against, the command, the result and what your run does not show. We list what you report and the limits you name.
