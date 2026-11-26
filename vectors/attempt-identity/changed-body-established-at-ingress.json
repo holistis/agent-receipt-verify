@@ -1,0 +1,83 @@
+{
+  "schema_version": "3.0.0",
+  "verifies": "attempt-identity",
+  "requires_chain_read": false,
+  "provenance": [
+    "x402 specification v2 section 5.5, Settlement and Refusal Identity Invariant, as proposed in x402-foundation/x402 pull request 3776 on branch spec/settlement-refusal-identity-invariant and not on main; checked against commit 2819ed7 (arrival-order query canonicalization) on 26 October 2026",
+    "the gap these cover was named by ruiruii in erc-8004/erc-8004-contracts#99 on 18 October 2026: each of the four evidence layers depends on an attempt identity that none of them defines",
+    "the section names these vectors as the interim normative home until a permanent location in the x402 repository is agreed"
+  ],
+  "id": "attempt-identity-changed-body-established-at-ingress",
+  "clause": "changed-request-different-artifact",
+  "encodes": "The positive control for the body half of the changed-request clause: a different body gives a different artifact, established at ingress by comparing snapshots. Query and amount already had this positive control (changed-query-established-at-ingress, changed-amount-established-at-ingress); body only had the silent-collapse negative until this vector.",
+  "description": "A changed body field gets its own identity, and the difference is established at ingress, not discovered downstream.",
+  "input": {
+    "ingress": {
+      "snapshot": {
+        "method": "POST",
+        "path": "/api/paid/verify-ownership",
+        "query": "",
+        "body": {
+          "endpoint": "https://example.com/api/health",
+          "ownerAddress": "0x1111111111111111111111111111111111111111",
+          "method": "dns-txt"
+        },
+        "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+        "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "network": "eip155:8453",
+        "amount": "1000",
+        "scheme": "exact"
+      },
+      "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196"
+    },
+    "paths": [
+      {
+        "path": "challenge-quote",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "",
+          "body": {
+            "endpoint": "https://example.com/api/health",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "1000",
+          "scheme": "exact"
+        },
+        "identity": "2ed52a521f9762c3adc24c8048a4ee04a3796202a34c335585fc953e15c97196",
+        "established_at": "ingress"
+      },
+      {
+        "path": "settle",
+        "snapshot": {
+          "method": "POST",
+          "path": "/api/paid/verify-ownership",
+          "query": "",
+          "body": {
+            "endpoint": "https://example.com/other",
+            "ownerAddress": "0x1111111111111111111111111111111111111111",
+            "method": "dns-txt"
+          },
+          "payTo": "0x2888f36548a900b9b08d584524e1f73bc563ec26",
+          "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "network": "eip155:8453",
+          "amount": "1000",
+          "scheme": "exact"
+        },
+        "identity": "d94eac79383654790c1de9ad8d0aa335e0f1ce0c3fc96ab828603f4090d1ad6c",
+        "established_at": "ingress"
+      }
+    ]
+  },
+  "expected": {
+    "outcome": "PASS"
+  },
+  "limits": [
+    "This says the difference is established at ingress. It does not say the comparison covered every member of the snapshot.",
+    "Covers one changed body field (endpoint). A different field or a nested change is not shown here."
+  ]
+}
